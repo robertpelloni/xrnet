@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+dist/
+build/
+target/
+.venv/
+__pycache__/
+
+# Environments
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# Spatial Artifacts (scans, splats)
+*.ply
+*.splat
+*.nerf
