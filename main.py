@@ -1,10 +1,17 @@
-import sys
 import os
 
+def get_version():
+    try:
+        with open("VERSION.md", "r") as f:
+            return f.read().strip()
+    except Exception:
+        return "unknown"
+
 def main():
+    version = get_version()
     print("========================================")
-    print("      xrnet - Decentralized OS          ")
-    print("      Version: 0.1.0                    ")
+    print(f"      xrnet - Decentralized OS          ")
+    print(f"      Version: {version}                    ")
     print("========================================")
 
     print("\n[INFO] Initializing Everything Protocol...")
@@ -16,9 +23,6 @@ def main():
 
     print("\n[SUCCESS] xrnet is now running.")
     print("Press Ctrl+C to shutdown.")
-
-    # Placeholder for keeping the application alive
-    # sys.exit(0) for a clean run in the script test environment
 
 if __name__ == "__main__":
     main()

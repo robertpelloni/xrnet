@@ -1,7 +1,8 @@
 # ROADMAP: xrnet Long-Term Milestones
 
 ## Phase 1: Foundation (Current)
-- [ ] Finalize technical architecture and tech stack selection.
+- [x] Finalize technical architecture and tech stack selection.
+- [x] Establish project scaffolding (Backend, Frontend, Spatial).
 - [ ] Establish basic P2P networking using Veilid/IPFS.
 - [ ] Initial spatial scanning POC with Gaussian Splatting.
 
