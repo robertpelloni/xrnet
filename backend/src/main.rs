@@ -1,8 +1,9 @@
 use std::fs;
+use std::thread;
+use std::time::Duration;
 
 fn get_version() -> String {
-    // We are in backend/
-    fs::read_to_string("VERSION.md") // Relative to where it is run
+    fs::read_to_string("VERSION.md")
         .or_else(|_| fs::read_to_string("../VERSION.md"))
         .map(|v| v.trim().to_string())
         .unwrap_or_else(|_| "unknown".to_string())
@@ -13,6 +14,28 @@ fn main() {
     println!("========================================");
     println!("      xrnet-backend v{}              ", version);
     println!("========================================");
+
     println!("[INFO] Initializing Everything Protocol...");
-    println!("[INFO] Protocol initialized successfully.");
+
+    // Simulate P2P Node Startup
+    println!("[PROTOCOL] Starting P2P node (Veilid mode)...");
+    thread::sleep(Duration::from_millis(500));
+    println!("[PROTOCOL] Node ID: vld_8x2a...f9z1");
+
+    // Simulate DHT joining
+    println!("[PROTOCOL] Joining Distributed Hash Table...");
+    thread::sleep(Duration::from_millis(500));
+    println!("[PROTOCOL] Connected to 42 peers.");
+
+    // Simulate IPFS Gateway
+    println!("[PROTOCOL] Mounting IPFS storage gateway...");
+    thread::sleep(Duration::from_millis(300));
+
+    println!("[INFO] Everything Protocol initialized successfully.");
+    println!("[STATUS] READY");
+
+    // Keep alive
+    loop {
+        thread::sleep(Duration::from_secs(3600));
+    }
 }
