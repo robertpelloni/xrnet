@@ -3,13 +3,13 @@
 
 echo "--- Building xrnet v0.1.0 ---"
 
-echo "[1/3] Building Backend..."
-# Placeholder for backend build (e.g., cargo build)
-echo "Backend build skipped (placeholder)."
+echo "[1/3] Building Backend (Rust)..."
+cd backend && cargo build
+cd ..
 
-echo "[2/3] Building Frontend..."
-# Placeholder for frontend build (e.g., npm run build)
-echo "Frontend build skipped (placeholder)."
+echo "[2/3] Building Frontend (React/Vite)..."
+cd frontend && npm install && npm run build
+cd ..
 
 echo "[3/3] Building Spatial AI Components..."
 # Placeholder for spatial build
