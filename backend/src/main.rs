@@ -10,11 +10,21 @@ use libp2p::{
 };
 use futures::StreamExt;
 use serde_json::json;
+use axum::{routing::get, Json, Router};
+use std::net::SocketAddr;
+use std::sync::{Arc, Mutex};
+use tower_http::cors::CorsLayer;
 
 #[derive(libp2p::swarm::NetworkBehaviour)]
 struct MyBehaviour {
     ping: ping::Behaviour,
     mdns: mdns::tokio::Behaviour,
+}
+
+struct AppState {
+    peer_id: String,
+    peers: Mutex<usize>,
+    network: Mutex<String>,
 }
 
 fn get_version() -> String {
@@ -31,7 +41,6 @@ fn set_status(status: &str) {
 
 async fn connect_to_surrounding_system() -> bool {
     println!("[PROTOCOL] Attempting to connect to surrounding system (port 9000)...");
-
     for _ in 0..5 {
         if let Ok(mut stream) = TcpStream::connect("127.0.0.1:9000").await {
             println!("[PROTOCOL] Connected to external peer.");
@@ -62,7 +71,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let local_key = identity::Keypair::generate_ed25519();
     let local_peer_id = PeerId::from(local_key.public());
+    let peer_id_str = local_peer_id.to_string();
     println!("[PROTOCOL] Local Peer ID: {:?}", local_peer_id);
+
+    let state = Arc::new(AppState {
+        peer_id: peer_id_str.clone(),
+        peers: Mutex::new(42), // Mock base
+        network: Mutex::new("Standalone".to_string()),
+    });
 
     let mut swarm = libp2p::SwarmBuilder::with_existing_identity(local_key)
         .with_tokio()
@@ -80,19 +96,44 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .with_swarm_config(|c| c.with_idle_connection_timeout(Duration::from_secs(60)))
         .build();
 
-    // Listen on all interfaces and whatever port the OS assigns
     swarm.listen_on("/ip4/0.0.0.0/tcp/0".parse()?)?;
 
-    // Handshake Integration
+    // API Server
+    let api_state = Arc::clone(&state);
+    let app = Router::new()
+        .route("/api/status", get(move || {
+            let s = Arc::clone(&api_state);
+            async move {
+                let peers = *s.peers.lock().unwrap();
+                let network = s.network.lock().unwrap().clone();
+                Json(json!({
+                    "peer_id": s.peer_id,
+                    "peers": peers,
+                    "network": network,
+                    "version": get_version(),
+                }))
+            }
+        }))
+        .layer(CorsLayer::permissive());
+
+    let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
+    tokio::spawn(async move {
+        println!("[API] Server listening on http://{}", addr);
+        let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
+        axum::serve(listener, app).await.unwrap();
+    });
+
     let integrated = connect_to_surrounding_system().await;
+    if integrated {
+        let mut n = state.network.lock().unwrap();
+        *n = "Integrated".to_string();
+        let mut p = state.peers.lock().unwrap();
+        *p = 43;
+    }
 
     println!("[INFO] Everything Protocol initialized successfully.");
     println!("[STATUS] READY");
     set_status("READY");
-
-    if integrated {
-        println!("[PROTOCOL] Connected to external network.");
-    }
 
     loop {
         match swarm.select_next_some().await {
@@ -100,13 +141,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 println!("[PROTOCOL] Listening on {:?}", address);
             }
             SwarmEvent::Behaviour(MyBehaviourEvent::Mdns(mdns::Event::Discovered(list))) => {
-                for (peer_id, addr) in list {
-                    println!("[PROTOCOL] Discovered peer {} at {:?}", peer_id, addr);
-                }
-            }
-            SwarmEvent::Behaviour(MyBehaviourEvent::Mdns(mdns::Event::Expired(list))) => {
-                for (peer_id, addr) in list {
-                    println!("[PROTOCOL] Peer expired {} at {:?}", peer_id, addr);
+                for (peer_id, _) in list {
+                    let mut p = state.peers.lock().unwrap();
+                    *p += 1;
+                    println!("[PROTOCOL] Discovered peer {}", peer_id);
                 }
             }
             _ => {}

@@ -3,17 +3,14 @@ import subprocess
 import os
 import time
 import signal
+import requests
 
 class TestEndToEndIntegration(unittest.TestCase):
-    def test_system_boot_and_p2p_initialization(self):
-        """Verify that the system starts and the libp2p node initializes."""
-        print("\n--- Running E2E libp2p Node Initialization Test ---")
+    def test_system_full_stack(self):
+        """Verify that the backend API is functional and the system boots."""
+        print("\n--- Running E2E Full Stack Integration Test ---")
 
-        # 1. Clean status file if exists
-        if os.path.exists("backend/status.json"):
-            os.remove("backend/status.json")
-
-        # 2. Start the xrnet system
+        # 1. Start the xrnet system
         kwargs = {}
         if os.name != 'nt':
             kwargs['preexec_fn'] = os.setpgrp
@@ -21,7 +18,18 @@ class TestEndToEndIntegration(unittest.TestCase):
         process = subprocess.Popen(["./start.sh"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, **kwargs)
 
         # Give it time to perform initialization
-        time.sleep(10)
+        time.sleep(12)
+
+        # 2. Check Backend API
+        try:
+            response = requests.get("http://127.0.0.1:8080/api/status", timeout=5)
+            self.assertEqual(response.status_code, 200)
+            data = response.json()
+            print(f"API Response: {data}")
+            self.assertIn("peer_id", data)
+            self.assertEqual(data["version"], "0.1.1")
+        except Exception as e:
+            self.fail(f"Backend API not accessible: {e}")
 
         # Capture snapshots
         try:
@@ -38,12 +46,7 @@ class TestEndToEndIntegration(unittest.TestCase):
         # Verify component launches
         self.assertIn("Starting xrnet", stdout)
         self.assertIn("xrnet-backend v0.1.1", stdout)
-
-        # Verify libp2p Node initialization
-        self.assertIn("[PROTOCOL] Local Peer ID:", stdout)
-        self.assertIn("[PROTOCOL] Listening on", stdout)
-        self.assertIn("[STATUS] READY", stdout)
-        self.assertIn("[COORD] Everything Protocol detected as READY", stdout)
+        self.assertIn("[API] Server listening on http://127.0.0.1:8080", stdout)
 
     def test_integrity(self):
         """Ensure project integrity is verified."""

@@ -1,20 +1,39 @@
 import { useState, useEffect } from 'react'
 import './App.css'
+import { SpatialViewer } from './SpatialViewer'
+
+interface SystemStatus {
+  peer_id: string;
+  peers: number;
+  network: string;
+  version: string;
+}
 
 function App() {
   const [status, setStatus] = useState('Initializing...')
   const [peers, setPeers] = useState(0)
   const [network, setNetwork] = useState('Standalone')
+  const [peerId, setPeerId] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearching, setIsSearching] = useState(false)
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setStatus('Operational')
-      setPeers(43)
-      setNetwork('Integrated')
-    }, 2000)
-    return () => clearTimeout(timer)
+    const fetchStatus = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/api/status')
+        const data: SystemStatus = await response.json()
+        setPeers(data.peers)
+        setNetwork(data.network)
+        setPeerId(data.peer_id)
+        setStatus('Operational')
+      } catch (error) {
+        console.error('Failed to fetch backend status:', error)
+      }
+    }
+
+    const interval = setInterval(fetchStatus, 3000)
+    fetchStatus()
+    return () => clearInterval(interval)
   }, [])
 
   const handleSearch = (e: React.FormEvent) => {
@@ -31,7 +50,7 @@ function App() {
     <div className="xrnet-dashboard">
       <header>
         <h1>xrnet</h1>
-        <p className="version">v0.1.0</p>
+        <p className="version">v0.1.1</p>
       </header>
 
       <main>
@@ -40,6 +59,12 @@ function App() {
           <div className={`status-indicator ${status.toLowerCase().replace('...', '')}`}>
             {status}
           </div>
+          {peerId && (
+            <div className="peer-id-display">
+              <label>Peer ID:</label>
+              <code>{peerId.slice(0, 12)}...{peerId.slice(-4)}</code>
+            </div>
+          )}
         </section>
 
         <section className="protocol-panel">
@@ -72,6 +97,7 @@ function App() {
 
         <section className="spatial-panel">
           <h2>Spatial Layer</h2>
+          <SpatialViewer />
           <div className="metric">
             <label>Mapping:</label>
             <span>LIDAR Ready</span>
