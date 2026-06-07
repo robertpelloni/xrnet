@@ -5,6 +5,8 @@ function App() {
   const [status, setStatus] = useState('Initializing...')
   const [peers, setPeers] = useState(0)
   const [network, setNetwork] = useState('Standalone')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [isSearching, setIsSearching] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -14,6 +16,16 @@ function App() {
     }, 2000)
     return () => clearTimeout(timer)
   }, [])
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!searchQuery) return
+    setIsSearching(true)
+    setTimeout(() => {
+      setIsSearching(false)
+      alert(`Everything Protocol Search Result: No decentralized records found for "${searchQuery}".`)
+    }, 1500)
+  }
 
   return (
     <div className="xrnet-dashboard">
@@ -44,6 +56,18 @@ function App() {
             <label>Network:</label>
             <span className={network.toLowerCase()}>{network}</span>
           </div>
+
+          <form className="search-form" onSubmit={handleSearch}>
+            <input
+              type="text"
+              placeholder="Search the DHT..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <button type="submit" disabled={isSearching}>
+              {isSearching ? 'Searching...' : 'Search'}
+            </button>
+          </form>
         </section>
 
         <section className="spatial-panel">
