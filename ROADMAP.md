@@ -5,6 +5,7 @@
 - [x] Establish project scaffolding (Backend, Frontend, Spatial).
 - [x] Implement inter-component handshake and coordination protocol.
 - [x] Integrated CI/CD pipeline for build and test automation.
+- [x] Established libp2p networking baseline (v0.1.1).
 
 ## Phase 2: The Everything Protocol
 - [ ] Implement decentralized identity and cryptographic pub-sub.

@@ -37,7 +37,7 @@ class TestEndToEndIntegration(unittest.TestCase):
 
         # Verify component launches
         self.assertIn("Starting xrnet", stdout)
-        self.assertIn("xrnet-backend v0.1.0", stdout)
+        self.assertIn("xrnet-backend v0.1.1", stdout)
 
         # Verify libp2p Node initialization
         self.assertIn("[PROTOCOL] Local Peer ID:", stdout)
