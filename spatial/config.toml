@@ -1,0 +1,15 @@
+# Spatial Layer Configuration
+
+[mapping]
+technique = "3D Gaussian Splatting"
+precision = "sub-millimeter"
+realtime = true
+
+[ai_model]
+type = "LWM"
+version = "0.1.0"
+semantic_labeling = true
+
+[hardware]
+lidar_enabled = true
+vio_odometry = true

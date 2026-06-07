@@ -33,6 +33,13 @@ Use the `start.sh` script to launch the backend and the application coordinator 
 The system will initialize the "Everything Protocol" and the spatial layer before starting the UI gateway.
 
 ## Verification & Testing
+### Integrated Pipeline
+For a complete build and test sequence, run:
+```bash
+./pipeline.sh
+```
+This script automates building, integrity validation, and E2E testing.
+
 ### End-to-End Integration
 Run the full E2E suite to confirm system boot and process orchestration:
 ```bash

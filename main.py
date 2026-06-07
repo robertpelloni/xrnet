@@ -27,6 +27,9 @@ def main():
     sys.stdout.flush()
 
     sys.stdout.write("[COORD] Loading Spatial Layer AI Models...\n")
+    # Simulate loading from spatial/config.toml
+    if os.path.exists("spatial/config.toml"):
+        sys.stdout.write("[COORD] Loading configuration from spatial/config.toml...\n")
     sys.stdout.flush()
     time.sleep(0.5)
     sys.stdout.write("[COORD] AI Models loaded (Gaussian Splatting LWM).\n")
