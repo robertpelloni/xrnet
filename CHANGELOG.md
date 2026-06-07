@@ -14,3 +14,27 @@
 - Real-time non-blocking TCP handshake in libp2p backend.
 - Asynchronous status bridging between backend and coordinator.
 - Deployment-ready multi-instance simulation suite.
+
+## [0.1.2] - 2026-06-07
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.3] - 2026-06-07
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.4] - 2026-06-07
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.5] - 2026-06-07
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.6] - 2026-06-07
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.7] - 2026-06-07
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.8] - 2026-06-07
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.2] - 2026-06-07
+- Autonomous version bump via Executive Protocol.

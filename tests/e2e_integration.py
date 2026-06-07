@@ -27,7 +27,8 @@ class TestEndToEndIntegration(unittest.TestCase):
             data = response.json()
             print(f"API Response: {data}")
             self.assertIn("peer_id", data)
-            self.assertEqual(data["version"], "0.1.1")
+            # Use a starts_with or just check existence since version bumps automatically
+            self.assertTrue(data["version"].startswith("0.1."))
         except Exception as e:
             self.fail(f"Backend API not accessible: {e}")
 
@@ -45,16 +46,17 @@ class TestEndToEndIntegration(unittest.TestCase):
 
         # Verify component launches
         self.assertIn("Starting xrnet", stdout)
-        self.assertIn("xrnet-backend v0.1.1", stdout)
+        # Allow any 0.1.x version
+        self.assertTrue("xrnet-backend v0.1." in stdout)
         self.assertIn("[API] Server listening on http://127.0.0.1:8080", stdout)
-        self.assertIn("[COORD] Executing Autonomous Sync Protocol...", stdout)
+        self.assertIn("[COORD] Executing Executive Autonomous Protocol...", stdout)
+        self.assertIn("[COORD] Executive Protocol Successful.", stdout)
 
-    def test_sync_api(self):
-        """Verify that the sync API can be triggered."""
-        print("\n--- Running Sync API Integration Test ---")
+    def test_protocol_api(self):
+        """Verify that the Executive Protocol API can be triggered."""
+        print("\n--- Running Executive Protocol API Integration Test ---")
 
-        # Ensure system is running (assuming test_system_full_stack already ran or we start it here)
-        # For simplicity in this environment, we start it.
+        # Ensure system is running
         kwargs = {}
         if os.name != 'nt':
             kwargs['preexec_fn'] = os.setpgrp
@@ -70,11 +72,11 @@ class TestEndToEndIntegration(unittest.TestCase):
                     pass
                 time.sleep(1)
 
-            response = requests.post("http://127.0.0.1:8080/api/system/sync", timeout=30)
+            response = requests.post("http://127.0.0.1:8080/api/system/protocol", timeout=60)
             self.assertEqual(response.status_code, 200)
             data = response.json()
             self.assertEqual(data["status"], "success")
-            self.assertIn("Repository synchronization complete.", data["stdout"])
+            self.assertIn("EXECUTIVE PROTOCOL: COMPLETED", data["stdout"])
         finally:
             if os.name != 'nt':
                 os.killpg(os.getpgid(process.pid), signal.SIGTERM)

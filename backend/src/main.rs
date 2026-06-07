@@ -150,19 +150,19 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
         }))
-        .route("/api/system/sync", post(|| async move {
-            println!("[API] System Sync requested.");
+        .route("/api/system/protocol", post(|| async move {
+            println!("[API] Executive Protocol requested.");
 
-            let (script_path, working_dir) = if std::path::Path::new("./scripts/sync_repo.sh").exists() {
-                ("./scripts/sync_repo.sh", ".")
-            } else if std::path::Path::new("../scripts/sync_repo.sh").exists() {
-                ("../scripts/sync_repo.sh", "..")
+            let (script_path, working_dir) = if std::path::Path::new("./scripts/autonomous_protocol.py").exists() {
+                ("python3", ".")
+            } else if std::path::Path::new("../scripts/autonomous_protocol.py").exists() {
+                ("python3", "..")
             } else {
-                ("scripts/sync_repo.sh", ".") // Fallback
+                ("python3", ".") // Fallback
             };
 
-            let output = tokio::process::Command::new("sh")
-                .arg(script_path)
+            let output = tokio::process::Command::new(script_path)
+                .arg("./scripts/autonomous_protocol.py")
                 .current_dir(working_dir)
                 .output()
                 .await;
@@ -171,8 +171,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 Ok(out) => {
                     let stdout = String::from_utf8_lossy(&out.stdout).to_string();
                     let stderr = String::from_utf8_lossy(&out.stderr).to_string();
-                    println!("[API] Sync stdout: {}", stdout);
-                    println!("[API] Sync stderr: {}", stderr);
+                    println!("[API] Protocol stdout: {}", stdout);
+                    println!("[API] Protocol stderr: {}", stderr);
 
                     let status = if out.status.success() { "success" } else { "error" };
 

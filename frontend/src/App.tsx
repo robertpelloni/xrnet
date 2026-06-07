@@ -19,7 +19,7 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearching, setIsSearching] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
-  const [syncOutput, setSyncOutput] = useState('')
+  const [protocolOutput, setProtocolOutput] = useState('')
 
   useEffect(() => {
     const fetchStatus = async () => {
@@ -95,23 +95,23 @@ function App() {
     }
   }
 
-  const handleSync = async () => {
+  const handleProtocol = async () => {
     setIsSyncing(true)
-    setSyncOutput('Syncing repository...')
+    setProtocolOutput('Executing Autonomous Executive Protocol...')
     try {
-      const response = await fetch('http://localhost:8080/api/system/sync', {
+      const response = await fetch('http://localhost:8080/api/system/protocol', {
         method: 'POST'
       })
       const data = await response.json()
       if (data.status === 'success') {
-        setSyncOutput(`Sync Successful:\n${data.stdout}\n${data.stderr}`)
-        alert("Repository synchronization complete.")
+        setProtocolOutput(`Protocol Executed Successfully:\n${data.stdout}\n${data.stderr}`)
+        alert("Executive Protocol execution complete.")
       } else {
-        setSyncOutput(`Sync Failed: ${data.message}`)
+        setProtocolOutput(`Protocol Failed: ${data.message || data.stderr}`)
       }
     } catch (error) {
-      console.error('Sync failed:', error)
-      setSyncOutput('Sync failed. Check console for details.')
+      console.error('Protocol failed:', error)
+      setProtocolOutput('Protocol failed. Check console for details.')
     } finally {
       setIsSyncing(false)
     }
@@ -139,14 +139,14 @@ function App() {
             )}
             <div className="action-group">
               <button className="action-button" onClick={handlePublishProfile}>Publish My Profile</button>
-              <button className="action-button secondary" onClick={handleSync} disabled={isSyncing}>
-                {isSyncing ? 'Syncing...' : 'Sync Repository'}
+              <button className="action-button secondary" onClick={handleProtocol} disabled={isSyncing}>
+                {isSyncing ? 'Executing...' : 'Run Autonomous Protocol'}
               </button>
             </div>
-            {syncOutput && (
+            {protocolOutput && (
               <div className="sync-log">
-                <label>Sync Log:</label>
-                <pre>{syncOutput}</pre>
+                <label>Protocol Log:</label>
+                <pre>{protocolOutput}</pre>
               </div>
             )}
           </section>

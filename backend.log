@@ -7,19 +7,19 @@ warning: struct `UserProfile` is never constructed
    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
 
 warning: `xrnet-backend` (bin "xrnet-backend") generated 1 warning
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.28s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.30s
      Running `target/debug/xrnet-backend`
 ========================================
-      xrnet-backend v0.1.1
+      xrnet-backend v0.1.9
 ========================================
 [INFO] Initializing Everything Protocol (libp2p + Kademlia)...
-[PROTOCOL] Local Peer ID: PeerId("12D3KooWFiNPuELFgcoxfAdeQxix8MicygckxZpP7NAfTEtjShK2")
+[PROTOCOL] Local Peer ID: PeerId("12D3KooWPiSrT8PXNj3v8yizmvaEC5Euz8NnzhRxjjKmMJqFRA7Y")
 [API] Server listening on http://127.0.0.1:8080
 [PROTOCOL] Attempting to connect to surrounding system (port 9000)...
 [PROTOCOL] Warning: Could not connect to surrounding system. Operating in standalone mode.
 [INFO] Everything Protocol initialized successfully.
 [STATUS] READY
-[PROTOCOL] Listening on /ip4/127.0.0.1/tcp/39737
-[PROTOCOL] Listening on /ip4/192.168.0.2/tcp/39737
-[PROTOCOL] Listening on /ip4/172.17.0.1/tcp/39737
-[API] System Sync requested.
+[PROTOCOL] Listening on /ip4/127.0.0.1/tcp/36815
+[PROTOCOL] Listening on /ip4/192.168.0.2/tcp/36815
+[PROTOCOL] Listening on /ip4/172.17.0.1/tcp/36815
+[API] Executive Protocol requested.
