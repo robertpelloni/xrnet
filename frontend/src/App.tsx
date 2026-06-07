@@ -4,11 +4,13 @@ import './App.css'
 function App() {
   const [status, setStatus] = useState('Initializing...')
   const [peers, setPeers] = useState(0)
+  const [network, setNetwork] = useState('Standalone')
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setStatus('Operational')
-      setPeers(42)
+      setPeers(43)
+      setNetwork('Integrated')
     }, 2000)
     return () => clearTimeout(timer)
   }, [])
@@ -37,6 +39,10 @@ function App() {
           <div className="metric">
             <label>P2P Node:</label>
             <span>Active (Veilid)</span>
+          </div>
+          <div className="metric">
+            <label>Network:</label>
+            <span className={network.toLowerCase()}>{network}</span>
           </div>
         </section>
 

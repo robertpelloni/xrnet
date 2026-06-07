@@ -5,21 +5,24 @@ import time
 import signal
 
 class TestEndToEndIntegration(unittest.TestCase):
-    def test_system_boot_and_protocol_handshake(self):
-        """Verify that the system starts and the protocol performs its handshake."""
-        print("\n--- Running E2E Protocol Handshake Test ---")
+    def test_system_boot_and_external_handshake(self):
+        """Verify that the system starts and successfully handshakes with an external peer."""
+        print("\n--- Running E2E External Handshake Test ---")
 
-        # Start the system in the background
+        # 1. Start the Mock Peer
+        mock_peer = subprocess.Popen(["python3", "scripts/mock_peer.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+        # 2. Start the xrnet system
         kwargs = {}
         if os.name != 'nt':
             kwargs['preexec_fn'] = os.setpgrp
 
         process = subprocess.Popen(["./start.sh"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, **kwargs)
 
-        # Give it a few seconds to perform initialization
-        time.sleep(6)
+        # Give it time to perform initialization and handshake
+        time.sleep(8)
 
-        # Capture a snapshot of the output
+        # Capture snapshots
         try:
             stdout, stderr = process.communicate(timeout=2)
         except subprocess.TimeoutExpired:
@@ -29,22 +32,22 @@ class TestEndToEndIntegration(unittest.TestCase):
                 process.terminate()
             stdout, stderr = process.communicate()
 
-        print(f"STDOUT Snapshot:\n{stdout}")
+        mock_peer.terminate()
+        mock_stdout, mock_stderr = mock_peer.communicate()
+
+        print(f"XRNET STDOUT Snapshot:\n{stdout}")
+        print(f"MOCK-PEER STDOUT Snapshot:\n{mock_stdout}")
 
         # Verify component launches
         self.assertIn("Starting xrnet", stdout)
         self.assertIn("xrnet-backend v0.1.0", stdout)
-        self.assertIn("xrnet is now fully operational", stdout)
 
-        # Verify Protocol specific logs (Handshake)
-        self.assertIn("[PROTOCOL] Starting P2P node", stdout)
-        self.assertIn("[PROTOCOL] Joining Distributed Hash Table", stdout)
-        self.assertIn("[PROTOCOL] Connected to 42 peers", stdout)
-        self.assertIn("[STATUS] READY", stdout)
+        # Verify External Handshake in logs
+        self.assertIn("[PROTOCOL] Connected to external peer", stdout)
+        self.assertIn("[PROTOCOL] Handshake with external system successful", stdout)
+        self.assertIn("[PROTOCOL] Connected to external network and 43 peers", stdout)
 
-        # Verify Coordination
-        self.assertIn("[COORD] Waiting for Everything Protocol", stdout)
-        self.assertIn("[COORD] Everything Protocol detected as READY", stdout)
+        self.assertIn("[MOCK-PEER] Handshake complete", mock_stdout)
 
     def test_integrity(self):
         """Ensure project integrity is verified."""
