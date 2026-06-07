@@ -50,7 +50,7 @@ function App() {
           </div>
           <div className="metric">
             <label>P2P Node:</label>
-            <span>Active (Veilid)</span>
+            <span>Active (libp2p)</span>
           </div>
           <div className="metric">
             <label>Network:</label>

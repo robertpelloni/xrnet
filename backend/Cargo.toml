@@ -4,3 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+libp2p = { version = "0.54", features = ["tcp", "dns", "websocket", "noise", "yamux", "kad", "identify", "ping", "macros", "tokio", "mdns"] }
+tokio = { version = "1.37", features = ["full"] }
+futures = "0.3.30"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
