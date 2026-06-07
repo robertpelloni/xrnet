@@ -1,0 +1,53 @@
+warning: struct `UserProfile` is never constructed
+  --> src/main.rs:46:8
+   |
+46 | struct UserProfile {
+   |        ^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `xrnet-backend` (bin "xrnet-backend") generated 1 warning
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.32s
+     Running `target/debug/xrnet-backend`
+========================================
+      xrnet-backend v0.1.1
+========================================
+[INFO] Initializing Everything Protocol (libp2p + Kademlia)...
+[PROTOCOL] Local Peer ID: PeerId("12D3KooWLJX5jgEp4uQA4hfLZE7vwSh6btw6TyocXQ76A3nDEW7t")
+[API] Server listening on http://127.0.0.1:8080
+[PROTOCOL] Attempting to connect to surrounding system (port 9000)...
+[PROTOCOL] Warning: Could not connect to surrounding system. Operating in standalone mode.
+[INFO] Everything Protocol initialized successfully.
+[STATUS] READY
+[PROTOCOL] Listening on /ip4/127.0.0.1/tcp/46679
+[PROTOCOL] Listening on /ip4/192.168.0.2/tcp/46679
+[PROTOCOL] Listening on /ip4/172.17.0.1/tcp/46679
+[API] System Sync requested.
+[API] Sync stdout: --- [SYNC] Executive Protocol: Repository Synchronization ---
+[SYNC] Fetching all remotes and tags...
+[SYNC] Tracking upstream: origin
+[SYNC] Current branch: jules-11606104193758181264-b9210515
+[SYNC] merging main into jules-11606104193758181264-b9210515 to prevent drift...
+Already up to date.
+[SYNC] Reconciling feature branches under robertpelloni...
+[SYNC] Updating submodules recursively...
+[SYNC] Repository synchronization complete.
+
+[API] Sync stderr:
+[API] System Sync requested.
+[API] Sync stdout: --- [SYNC] Executive Protocol: Repository Synchronization ---
+[SYNC] Fetching all remotes and tags...
+[SYNC] Tracking upstream: origin
+[SYNC] Current branch: jules-11606104193758181264-b9210515
+[SYNC] merging main into jules-11606104193758181264-b9210515 to prevent drift...
+Already up to date.
+[SYNC] Reconciling feature branches under robertpelloni...
+[SYNC] Updating submodules recursively...
+[SYNC] Repository synchronization complete.
+
+[API] Sync stderr:
+[PROTOCOL] Discovered peer 12D3KooWRf69fPFbokmh5jdnNch25E4quMU8cLiFKtRWjEE691nk at /ip4/172.17.0.1/tcp/35069/p2p/12D3KooWRf69fPFbokmh5jdnNch25E4quMU8cLiFKtRWjEE691nk
+[PROTOCOL] Discovered peer 12D3KooWRf69fPFbokmh5jdnNch25E4quMU8cLiFKtRWjEE691nk at /ip4/192.168.0.2/tcp/35069/p2p/12D3KooWRf69fPFbokmh5jdnNch25E4quMU8cLiFKtRWjEE691nk
+[PROTOCOL] Kademlia Event: RoutingUpdated { peer: PeerId("12D3KooWRf69fPFbokmh5jdnNch25E4quMU8cLiFKtRWjEE691nk"), is_new_peer: true, addresses: [/ip4/172.17.0.1/tcp/35069/p2p/12D3KooWRf69fPFbokmh5jdnNch25E4quMU8cLiFKtRWjEE691nk], bucket_range: (Distance(57896044618658097711785492504343953926634992332820282019728792003956564819968), Distance(115792089237316195423570985008687907853269984665640564039457584007913129639935)), old_peer: None }
+[PROTOCOL] Kademlia Event: RoutingUpdated { peer: PeerId("12D3KooWRf69fPFbokmh5jdnNch25E4quMU8cLiFKtRWjEE691nk"), is_new_peer: false, addresses: [/ip4/172.17.0.1/tcp/35069/p2p/12D3KooWRf69fPFbokmh5jdnNch25E4quMU8cLiFKtRWjEE691nk, /ip4/192.168.0.2/tcp/35069/p2p/12D3KooWRf69fPFbokmh5jdnNch25E4quMU8cLiFKtRWjEE691nk], bucket_range: (Distance(57896044618658097711785492504343953926634992332820282019728792003956564819968), Distance(115792089237316195423570985008687907853269984665640564039457584007913129639935)), old_peer: None }
+[PROTOCOL] Kademlia Event: OutboundQueryProgressed { id: QueryId(0), result: Bootstrap(Ok(BootstrapOk { peer: PeerId("12D3KooWLJX5jgEp4uQA4hfLZE7vwSh6btw6TyocXQ76A3nDEW7t"), num_remaining: 0 })), stats: QueryStats { requests: 1, success: 0, failure: 1, start: Some(Instant { tv_sec: 17486, tv_nsec: 506164739 }), end: Some(Instant { tv_sec: 17486, tv_nsec: 601330939 }) }, step: ProgressStep { count: 1, last: true } }

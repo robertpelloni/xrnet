@@ -150,6 +150,47 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
         }))
+        .route("/api/system/sync", post(|| async move {
+            println!("[API] System Sync requested.");
+
+            let (script_path, working_dir) = if std::path::Path::new("./scripts/sync_repo.sh").exists() {
+                ("./scripts/sync_repo.sh", ".")
+            } else if std::path::Path::new("../scripts/sync_repo.sh").exists() {
+                ("../scripts/sync_repo.sh", "..")
+            } else {
+                ("scripts/sync_repo.sh", ".") // Fallback
+            };
+
+            let output = tokio::process::Command::new("sh")
+                .arg(script_path)
+                .current_dir(working_dir)
+                .output()
+                .await;
+
+            match output {
+                Ok(out) => {
+                    let stdout = String::from_utf8_lossy(&out.stdout).to_string();
+                    let stderr = String::from_utf8_lossy(&out.stderr).to_string();
+                    println!("[API] Sync stdout: {}", stdout);
+                    println!("[API] Sync stderr: {}", stderr);
+
+                    let status = if out.status.success() { "success" } else { "error" };
+
+                    Json(json!({
+                        "status": status,
+                        "stdout": stdout,
+                        "stderr": stderr,
+                        "exit_code": out.status.code()
+                    }))
+                }
+                Err(e) => {
+                    Json(json!({
+                        "status": "error",
+                        "message": e.to_string()
+                    }))
+                }
+            }
+        }))
         .layer(CorsLayer::permissive());
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 8080));

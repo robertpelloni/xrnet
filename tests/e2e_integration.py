@@ -47,6 +47,40 @@ class TestEndToEndIntegration(unittest.TestCase):
         self.assertIn("Starting xrnet", stdout)
         self.assertIn("xrnet-backend v0.1.1", stdout)
         self.assertIn("[API] Server listening on http://127.0.0.1:8080", stdout)
+        self.assertIn("[COORD] Executing Autonomous Sync Protocol...", stdout)
+
+    def test_sync_api(self):
+        """Verify that the sync API can be triggered."""
+        print("\n--- Running Sync API Integration Test ---")
+
+        # Ensure system is running (assuming test_system_full_stack already ran or we start it here)
+        # For simplicity in this environment, we start it.
+        kwargs = {}
+        if os.name != 'nt':
+            kwargs['preexec_fn'] = os.setpgrp
+        process = subprocess.Popen(["./start.sh"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, **kwargs)
+
+        try:
+            # Wait for API to be ready
+            for _ in range(20):
+                try:
+                    if requests.get("http://127.0.0.1:8080/api/status", timeout=1).status_code == 200:
+                        break
+                except:
+                    pass
+                time.sleep(1)
+
+            response = requests.post("http://127.0.0.1:8080/api/system/sync", timeout=30)
+            self.assertEqual(response.status_code, 200)
+            data = response.json()
+            self.assertEqual(data["status"], "success")
+            self.assertIn("Repository synchronization complete.", data["stdout"])
+        finally:
+            if os.name != 'nt':
+                os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+            else:
+                process.terminate()
+            process.wait()
 
     def test_integrity(self):
         """Ensure project integrity is verified."""

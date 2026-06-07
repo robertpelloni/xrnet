@@ -18,6 +18,8 @@ function App() {
   const [profiles, setProfiles] = useState<Record<string, string>>({})
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearching, setIsSearching] = useState(false)
+  const [isSyncing, setIsSyncing] = useState(false)
+  const [syncOutput, setSyncOutput] = useState('')
 
   useEffect(() => {
     const fetchStatus = async () => {
@@ -93,6 +95,28 @@ function App() {
     }
   }
 
+  const handleSync = async () => {
+    setIsSyncing(true)
+    setSyncOutput('Syncing repository...')
+    try {
+      const response = await fetch('http://localhost:8080/api/system/sync', {
+        method: 'POST'
+      })
+      const data = await response.json()
+      if (data.status === 'success') {
+        setSyncOutput(`Sync Successful:\n${data.stdout}\n${data.stderr}`)
+        alert("Repository synchronization complete.")
+      } else {
+        setSyncOutput(`Sync Failed: ${data.message}`)
+      }
+    } catch (error) {
+      console.error('Sync failed:', error)
+      setSyncOutput('Sync failed. Check console for details.')
+    } finally {
+      setIsSyncing(false)
+    }
+  }
+
   return (
     <div className="xrnet-dashboard">
       <header>
@@ -113,7 +137,18 @@ function App() {
                 <code>{peerId.slice(0, 12)}...{peerId.slice(-4)}</code>
               </div>
             )}
-            <button className="action-button" onClick={handlePublishProfile}>Publish My Profile</button>
+            <div className="action-group">
+              <button className="action-button" onClick={handlePublishProfile}>Publish My Profile</button>
+              <button className="action-button secondary" onClick={handleSync} disabled={isSyncing}>
+                {isSyncing ? 'Syncing...' : 'Sync Repository'}
+              </button>
+            </div>
+            {syncOutput && (
+              <div className="sync-log">
+                <label>Sync Log:</label>
+                <pre>{syncOutput}</pre>
+              </div>
+            )}
           </section>
 
           <section className="protocol-panel">

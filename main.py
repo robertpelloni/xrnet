@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import json
+import subprocess
 
 def get_version():
     try:
@@ -29,6 +30,24 @@ def wait_for_backend_ready(timeout=30):
         time.sleep(0.5)
     return False
 
+def run_sync_protocol():
+    sys.stdout.write("[COORD] Executing Autonomous Sync Protocol...\n")
+    sys.stdout.flush()
+    try:
+        result = subprocess.run(["sh", "./scripts/sync_repo.sh"], capture_output=True, text=True)
+        if result.returncode == 0:
+            sys.stdout.write("[COORD] Sync Protocol Successful.\n")
+            # Log the first few lines of output
+            lines = result.stdout.splitlines()
+            for line in lines[:5]:
+                sys.stdout.write(f"  {line}\n")
+        else:
+            sys.stdout.write(f"[COORD] Sync Protocol Failed (Code {result.returncode}):\n")
+            sys.stdout.write(f"  {result.stderr}\n")
+    except Exception as e:
+        sys.stdout.write(f"[COORD] Sync Protocol Error: {e}\n")
+    sys.stdout.flush()
+
 def main():
     version = get_version()
     sys.stdout.write("========================================\n")
@@ -38,6 +57,9 @@ def main():
 
     sys.stdout.write("\n[INFO] Orchestrating xrnet system startup...\n")
     sys.stdout.flush()
+
+    # Integrated Autonomous Sync Protocol
+    run_sync_protocol()
 
     sys.stdout.write("[COORD] Waiting for Everything Protocol [READY] signal...\n")
     sys.stdout.flush()
