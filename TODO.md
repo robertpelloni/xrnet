@@ -11,6 +11,8 @@
 - [x] Integrate Autonomous Sync Protocol into Main Application (Frontend/Backend/Coordinator).
 - [x] Implement Executive Autonomous Protocol Engine (Sync, Analysis, Versioning, Build).
 - [x] Integrate Executive Protocol into UI and Coordinator.
+- [ ] Research and select primary P2P framework (Veilid vs. others).
+- [ ] Set up basic CI/CD for documentation and structure validation.
 
 ## Bug Fixes
 - None (Initial Phase).

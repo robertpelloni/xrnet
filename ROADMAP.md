@@ -10,6 +10,13 @@
 ## Phase 2: The Everything Protocol (33% Complete)
 - [x] Implement decentralized discovery via Kademlia DHT (Task 1).
 - [ ] Implement cryptographic pub-sub for real-time messaging.
+## Phase 1: Foundation (Current)
+- [ ] Finalize technical architecture and tech stack selection.
+- [ ] Establish basic P2P networking using Veilid/IPFS.
+- [ ] Initial spatial scanning POC with Gaussian Splatting.
+
+## Phase 2: The Everything Protocol
+- [ ] Implement decentralized identity and cryptographic pub-sub.
 - [ ] Build basic distributed storage layer.
 - [ ] Integrate local AI semantic labeling for spatial data.
 
