@@ -7,6 +7,9 @@ echo "========================================"
 echo "      xrnet - INTEGRATED PIPELINE       "
 echo "========================================"
 
+echo "\n[STEP 0] Repository Synchronization..."
+./scripts/sync_repo.sh
+
 echo "\n[STEP 1] Building all components..."
 ./build.sh
 

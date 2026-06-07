@@ -8,9 +8,7 @@ echo "      XRNET AUTONOMOUS WORKFLOW         "
 echo "========================================"
 
 echo "\n[1/5] REPOSITORY SYNCHRONIZATION"
-git fetch --all --tags
-# Note: Recursive submodule update included in protocol
-git submodule update --init --recursive || echo "No submodules detected."
+./scripts/sync_repo.sh
 
 echo "\n[2/5] INTEGRITY VALIDATION"
 python3 scripts/validate_integrity.py
