@@ -1,6 +1,8 @@
 use std::fs;
 use std::error::Error;
 use std::time::Duration;
+use std::net::TcpStream;
+use std::io::{Write, Read};
 use libp2p::{
     identity, mdns, ping,
     swarm::SwarmEvent,
@@ -25,6 +27,27 @@ fn get_version() -> String {
 fn set_status(status: &str) {
     let status_data = json!({ "status": status });
     let _ = fs::write("status.json", status_data.to_string());
+}
+
+async fn connect_to_surrounding_system() -> bool {
+    println!("[PROTOCOL] Attempting to connect to surrounding system (port 9000)...");
+
+    for _ in 0..5 {
+        if let Ok(mut stream) = TcpStream::connect("127.0.0.1:9000") {
+            println!("[PROTOCOL] Connected to external peer.");
+            let _ = stream.write_all(b"XRNET_HANDSHAKE");
+            let mut buffer = [0; 10];
+            if let Ok(_) = stream.read(&mut buffer) {
+                if &buffer[..9] == b"XRNET_ACK" {
+                    println!("[PROTOCOL] Handshake with external system successful.");
+                    return true;
+                }
+            }
+        }
+        tokio::time::sleep(Duration::from_millis(1000)).await;
+    }
+    println!("[PROTOCOL] Warning: Could not connect to surrounding system. Operating in standalone mode.");
+    false
 }
 
 #[tokio::main]
@@ -60,9 +83,16 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // Listen on all interfaces and whatever port the OS assigns
     swarm.listen_on("/ip4/0.0.0.0/tcp/0".parse()?)?;
 
+    // Handshake Integration
+    let integrated = connect_to_surrounding_system().await;
+
     println!("[INFO] Everything Protocol initialized successfully.");
     println!("[STATUS] READY");
     set_status("READY");
+
+    if integrated {
+        println!("[PROTOCOL] Connected to external network.");
+    }
 
     loop {
         match swarm.select_next_some().await {
