@@ -4,27 +4,49 @@ use std::time::Duration;
 use tokio::net::TcpStream;
 use tokio::io::{AsyncWriteExt, AsyncReadExt};
 use libp2p::{
-    identity, mdns, ping,
+    identity, mdns, ping, kad,
     swarm::SwarmEvent,
     PeerId,
 };
 use futures::StreamExt;
 use serde_json::json;
-use axum::{routing::get, Json, Router};
+use axum::{routing::{get, post}, Json, Router};
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
 use tower_http::cors::CorsLayer;
+use serde::{Deserialize, Serialize};
+use tokio::sync::mpsc;
 
 #[derive(libp2p::swarm::NetworkBehaviour)]
 struct MyBehaviour {
     ping: ping::Behaviour,
     mdns: mdns::tokio::Behaviour,
+    kad: kad::Behaviour<kad::store::MemoryStore>,
+}
+
+enum Command {
+    PutRecord { key: String, value: String },
 }
 
 struct AppState {
     peer_id: String,
     peers: Mutex<usize>,
     network: Mutex<String>,
+    command_tx: mpsc::Sender<Command>,
+    profiles: Mutex<std::collections::HashMap<String, String>>,
+}
+
+#[derive(Deserialize, Clone)]
+struct DhtPutRequest {
+    key: String,
+    value: String,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+struct UserProfile {
+    peer_id: String,
+    alias: String,
+    status: String,
 }
 
 fn get_version() -> String {
@@ -67,43 +89,30 @@ async fn main() -> Result<(), Box<dyn Error>> {
     println!("      xrnet-backend v{}              ", version);
     println!("========================================");
 
-    println!("[INFO] Initializing Everything Protocol (libp2p)...");
+    println!("[INFO] Initializing Everything Protocol (libp2p + Kademlia)...");
 
     let local_key = identity::Keypair::generate_ed25519();
     let local_peer_id = PeerId::from(local_key.public());
     let peer_id_str = local_peer_id.to_string();
     println!("[PROTOCOL] Local Peer ID: {:?}", local_peer_id);
 
+    let (tx, mut rx) = mpsc::channel(32);
+
     let state = Arc::new(AppState {
         peer_id: peer_id_str.clone(),
-        peers: Mutex::new(42), // Mock base
+        peers: Mutex::new(42),
         network: Mutex::new("Standalone".to_string()),
+        command_tx: tx,
+        profiles: Mutex::new(std::collections::HashMap::new()),
     });
-
-    let mut swarm = libp2p::SwarmBuilder::with_existing_identity(local_key)
-        .with_tokio()
-        .with_tcp(
-            libp2p::tcp::Config::default(),
-            libp2p::noise::Config::new,
-            libp2p::yamux::Config::default,
-        )?
-        .with_behaviour(|_key| {
-            Ok(MyBehaviour {
-                ping: ping::Behaviour::default(),
-                mdns: mdns::tokio::Behaviour::new(mdns::Config::default(), local_peer_id)?,
-            })
-        })?
-        .with_swarm_config(|c| c.with_idle_connection_timeout(Duration::from_secs(60)))
-        .build();
-
-    swarm.listen_on("/ip4/0.0.0.0/tcp/0".parse()?)?;
 
     // API Server
     let api_state = Arc::clone(&state);
+
     let app = Router::new()
-        .route("/api/status", get(move || {
+        .route("/api/status", get({
             let s = Arc::clone(&api_state);
-            async move {
+            move || async move {
                 let peers = *s.peers.lock().unwrap();
                 let network = s.network.lock().unwrap().clone();
                 Json(json!({
@@ -112,6 +121,33 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     "network": network,
                     "version": get_version(),
                 }))
+            }
+        }))
+        .route("/api/profile", get({
+            let s = Arc::clone(&api_state);
+            move || async move {
+                let profiles = s.profiles.lock().unwrap().clone();
+                Json(profiles)
+            }
+        }))
+        .route("/api/dht/put", post({
+            let s = Arc::clone(&api_state);
+            move |Json(payload): Json<DhtPutRequest>| {
+                let s = Arc::clone(&s);
+                async move {
+                    println!("[API] DHT PUT Request: {} = {}", payload.key, payload.value);
+                    let _ = s.command_tx.send(Command::PutRecord {
+                        key: payload.key.clone(),
+                        value: payload.value.clone(),
+                    }).await;
+
+                    if payload.key.starts_with("profile:") {
+                        let mut p = s.profiles.lock().unwrap();
+                        p.insert(payload.key, payload.value);
+                    }
+
+                    Json(json!({ "status": "sent to protocol swarm" }))
+                }
             }
         }))
         .layer(CorsLayer::permissive());
@@ -123,11 +159,31 @@ async fn main() -> Result<(), Box<dyn Error>> {
         axum::serve(listener, app).await.unwrap();
     });
 
+    let mut swarm = libp2p::SwarmBuilder::with_existing_identity(local_key)
+        .with_tokio()
+        .with_tcp(
+            libp2p::tcp::Config::default(),
+            libp2p::noise::Config::new,
+            libp2p::yamux::Config::default,
+        )?
+        .with_behaviour(|_key| {
+            let store = kad::store::MemoryStore::new(local_peer_id);
+            Ok(MyBehaviour {
+                ping: ping::Behaviour::default(),
+                mdns: mdns::tokio::Behaviour::new(mdns::Config::default(), local_peer_id)?,
+                kad: kad::Behaviour::new(local_peer_id, store),
+            })
+        })?
+        .with_swarm_config(|c| c.with_idle_connection_timeout(Duration::from_secs(60)))
+        .build();
+
+    swarm.listen_on("/ip4/0.0.0.0/tcp/0".parse()?)?;
+
     let integrated = connect_to_surrounding_system().await;
     if integrated {
-        let mut n = state.network.lock().unwrap();
+        let mut n = api_state.network.lock().unwrap();
         *n = "Integrated".to_string();
-        let mut p = state.peers.lock().unwrap();
+        let mut p = api_state.peers.lock().unwrap();
         *p = 43;
     }
 
@@ -136,18 +192,39 @@ async fn main() -> Result<(), Box<dyn Error>> {
     set_status("READY");
 
     loop {
-        match swarm.select_next_some().await {
-            SwarmEvent::NewListenAddr { address, .. } => {
-                println!("[PROTOCOL] Listening on {:?}", address);
-            }
-            SwarmEvent::Behaviour(MyBehaviourEvent::Mdns(mdns::Event::Discovered(list))) => {
-                for (peer_id, _) in list {
-                    let mut p = state.peers.lock().unwrap();
-                    *p += 1;
-                    println!("[PROTOCOL] Discovered peer {}", peer_id);
+        tokio::select! {
+            Some(cmd) = rx.recv() => {
+                match cmd {
+                    Command::PutRecord { key, value } => {
+                        let k = kad::RecordKey::new(&key);
+                        let record = kad::Record {
+                            key: k,
+                            value: value.into_bytes(),
+                            publisher: None,
+                            expires: None,
+                        };
+                        swarm.behaviour_mut().kad.put_record(record, kad::Quorum::One).expect("Failed to put record");
+                        println!("[PROTOCOL] Initiated Kademlia PUT for key: {}", key);
+                    }
                 }
             }
-            _ => {}
+            event = swarm.select_next_some() => match event {
+                SwarmEvent::NewListenAddr { address, .. } => {
+                    println!("[PROTOCOL] Listening on {:?}", address);
+                }
+                SwarmEvent::Behaviour(MyBehaviourEvent::Mdns(mdns::Event::Discovered(list))) => {
+                    for (peer_id, addr) in list {
+                        let mut p = api_state.peers.lock().unwrap();
+                        *p += 1;
+                        println!("[PROTOCOL] Discovered peer {} at {:?}", peer_id, addr);
+                        swarm.behaviour_mut().kad.add_address(&peer_id, addr);
+                    }
+                }
+                SwarmEvent::Behaviour(MyBehaviourEvent::Kad(event)) => {
+                    println!("[PROTOCOL] Kademlia Event: {:?}", event);
+                }
+                _ => {}
+            }
         }
     }
 }

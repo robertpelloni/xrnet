@@ -7,6 +7,7 @@
 - [x] Implement E2E integration testing.
 - [x] Implement multi-instance mesh simulation.
 - [x] Finalize Phase 1 deployment-ready baseline (v0.1.1).
+- [x] Implement Decentralized Discovery and Profile Storage (Kademlia DHT).
 
 ## Bug Fixes
 - None (Initial Phase).

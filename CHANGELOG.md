@@ -9,7 +9,7 @@
 - Unified orchestration via `build.sh`, `start.sh`, and `pipeline.sh`.
 - Comprehensive testing suite including E2E, mesh simulation, and integrity checks.
 
-## [0.1.1] - 2026-06-07
+## [0.1.1] - 2025-06-07
 ### Added
 - Real-time non-blocking TCP handshake in libp2p backend.
 - Asynchronous status bridging between backend and coordinator.
