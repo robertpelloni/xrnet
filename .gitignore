@@ -18,6 +18,8 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+status.json
+backend/status.json
 
 # Spatial Artifacts (scans, splats)
 *.ply

@@ -12,6 +12,7 @@
 ## Codebase Traits
 - Currently in the documentation and structural initialization phase.
 - Aiming for a monorepo-style structure to manage backend, frontend, and spatial components.
+- **Inter-component coordination:** The Python coordinator (`main.py`) synchronizes with the Rust backend via a polling mechanism on `backend/status.json`.
 
 ## Proposed Technical Architecture
 - **Backend (The Everything Protocol):**

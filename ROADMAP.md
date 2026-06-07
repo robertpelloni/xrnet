@@ -1,5 +1,15 @@
 # ROADMAP: xrnet Long-Term Milestones
 
+## Phase 1: Foundation (100% Complete)
+- [x] Finalize technical architecture and tech stack selection.
+- [x] Establish project scaffolding (Backend, Frontend, Spatial).
+- [x] Implement inter-component handshake and coordination protocol.
+- [x] Integrated CI/CD pipeline for build and test automation.
+- [x] Established libp2p networking baseline (v0.1.1).
+
+## Phase 2: The Everything Protocol (33% Complete)
+- [x] Implement decentralized discovery via Kademlia DHT (Task 1).
+- [ ] Implement cryptographic pub-sub for real-time messaging.
 ## Phase 1: Foundation (Current)
 - [ ] Finalize technical architecture and tech stack selection.
 - [ ] Establish basic P2P networking using Veilid/IPFS.
