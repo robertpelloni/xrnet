@@ -19,3 +19,6 @@ In this session, the `xrnet` project was initialized from a conceptual README in
 - The project is now ready for deep research into Veilid/libp2p integration and the creation of a spatial scanning POC.
 - No active bugs are present.
 - All files are staged and ready for the initial commit.
+
+## Supervisor Directive for Next Session
+Refer to `SUPERVISOR_DIRECTIVE.md` for prioritized tasks: transition to real P2P nodes and implement the spatial rendering pipeline.
