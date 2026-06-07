@@ -1,7 +1,8 @@
 #!/bin/bash
 # start.sh - Start the xrnet application
 
-echo "--- Starting xrnet v0.1.0 ---"
+VERSION=$(cat VERSION.md)
+echo "--- Starting xrnet v$VERSION ---"
 
 # Check if build artifacts exist
 if [ ! -f "backend/target/debug/xrnet-backend" ]; then

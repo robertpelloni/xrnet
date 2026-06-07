@@ -11,6 +11,7 @@ interface SystemStatus {
 
 function App() {
   const [status, setStatus] = useState('Initializing...')
+  const [version, setVersion] = useState('...')
   const [peers, setPeers] = useState(0)
   const [network, setNetwork] = useState('Standalone')
   const [peerId, setPeerId] = useState('')
@@ -25,6 +26,7 @@ function App() {
         setPeers(data.peers)
         setNetwork(data.network)
         setPeerId(data.peer_id)
+        setVersion(data.version)
         setStatus('Operational')
       } catch (error) {
         console.error('Failed to fetch backend status:', error)
@@ -50,7 +52,7 @@ function App() {
     <div className="xrnet-dashboard">
       <header>
         <h1>xrnet</h1>
-        <p className="version">v0.1.1</p>
+        <p className="version">v{version}</p>
       </header>
 
       <main>

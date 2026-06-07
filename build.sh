@@ -1,7 +1,8 @@
 #!/bin/bash
 # build.sh - Build all xrnet components
 
-echo "--- Building xrnet v0.1.0 ---"
+VERSION=$(cat VERSION.md)
+echo "--- Building xrnet v$VERSION ---"
 
 echo "[1/3] Building Backend (Rust)..."
 (cd backend && cargo build) || { echo "[ERROR] Backend build failed"; exit 1; }
