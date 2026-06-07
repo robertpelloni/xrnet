@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import json
 
 def get_version():
     try:
@@ -8,6 +9,25 @@ def get_version():
             return f.read().strip()
     except Exception:
         return "unknown"
+
+def wait_for_backend_ready(timeout=30):
+    status_file = "backend/status.json"
+    if not os.path.exists(status_file):
+        # Maybe it's in the root
+        status_file = "status.json"
+
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        if os.path.exists(status_file):
+            try:
+                with open(status_file, "r") as f:
+                    data = json.load(f)
+                    if data.get("status") == "READY":
+                        return True
+            except (json.JSONDecodeError, IOError):
+                pass
+        time.sleep(0.5)
+    return False
 
 def main():
     version = get_version()
@@ -21,9 +41,11 @@ def main():
 
     sys.stdout.write("[COORD] Waiting for Everything Protocol [READY] signal...\n")
     sys.stdout.flush()
-    time.sleep(1.5)
 
-    sys.stdout.write("[COORD] Everything Protocol detected as READY.\n")
+    if wait_for_backend_ready():
+        sys.stdout.write("[COORD] Everything Protocol detected as READY.\n")
+    else:
+        sys.stdout.write("[COORD] WARNING: Backend READY signal timed out. Proceeding...\n")
     sys.stdout.flush()
 
     sys.stdout.write("[COORD] Loading Spatial Layer AI Models...\n")

@@ -1,8 +1,8 @@
 use std::fs;
 use std::error::Error;
 use std::time::Duration;
-use std::net::TcpStream;
-use std::io::{Write, Read};
+use tokio::net::TcpStream;
+use tokio::io::{AsyncWriteExt, AsyncReadExt};
 use libp2p::{
     identity, mdns, ping,
     swarm::SwarmEvent,
@@ -33,12 +33,12 @@ async fn connect_to_surrounding_system() -> bool {
     println!("[PROTOCOL] Attempting to connect to surrounding system (port 9000)...");
 
     for _ in 0..5 {
-        if let Ok(mut stream) = TcpStream::connect("127.0.0.1:9000") {
+        if let Ok(mut stream) = TcpStream::connect("127.0.0.1:9000").await {
             println!("[PROTOCOL] Connected to external peer.");
-            let _ = stream.write_all(b"XRNET_HANDSHAKE");
-            let mut buffer = [0; 10];
-            if let Ok(_) = stream.read(&mut buffer) {
-                if &buffer[..9] == b"XRNET_ACK" {
+            let _ = stream.write_all(b"XRNET_HANDSHAKE").await;
+            let mut buffer = [0; 9];
+            if let Ok(_) = stream.read_exact(&mut buffer).await {
+                if &buffer == b"XRNET_ACK" {
                     println!("[PROTOCOL] Handshake with external system successful.");
                     return true;
                 }
