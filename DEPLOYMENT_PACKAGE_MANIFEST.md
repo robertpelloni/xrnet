@@ -1,7 +1,7 @@
-# XRNet Deployment Package Manifest (v0.5.0)
+# XRNet Deployment Package Manifest (v1.0.0)
 
 ## Package Overview
-This manifest details the components included in the XRNet v0.5.0 "Ecosystem Complete" release.
+This manifest details the components included in the XRNet v1.0.0 "Ecosystem Complete" release.
 
 ## Core Components
 - **Backend (`backend/`):**
@@ -32,4 +32,4 @@ This manifest details the components included in the XRNet v0.5.0 "Ecosystem Com
 - **Autonomous Governance:** Executive Protocol Engine [Verified]
 
 ---
-*Certified for release v0.5.0*
+*Certified for release v1.0.0*

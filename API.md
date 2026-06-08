@@ -1,4 +1,4 @@
-# XRNet API Reference (v0.5.0)
+# XRNet API Reference (v1.0.0)
 
 The XRNet backend exposes a REST API (default port 8080) to interact with the underlying P2P swarm and spatial layers.
 
@@ -11,7 +11,7 @@ Returns real-time telemetry and identity data for the node.
     "peer_id": "12D3Koo...",
     "peers": 42,
     "network": "Standalone | Integrated",
-    "version": "0.3.23",
+    "version": "1.0.0",
     "uptime_secs": 3600,
     "messages_sent": 10,
     "messages_received": 15,

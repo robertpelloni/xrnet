@@ -42,7 +42,7 @@ class TestEndToEndIntegration(unittest.TestCase):
             print(f"API Response: {data}")
             self.assertIn("peer_id", data)
             # Use a starts_with or just check existence since version bumps automatically
-            self.assertTrue(data["version"].startswith("0."))
+            self.assertTrue(data["version"].startswith("0.") or data["version"].startswith("1."))
         except Exception as e:
             self.fail(f"Backend API not accessible: {e}")
 
@@ -60,8 +60,8 @@ class TestEndToEndIntegration(unittest.TestCase):
 
         # Verify component launches
         self.assertIn("Starting xrnet", stdout)
-        # Allow any 0.x.x version
-        self.assertTrue("xrnet-backend v0." in stdout)
+        # Allow any 0.x.x or 1.x.x version
+        self.assertTrue("xrnet-backend v1." in stdout)
         self.assertIn(f"[API] Server listening on http://127.0.0.1:{api_port}", stdout)
 
         # Check for protocol execution (or skip)
