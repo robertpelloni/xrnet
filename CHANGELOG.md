@@ -22,11 +22,12 @@
 - Single-Unit Deployment: Backend now serves Frontend static files directly.
 - Release Mode: Support for optimized production builds (`./build.sh release`).
 - Multi-node mesh simulation and benchmarking infrastructure.
-- System performance monitoring and telemetry reporting.
+- System performance monitoring and telemetry reporting via `scripts/monitor_performance.py`.
 - UI panels for real-time mesh chat and marketplace listings.
 - Dynamic API port configuration via `API_PORT` environment variable.
 - Extended DHT API for record retrieval (GET).
 - Comprehensive System Architecture Documentation (`ARCHITECTURE.md`).
+- API Reference Guide (`API.md`).
 - User Manual and Step-by-Step Usage Guide (`USAGE.md`).
 - Production Setup and Rollout Scripts (`scripts/setup_production.sh`, `scripts/deploy_prod.sh`).
 - Enhanced Executive Protocol documentation and vision for the "Everything App".

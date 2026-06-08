@@ -47,7 +47,6 @@ def monitor_performance(duration_secs=3600, interval_secs=5, api_port=None):
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.get_default("duration_secs")
     parser.add_argument("--duration", type=int, default=30)
     parser.add_argument("--interval", type=int, default=5)
     parser.add_argument("--port", type=str, default=None)

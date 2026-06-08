@@ -365,7 +365,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     }
                     Command::SendMessage { topic, message } => {
                         let t = gossipsub::IdentTopic::new(topic);
-                        if let Err(e) = swarm.behaviour_mut().gossipsub.publish(t, message.as_bytes()) {
+                        if let Err(e) = swarm.behaviour_mut().gossipsub.publish(t, message.into_bytes()) {
                             println!("[PROTOCOL] Publish error: {:?}", e);
                         }
                     }

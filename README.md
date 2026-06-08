@@ -38,9 +38,11 @@ Access the production instance at `http://localhost:8080`.
 
 ## 📖 Documentation
 - [Architecture Details](ARCHITECTURE.md) - Deep dive into the P2P stack and component interaction.
+- [API Reference](API.md) - Complete REST API documentation for node interaction.
 - [Deployment Guide](DEPLOY.md) - Detailed production rollout and monitoring instructions.
 - [Usage Manual](USAGE.md) - Step-by-step guide on using mesh features.
 - [Project Vision](VISION.md) - The long-term roadmap for the Everything Protocol.
+- [Release Notes](RELEASE_NOTES.md) - Summary of the v0.2.0 Phase 2 completion.
 
 ---
 
