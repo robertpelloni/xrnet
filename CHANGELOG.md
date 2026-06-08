@@ -19,6 +19,8 @@
 ### Added
 - Decentralized Messaging (Communicate) via libp2p Gossipsub.
 - Decentralized Marketplace Discovery (Shop & Sell) via Kademlia DHT.
+- Single-Unit Deployment: Backend now serves Frontend static files directly.
+- Release Mode: Support for optimized production builds (`./build.sh release`).
 - Multi-node mesh simulation and benchmarking infrastructure.
 - System performance monitoring and telemetry reporting.
 - UI panels for real-time mesh chat and marketplace listings.
@@ -33,4 +35,7 @@
 - Autonomous version bump via Executive Protocol.
 
 ## [0.2.3] - 2026-06-08
+- Autonomous version bump via Executive Protocol.
+
+## [0.2.4] - 2026-06-08
 - Autonomous version bump via Executive Protocol.

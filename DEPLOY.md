@@ -50,12 +50,26 @@ Run the full E2E suite manually:
 python3 tests/e2e_integration.py
 ```
 
+### Production Deployment (Single-Unit)
+For live environments, xrnet can be deployed as a single optimized binary that serves the frontend UI and the mesh protocol API concurrently.
+
+1. **Build in Release Mode:**
+   ```bash
+   ./build.sh release
+   ```
+2. **Start the Production Instance:**
+   ```bash
+   ./start.sh release
+   ```
+3. **Access the Application:**
+   Navigate to `http://localhost:8080` (or your configured `API_PORT`). The UI is served directly by the backend node.
+
 ### Performance Monitoring
 To capture a baseline or monitor a live deployment:
 ```bash
-python3 scripts/monitor_performance.py
+python3 scripts/monitor_performance.py --duration 3600 --interval 10
 ```
-This script collects CPU/RAM usage alongside P2P network metrics (peers, message throughput, uptime) and logs them to `performance.log`.
+This script collects CPU/RAM usage alongside P2P network metrics (peers, message throughput, uptime) and logs them to `performance_{PORT}.log`.
 
 ## Troubleshooting
 - **Build Failures:** Ensure `cargo` and `npm` are in your PATH. Check `frontend/node_modules` if React fails to build.

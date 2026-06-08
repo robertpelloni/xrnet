@@ -2,16 +2,22 @@
 # start.sh - Start the xrnet application
 
 VERSION=$(cat VERSION.md)
-echo "--- Starting xrnet v$VERSION ---"
+MODE=${1:-debug}
+echo "--- Starting xrnet v$VERSION ($MODE mode) ---"
+
+BINARY="backend/target/debug/xrnet-backend"
+if [ "$MODE" == "release" ]; then
+    BINARY="backend/target/release/xrnet-backend"
+fi
 
 # Check if build artifacts exist
-if [ ! -f "backend/target/debug/xrnet-backend" ]; then
-    echo "[ERROR] Backend not built. Run ./build.sh first."
+if [ ! -f "$BINARY" ]; then
+    echo "[ERROR] Backend binary not found: $BINARY. Run ./build.sh $MODE first."
     exit 1
 fi
 
-echo "[INFO] Launching Backend..."
-backend/target/debug/xrnet-backend &
+echo "[INFO] Launching Backend (integrated UI)..."
+$BINARY &
 BACKEND_PID=$!
 
 echo "[INFO] Launching Frontend Gateway (Placeholder)..."

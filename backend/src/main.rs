@@ -13,7 +13,7 @@ use serde_json::json;
 use axum::{routing::{get, post}, Json, Router};
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
-use tower_http::cors::CorsLayer;
+use tower_http::{cors::CorsLayer, services::ServeDir};
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc;
 
@@ -279,6 +279,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
         }))
+        .fallback_service(ServeDir::new("frontend/dist"))
         .layer(CorsLayer::permissive());
 
     let api_port_str = std::env::var("API_PORT").unwrap_or_else(|_| "8080".to_string());

@@ -4,7 +4,7 @@ import json
 import psutil
 import os
 
-def monitor_performance(duration_secs=30, interval_secs=5, api_port=None):
+def monitor_performance(duration_secs=3600, interval_secs=5, api_port=None):
     if api_port is None:
         api_port = os.environ.get("API_PORT", "8080")
 
