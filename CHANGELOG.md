@@ -225,3 +225,17 @@
 
 ## [0.5.1] - 2026-06-08
 - Autonomous version bump via Executive Protocol.
+
+## [0.5.2] - 2026-06-08
+- Autonomous version bump via Executive Protocol.
+
+## [0.6.0] - 2026-06-08
+### Added
+- Comprehensive Rust unit tests for AppState and protocol logic.
+- Refactored AppState for better modularity and testability.
+- Peer Connectivity visualization in Monitoring Dashboard.
+- Enhanced DHT record handling with internal validation logic.
+
+
+## [0.6.1] - 2026-06-08
+- Autonomous version bump via Executive Protocol.

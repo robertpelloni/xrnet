@@ -44,7 +44,8 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
             mem: data.memory_usage,
             sent: data.messages_sent,
             recv: data.messages_received,
-            dht: data.dht_records || 0
+            dht: data.dht_records || 0,
+            peers: data.peers
           }];
           // Keep last 20 data points
           return newHistory.slice(-20);
@@ -122,6 +123,19 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
               <Line type="monotone" dataKey="sent" stroke="#646cff" dot={false} name="Sent" />
               <Line type="monotone" dataKey="recv" stroke="#ff9800" dot={false} name="Received" />
             </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="chart-wrapper">
+          <h4>Peer Connectivity</h4>
+          <ResponsiveContainer width="100%" height={150}>
+            <AreaChart data={history}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+              <XAxis dataKey="time" hide />
+              <YAxis />
+              <Tooltip contentStyle={{ backgroundColor: '#222', border: '1px solid #444' }} />
+              <Area type="stepAfter" dataKey="peers" stroke="#00ccff" fill="#00ccff22" name="Connected Peers" />
+            </AreaChart>
           </ResponsiveContainer>
         </div>
       </div>

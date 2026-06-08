@@ -47,6 +47,57 @@ struct AppState {
     sys: Mutex<System>,
 }
 
+impl AppState {
+    fn new(peer_id: String, command_tx: mpsc::Sender<Command>) -> Self {
+        let mut sys = System::new_all();
+        sys.refresh_cpu_specifics(CpuRefreshKind::everything());
+        sys.refresh_memory_specifics(MemoryRefreshKind::everything());
+
+        Self {
+            peer_id,
+            peers: Mutex::new(0),
+            network: Mutex::new("Standalone".to_string()),
+            command_tx,
+            profiles: Mutex::new(std::collections::HashMap::new()),
+            market_items: Mutex::new(std::collections::HashMap::new()),
+            messages: Mutex::new(Vec::new()),
+            start_time: std::time::Instant::now(),
+            msg_sent_count: Mutex::new(0),
+            msg_recv_count: Mutex::new(0),
+            sys: Mutex::new(sys),
+        }
+    }
+
+    fn increment_sent(&self) {
+        let mut count = self.msg_sent_count.lock().unwrap();
+        *count += 1;
+    }
+
+    fn increment_recv(&self) {
+        let mut count = self.msg_recv_count.lock().unwrap();
+        *count += 1;
+    }
+
+    fn add_message(&self, sender: String, content: String) {
+        let mut m = self.messages.lock().unwrap();
+        m.push(ChatMessage {
+            sender,
+            content,
+            timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs(),
+        });
+    }
+
+    fn handle_dht_record(&self, key: String, value: String) {
+        if key.starts_with("profile:") {
+            let mut p = self.profiles.lock().unwrap();
+            p.insert(key, value);
+        } else if key.starts_with("market:") {
+            let mut m = self.market_items.lock().unwrap();
+            m.insert(key, value);
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone)]
 struct ChatMessage {
     sender: String,
@@ -99,6 +150,79 @@ async fn connect_to_surrounding_system() -> bool {
     false
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tokio::sync::mpsc;
+
+    #[test]
+    fn test_app_state_metrics() {
+        let (tx, _rx) = mpsc::channel(1);
+        let state = AppState::new("test-peer".to_string(), tx);
+
+        state.increment_sent();
+        state.increment_sent();
+        state.increment_recv();
+
+        assert_eq!(*state.msg_sent_count.lock().unwrap(), 2);
+        assert_eq!(*state.msg_recv_count.lock().unwrap(), 1);
+    }
+
+    #[test]
+    fn test_app_state_messages() {
+        let (tx, _rx) = mpsc::channel(1);
+        let state = AppState::new("test-peer".to_string(), tx);
+
+        state.add_message("sender-a".to_string(), "hello".to_string());
+        let msgs = state.messages.lock().unwrap();
+
+        assert_eq!(msgs.len(), 1);
+        assert_eq!(msgs[0].sender, "sender-a");
+        assert_eq!(msgs[0].content, "hello");
+    }
+
+    #[test]
+    fn test_version_reading() {
+        let version = get_version();
+        assert!(!version.is_empty());
+    }
+
+    #[test]
+    fn test_peer_id_generation() {
+        let local_key = identity::Keypair::generate_ed25519();
+        let local_peer_id = PeerId::from(local_key.public());
+        let peer_id_str = local_peer_id.to_string();
+        assert!(peer_id_str.starts_with('1') || peer_id_str.starts_with('Q'));
+    }
+
+    #[test]
+    fn test_serialization_chat_message() {
+        let msg = ChatMessage {
+            sender: "test-peer".to_string(),
+            content: "hello".to_string(),
+            timestamp: 12345,
+        };
+        let serialized = serde_json::to_string(&msg).unwrap();
+        let deserialized: ChatMessage = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(deserialized.content, "hello");
+    }
+
+    #[test]
+    fn test_dht_record_handling() {
+        let (tx, _rx) = mpsc::channel(1);
+        let state = AppState::new("test-peer".to_string(), tx);
+
+        state.handle_dht_record("profile:alice".to_string(), "AliceAlias".to_string());
+        state.handle_dht_record("market:item1".to_string(), "Sword".to_string());
+        state.handle_dht_record("other:key".to_string(), "ignore".to_string());
+
+        assert_eq!(state.profiles.lock().unwrap().get("profile:alice").unwrap(), "AliceAlias");
+        assert_eq!(state.market_items.lock().unwrap().get("market:item1").unwrap(), "Sword");
+        assert_eq!(state.profiles.lock().unwrap().len(), 1);
+        assert_eq!(state.market_items.lock().unwrap().len(), 1);
+    }
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     set_status("INITIALIZING");
@@ -115,24 +239,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     println!("[PROTOCOL] Local Peer ID: {:?}", local_peer_id);
 
     let (tx, mut rx) = mpsc::channel(32);
-
-    let mut sys = System::new_all();
-    sys.refresh_cpu_specifics(CpuRefreshKind::everything());
-    sys.refresh_memory_specifics(MemoryRefreshKind::everything());
-
-    let state = Arc::new(AppState {
-        peer_id: peer_id_str.clone(),
-        peers: Mutex::new(0),
-        network: Mutex::new("Standalone".to_string()),
-        command_tx: tx,
-        profiles: Mutex::new(std::collections::HashMap::new()),
-        market_items: Mutex::new(std::collections::HashMap::new()),
-        messages: Mutex::new(Vec::new()),
-        start_time: std::time::Instant::now(),
-        msg_sent_count: Mutex::new(0),
-        msg_recv_count: Mutex::new(0),
-        sys: Mutex::new(sys),
-    });
+    let state = Arc::new(AppState::new(peer_id_str.clone(), tx));
 
     // API Server
     let api_state = Arc::clone(&state);
@@ -214,19 +321,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     println!("[API] Send Message: {}", content);
 
                     // Add to local message list so sender sees it
-                    {
-                        let mut m = s.messages.lock().unwrap();
-                        m.push(ChatMessage {
-                            sender: s.peer_id.clone(),
-                            content: content.clone(),
-                            timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs(),
-                        });
-                    }
-
-                    {
-                        let mut count = s.msg_sent_count.lock().unwrap();
-                        *count += 1;
-                    }
+                    s.add_message(s.peer_id.clone(), content.clone());
+                    s.increment_sent();
 
                     let _ = s.command_tx.send(Command::SendMessage {
                         topic: "xrnet-global".to_string(),
@@ -502,13 +598,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         let value = String::from_utf8_lossy(&record.value).to_string();
                         println!("[PROTOCOL] Found record: {} = {}", key, value);
 
-                        if key.starts_with("profile:") {
-                            let mut p = api_state.profiles.lock().unwrap();
-                            p.insert(key, value);
-                        } else if key.starts_with("market:") {
-                            let mut m = api_state.market_items.lock().unwrap();
-                            m.insert(key, value);
-                        }
+                        api_state.handle_dht_record(key, value);
                     }
                 }
                 SwarmEvent::Behaviour(MyBehaviourEvent::Gossipsub(gossipsub::Event::Message {
@@ -519,17 +609,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     let content = String::from_utf8_lossy(&message.data).to_string();
                     println!("[PROTOCOL] Got message: '{}' with id: {} from peer: {}", content, id, peer_id);
 
-                    {
-                        let mut count = api_state.msg_recv_count.lock().unwrap();
-                        *count += 1;
-                    }
-
-                    let mut m = api_state.messages.lock().unwrap();
-                    m.push(ChatMessage {
-                        sender: peer_id.to_string(),
-                        content,
-                        timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs(),
-                    });
+                    api_state.increment_recv();
+                    api_state.add_message(peer_id.to_string(), content);
                 }
                 _ => {}
             }
