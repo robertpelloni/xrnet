@@ -47,5 +47,14 @@ For advanced logging, system administrators can use the `scripts/monitor_perform
 python3 scripts/monitor_performance.py --duration 600 --interval 5
 ```
 
+### Mesh-Wide Monitoring (Fleet Management)
+For multi-node deployments, use the centralized mesh monitor:
+1. **Launch the Monitor:**
+   ```bash
+   python3 scripts/start_mesh_monitor.py
+   ```
+2. **Access the Global Dashboard:** Open `http://localhost:9001` in your browser.
+3. **Analyze Trends:** View real-time CPU/Memory charts for every active node in the mesh simultaneously.
+
 ## 6. Spatial Layer
 The **Spatial Layer** panel displays a real-time 3D visualization (Three.js) of your environment's digital twin. As spatial scanning modules are integrated, this view will reflect the live photorealistic Gaussian Splatting data.

@@ -32,8 +32,10 @@
 - Production Setup and Rollout Scripts (`scripts/setup_production.sh`, `scripts/deploy_prod.sh`).
 - Enhanced Executive Protocol documentation and vision for the "Everything App".
 
-## [0.2.10] - 2026-06-08
+## [0.2.13] - 2026-06-08
 ### Added
+- Mesh-Wide Monitoring Dashboard: Fleet management UI for multi-node health tracking.
+- Standalone Monitoring API: Upgraded central server with HTTP JSON telemetry endpoint.
 - Phase 3 Initial Integration: Central Telemetry Reporting & Multi-node Benchmarking.
 - Real-time Performance Telemetry: Integrated `sysinfo` in the Rust backend.
 - Network Health Dashboard: Visualized CPU and Memory usage with `recharts` in the frontend.
@@ -65,4 +67,13 @@
 - Autonomous version bump via Executive Protocol.
 
 ## [0.2.10] - 2026-06-08
+- Autonomous version bump via Executive Protocol.
+
+## [0.2.11] - 2026-06-08
+- Autonomous version bump via Executive Protocol.
+
+## [0.2.12] - 2026-06-08
+- Autonomous version bump via Executive Protocol.
+
+## [0.2.13] - 2026-06-08
 - Autonomous version bump via Executive Protocol.

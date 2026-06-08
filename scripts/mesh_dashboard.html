@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>xrnet Mesh Monitoring Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #0d0d0d;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #646cff;
+            text-align: center;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .mesh-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .node-card {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+        .node-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #444;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .node-id {
+            font-family: monospace;
+            color: #00ffcc;
+            font-size: 0.9rem;
+        }
+        .status-badge {
+            background: #4caf5022;
+            color: #4caf50;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .metrics-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .metric-item {
+            text-align: center;
+            background: #252525;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .metric-val {
+            display: block;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fff;
+        }
+        .metric-lbl {
+            font-size: 0.7rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+        canvas {
+            max-height: 150px;
+        }
+    </style>
+</head>
+<body>
+    <h1>xrnet mesh monitor</h1>
+    <div id="mesh-grid" class="mesh-grid">
+        <!-- Node cards will be injected here -->
+    </div>
+
+    <script>
+        const charts = {};
+
+        async function updateDashboard() {
+            try {
+                const response = await fetch('/api/mesh/status');
+                const data = await response.json();
+                const grid = document.getElementById('mesh-grid');
+
+                // Remove nodes that are no longer reporting? (Optional)
+
+                for (const [peerId, history] of Object.entries(data)) {
+                    const latest = history[history.length - 1];
+                    let card = document.getElementById(`node-${peerId}`);
+
+                    if (!card) {
+                        card = document.createElement('div');
+                        card.id = `node-${peerId}`;
+                        card.className = 'node-card';
+                        grid.appendChild(card);
+
+                        card.innerHTML = `
+                            <div class="node-header">
+                                <span class="node-id">${peerId.slice(0, 12)}...${peerId.slice(-4)}</span>
+                                <span class="status-badge">ACTIVE</span>
+                            </div>
+                            <div class="metrics-summary">
+                                <div class="metric-item">
+                                    <span id="cpu-${peerId}" class="metric-val">0%</span>
+                                    <span class="metric-lbl">CPU</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span id="mem-${peerId}" class="metric-val">0%</span>
+                                    <span class="metric-lbl">MEM</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span id="peers-${peerId}" class="metric-val">0</span>
+                                    <span class="metric-lbl">PEERS</span>
+                                </div>
+                            </div>
+                            <canvas id="chart-${peerId}"></canvas>
+                        `;
+
+                        const ctx = document.getElementById(`chart-${peerId}`).getContext('2d');
+                        charts[peerId] = new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: history.map((_, i) => i),
+                                datasets: [{
+                                    label: 'CPU %',
+                                    data: history.map(h => h.cpu),
+                                    borderColor: '#00ffcc',
+                                    borderWidth: 2,
+                                    fill: false,
+                                    tension: 0.4,
+                                    pointRadius: 0
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                animation: false,
+                                scales: {
+                                    x: { display: false },
+                                    y: { min: 0, max: 100, ticks: { color: '#666' } }
+                                },
+                                plugins: { legend: { display: false } }
+                            }
+                        });
+                    }
+
+                    // Update UI
+                    document.getElementById(`cpu-${peerId}`).innerText = latest.cpu.toFixed(1) + '%';
+                    document.getElementById(`mem-${peerId}`).innerText = latest.memory.toFixed(1) + '%';
+                    document.getElementById(`peers-${peerId}`).innerText = latest.peers;
+
+                    // Update Chart
+                    charts[peerId].data.labels = history.map((_, i) => i);
+                    charts[peerId].data.datasets[0].data = history.map(h => h.cpu);
+                    charts[peerId].update();
+                }
+            } catch (err) {
+                console.error("Dashboard update failed:", err);
+            }
+        }
+
+        setInterval(updateDashboard, 3000);
+        updateDashboard();
+    </script>
+</body>
+</html>

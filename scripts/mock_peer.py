@@ -2,27 +2,61 @@ import socket
 import sys
 import time
 import json
+import threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
+
+# In-memory store for active mesh telemetry
+mesh_state = {}
+state_lock = threading.Lock()
+
+class MeshAPIHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == "/api/mesh/status":
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            with state_lock:
+                self.wfile.write(json.dumps(mesh_state).encode())
+        elif self.path == "/" or self.path == "/index.html":
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html')
+            self.end_headers()
+            try:
+                with open("scripts/mesh_dashboard.html", "rb") as f:
+                    self.wfile.write(f.read())
+            except FileNotFoundError:
+                self.wfile.write(b"<h1>Mesh Dashboard Not Found</h1>")
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+def run_http_server(port=9001):
+    server = HTTPServer(('0.0.0.0', port), MeshAPIHandler)
+    sys.stdout.write(f"[MOCK-PEER] Mesh Dashboard API at http://localhost:{port}/api/mesh/status\n")
+    sys.stdout.flush()
+    server.serve_forever()
 
 def start_mock_peer(port=9000):
-    sys.stdout.write(f"[MOCK-PEER] Starting on port {port}...\n")
+    sys.stdout.write(f"[MOCK-PEER] Starting Central Control on port {port}...\n")
     sys.stdout.flush()
 
     log_file = "central_telemetry.log"
-    sys.stdout.write(f"[MOCK-PEER] Logging telemetry to {log_file}\n")
-    sys.stdout.flush()
+
+    # Start HTTP API in background
+    threading.Thread(target=run_http_server, daemon=True).start()
 
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind(('127.0.0.1', port))
             s.listen()
-            sys.stdout.write(f"[MOCK-PEER] Listening for xrnet connections...\n")
+            sys.stdout.write(f"[MOCK-PEER] Listening for xrnet telemetry...\n")
             sys.stdout.flush()
 
             while True:
                 conn, addr = s.accept()
                 with conn:
-                    # Non-blocking-ish read
                     data = conn.recv(4096)
                     if not data:
                         continue
@@ -31,23 +65,24 @@ def start_mock_peer(port=9000):
 
                     if decoded == "XRNET_HANDSHAKE":
                         conn.sendall(b"XRNET_ACK")
-                        sys.stdout.write(f"[MOCK-PEER] Handshake from {addr}\n")
-                        sys.stdout.flush()
                     else:
-                        # Attempt to parse as telemetry JSON
                         try:
-                            # It might be multiple lines if multiple reports came in
                             for line in decoded.split('\n'):
                                 if not line.strip(): continue
                                 report = json.loads(line)
                                 if report.get("type") == "TELEMETRY":
+                                    peer_id = report.get("peer_id")
+                                    with state_lock:
+                                        # Keep track of last 10 data points per peer for sparklines
+                                        if peer_id not in mesh_state:
+                                            mesh_state[peer_id] = []
+                                        mesh_state[peer_id].append(report)
+                                        mesh_state[peer_id] = mesh_state[peer_id][-20:]
+
                                     with open(log_file, "a") as f:
                                         f.write(json.dumps(report) + "\n")
-                                    sys.stdout.write(f"[MOCK-PEER] Telemetry from {report.get('peer_id')[:8]}: CPU {report.get('cpu'):.1f}%\n")
-                                    sys.stdout.flush()
                         except json.JSONDecodeError:
-                            sys.stdout.write(f"[MOCK-PEER] Received unknown data from {addr}: {decoded[:50]}...\n")
-                            sys.stdout.flush()
+                            pass
     except Exception as e:
         sys.stdout.write(f"[MOCK-PEER] Error: {e}\n")
         sys.stdout.flush()

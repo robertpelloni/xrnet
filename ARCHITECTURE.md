@@ -44,3 +44,9 @@ Built with React 19 and Vite 8.
 ## 5. Deployment Model
 - **Debug:** Backend and Frontend run as separate processes (API on 8080, Vite on 5173).
 - **Production (Single-Unit):** Optimized Rust binary serves both the API and the UI on a single port (8080 default).
+
+## 6. Mesh-Wide Monitoring
+The ecosystem includes a centralized monitoring layer for large-scale mesh deployments.
+- **Central Control Server:** A Python-based collector (`mock_peer.py`) that aggregates telemetry from all nodes.
+- **Mesh API:** Exposes aggregated health data for the entire mesh via JSON.
+- **Real-Time Dashboard:** A high-performance HTML5 visualization tool for monitoring multi-node performance trends.

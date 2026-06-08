@@ -1,7 +1,7 @@
-# Release Notes - XRNet v0.2.10
+# Release Notes - XRNet v0.2.13
 
 ## Phase 3 Initialization: Central Control & Benchmarking
-This release marks the transition to Phase 3, introducing centralized telemetry reporting and a multi-node mesh benchmarking suite. v0.2.10 focuses on system load validation and remote monitoring infrastructure.
+This release marks the transition to Phase 3, introducing centralized telemetry reporting, a multi-node mesh benchmarking suite, and a mesh-wide monitoring dashboard. v0.2.13 focuses on system load validation and fleet-wide monitoring infrastructure.
 
 ### Key Advancements
 - **Real-time Performance Telemetry:** Integrated the `sysinfo` crate in the Rust backend to poll live CPU and Memory usage metrics.
@@ -9,7 +9,7 @@ This release marks the transition to Phase 3, introducing centralized telemetry 
 - **Enhanced API Telemetry:** The `/api/status` endpoint now provides comprehensive system and hardware state data.
 - **Improved Version Governance:** Automated synchronization of version metadata across all monorepo components (Coordinator, Backend, Frontend).
 
-### Technical Stack (v0.2.10)
+### Technical Stack (v0.2.13)
 - **Telemetry:** `sysinfo` 0.30 (Native Rust).
 - **Visualization:** `recharts` 2.12 (React).
 - **Networking:** libp2p 0.54 (TCP, Noise, Yamux, MDNS, Kad, Gossipsub).
