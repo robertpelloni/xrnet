@@ -4,7 +4,7 @@ use std::time::Duration;
 use tokio::net::TcpStream;
 use tokio::io::{AsyncWriteExt, AsyncReadExt};
 use libp2p::{
-    identity, mdns, ping, kad,
+    identity, mdns, ping, kad, gossipsub,
     swarm::SwarmEvent,
     PeerId,
 };
@@ -22,10 +22,13 @@ struct MyBehaviour {
     ping: ping::Behaviour,
     mdns: mdns::tokio::Behaviour,
     kad: kad::Behaviour<kad::store::MemoryStore>,
+    gossipsub: gossipsub::Behaviour,
 }
 
 enum Command {
     PutRecord { key: String, value: String },
+    GetRecord { key: String },
+    SendMessage { topic: String, message: String },
 }
 
 struct AppState {
@@ -34,6 +37,15 @@ struct AppState {
     network: Mutex<String>,
     command_tx: mpsc::Sender<Command>,
     profiles: Mutex<std::collections::HashMap<String, String>>,
+    market_items: Mutex<std::collections::HashMap<String, String>>,
+    messages: Mutex<Vec<ChatMessage>>,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+struct ChatMessage {
+    sender: String,
+    content: String,
+    timestamp: u64,
 }
 
 #[derive(Deserialize, Clone)]
@@ -104,6 +116,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         network: Mutex::new("Standalone".to_string()),
         command_tx: tx,
         profiles: Mutex::new(std::collections::HashMap::new()),
+        market_items: Mutex::new(std::collections::HashMap::new()),
+        messages: Mutex::new(Vec::new()),
     });
 
     // API Server
@@ -130,6 +144,60 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 Json(profiles)
             }
         }))
+        .route("/api/market/list", get({
+            let s = Arc::clone(&api_state);
+            move || async move {
+                let items = s.market_items.lock().unwrap().clone();
+                Json(items)
+            }
+        }))
+        .route("/api/dht/get", get({
+            let s = Arc::clone(&api_state);
+            move |axum::extract::Query(params): axum::extract::Query<std::collections::HashMap<String, String>>| {
+                let s = Arc::clone(&s);
+                async move {
+                    if let Some(key) = params.get("key") {
+                        let _ = s.command_tx.send(Command::GetRecord { key: key.clone() }).await;
+                        Json(json!({ "status": "query initiated" }))
+                    } else {
+                        Json(json!({ "status": "error", "message": "missing key" }))
+                    }
+                }
+            }
+        }))
+        .route("/api/messages/list", get({
+            let s = Arc::clone(&api_state);
+            move || async move {
+                let messages = s.messages.lock().unwrap().clone();
+                Json(messages)
+            }
+        }))
+        .route("/api/messages/send", post({
+            let s = Arc::clone(&api_state);
+            move |Json(payload): Json<serde_json::Value>| {
+                let s = Arc::clone(&s);
+                async move {
+                    let content = payload["content"].as_str().unwrap_or("").to_string();
+                    println!("[API] Send Message: {}", content);
+
+                    // Add to local message list so sender sees it
+                    {
+                        let mut m = s.messages.lock().unwrap();
+                        m.push(ChatMessage {
+                            sender: s.peer_id.clone(),
+                            content: content.clone(),
+                            timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs(),
+                        });
+                    }
+
+                    let _ = s.command_tx.send(Command::SendMessage {
+                        topic: "xrnet-global".to_string(),
+                        message: content,
+                    }).await;
+                    Json(json!({ "status": "sent" }))
+                }
+            }
+        }))
         .route("/api/dht/put", post({
             let s = Arc::clone(&api_state);
             move |Json(payload): Json<DhtPutRequest>| {
@@ -144,6 +212,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     if payload.key.starts_with("profile:") {
                         let mut p = s.profiles.lock().unwrap();
                         p.insert(payload.key, payload.value);
+                    } else if payload.key.starts_with("market:") {
+                        let mut m = s.market_items.lock().unwrap();
+                        m.insert(payload.key, payload.value);
                     }
 
                     Json(json!({ "status": "sent to protocol swarm" }))
@@ -207,12 +278,35 @@ async fn main() -> Result<(), Box<dyn Error>> {
             libp2p::noise::Config::new,
             libp2p::yamux::Config::default,
         )?
-        .with_behaviour(|_key| {
+        .with_behaviour(|key| {
             let store = kad::store::MemoryStore::new(local_peer_id);
+
+            let message_id_fn = |message: &gossipsub::Message| {
+                let mut s = std::collections::hash_map::DefaultHasher::new();
+                std::hash::Hash::hash(&message.data, &mut s);
+                gossipsub::MessageId::from(std::hash::Hasher::finish(&s).to_string())
+            };
+
+            let gossipsub_config = gossipsub::ConfigBuilder::default()
+                .heartbeat_interval(Duration::from_secs(1))
+                .validation_mode(gossipsub::ValidationMode::Strict)
+                .message_id_fn(message_id_fn)
+                .build()
+                .map_err(|msg| std::io::Error::new(std::io::ErrorKind::Other, msg))?;
+
+            let mut gossipsub = gossipsub::Behaviour::new(
+                gossipsub::MessageAuthenticity::Signed(key.clone()),
+                gossipsub_config,
+            ).map_err(|msg| std::io::Error::new(std::io::ErrorKind::Other, msg))?;
+
+            let topic = gossipsub::IdentTopic::new("xrnet-global");
+            gossipsub.subscribe(&topic)?;
+
             Ok(MyBehaviour {
                 ping: ping::Behaviour::default(),
                 mdns: mdns::tokio::Behaviour::new(mdns::Config::default(), local_peer_id)?,
                 kad: kad::Behaviour::new(local_peer_id, store),
+                gossipsub,
             })
         })?
         .with_swarm_config(|c| c.with_idle_connection_timeout(Duration::from_secs(60)))
@@ -247,6 +341,17 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         swarm.behaviour_mut().kad.put_record(record, kad::Quorum::One).expect("Failed to put record");
                         println!("[PROTOCOL] Initiated Kademlia PUT for key: {}", key);
                     }
+                    Command::SendMessage { topic, message } => {
+                        let t = gossipsub::IdentTopic::new(topic);
+                        if let Err(e) = swarm.behaviour_mut().gossipsub.publish(t, message.as_bytes()) {
+                            println!("[PROTOCOL] Publish error: {:?}", e);
+                        }
+                    }
+                    Command::GetRecord { key } => {
+                        let k = kad::RecordKey::new(&key);
+                        swarm.behaviour_mut().kad.get_record(k);
+                        println!("[PROTOCOL] Initiated Kademlia GET for key: {}", key);
+                    }
                 }
             }
             event = swarm.select_next_some() => match event {
@@ -263,6 +368,36 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 }
                 SwarmEvent::Behaviour(MyBehaviourEvent::Kad(event)) => {
                     println!("[PROTOCOL] Kademlia Event: {:?}", event);
+                    if let kad::Event::OutboundQueryProgressed {
+                        result: kad::QueryResult::GetRecord(Ok(kad::GetRecordOk::FoundRecord(kad::PeerRecord { record, .. }))),
+                        ..
+                    } = event {
+                        let key = String::from_utf8_lossy(record.key.as_ref()).to_string();
+                        let value = String::from_utf8_lossy(&record.value).to_string();
+                        println!("[PROTOCOL] Found record: {} = {}", key, value);
+
+                        if key.starts_with("profile:") {
+                            let mut p = api_state.profiles.lock().unwrap();
+                            p.insert(key, value);
+                        } else if key.starts_with("market:") {
+                            let mut m = api_state.market_items.lock().unwrap();
+                            m.insert(key, value);
+                        }
+                    }
+                }
+                SwarmEvent::Behaviour(MyBehaviourEvent::Gossipsub(gossipsub::Event::Message {
+                    propagation_source: peer_id,
+                    message_id: id,
+                    message,
+                })) => {
+                    let content = String::from_utf8_lossy(&message.data).to_string();
+                    println!("[PROTOCOL] Got message: '{}' with id: {} from peer: {}", content, id, peer_id);
+                    let mut m = api_state.messages.lock().unwrap();
+                    m.push(ChatMessage {
+                        sender: peer_id.to_string(),
+                        content,
+                        timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs(),
+                    });
                 }
                 _ => {}
             }

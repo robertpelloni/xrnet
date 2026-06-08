@@ -15,26 +15,19 @@
 - Asynchronous status bridging between backend and coordinator.
 - Deployment-ready multi-instance simulation suite.
 
-## [0.1.2] - 2026-06-07
+## [0.2.0] - 2026-06-07
+### Added
+- Decentralized Messaging (Communicate) via libp2p Gossipsub.
+- Decentralized Marketplace Discovery (Shop & Sell) via Kademlia DHT.
+- UI panels for real-time mesh chat and marketplace listings.
+- Extended DHT API for record retrieval (GET).
+- Enhanced Executive Protocol documentation and vision for the "Everything App".
+
+## [0.2.1] - 2026-06-08
 - Autonomous version bump via Executive Protocol.
 
-## [0.1.3] - 2026-06-07
+## [0.2.2] - 2026-06-08
 - Autonomous version bump via Executive Protocol.
 
-## [0.1.4] - 2026-06-07
-- Autonomous version bump via Executive Protocol.
-
-## [0.1.5] - 2026-06-07
-- Autonomous version bump via Executive Protocol.
-
-## [0.1.6] - 2026-06-07
-- Autonomous version bump via Executive Protocol.
-
-## [0.1.7] - 2026-06-07
-- Autonomous version bump via Executive Protocol.
-
-## [0.1.8] - 2026-06-07
-- Autonomous version bump via Executive Protocol.
-
-## [0.1.2] - 2026-06-07
+## [0.2.3] - 2026-06-08
 - Autonomous version bump via Executive Protocol.

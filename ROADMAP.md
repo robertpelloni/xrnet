@@ -7,8 +7,10 @@
 - [x] Integrated CI/CD pipeline for build and test automation.
 - [x] Established libp2p networking baseline (v0.1.1).
 
-## Phase 2: The Everything Protocol (33% Complete)
+## Phase 2: The Everything Protocol (50% Complete)
 - [x] Implement decentralized discovery via Kademlia DHT (Task 1).
+- [x] Implement real-time mesh messaging via Gossipsub (Task 2).
+- [ ] Implement decentralized marketplace discovery (Task 3).
 - [ ] Implement cryptographic pub-sub for real-time messaging.
 ## Phase 1: Foundation (Current)
 - [ ] Finalize technical architecture and tech stack selection.

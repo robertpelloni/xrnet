@@ -16,6 +16,9 @@ function App() {
   const [network, setNetwork] = useState('Standalone')
   const [peerId, setPeerId] = useState('')
   const [profiles, setProfiles] = useState<Record<string, string>>({})
+  const [marketItems, setMarketItems] = useState<Record<string, string>>({})
+  const [messages, setMessages] = useState<any[]>([])
+  const [newMessage, setNewMessage] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearching, setIsSearching] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
@@ -46,13 +49,37 @@ function App() {
       }
     }
 
+    const fetchMarketItems = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/api/market/list')
+        const data = await response.json()
+        setMarketItems(data)
+      } catch (error) {
+        console.error('Failed to fetch market items:', error)
+      }
+    }
+
+    const fetchMessages = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/api/messages/list')
+        const data = await response.json()
+        setMessages(data)
+      } catch (error) {
+        console.error('Failed to fetch messages:', error)
+      }
+    }
+
     const interval = setInterval(() => {
       fetchStatus()
       fetchProfiles()
+      fetchMarketItems()
+      fetchMessages()
     }, 3000)
 
     fetchStatus()
     fetchProfiles()
+    fetchMarketItems()
+    fetchMessages()
     return () => clearInterval(interval)
   }, [])
 
@@ -92,6 +119,38 @@ function App() {
       alert("Profile published to DHT.")
     } catch (error) {
       console.error('Profile publish failed:', error)
+    }
+  }
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newMessage) return
+
+    try {
+      await fetch('http://localhost:8080/api/messages/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: newMessage })
+      })
+      setNewMessage('')
+    } catch (error) {
+      console.error('Message send failed:', error)
+    }
+  }
+
+  const handleListMarketItem = async () => {
+    const item = prompt("What are you selling/offering?")
+    if (!item) return
+
+    try {
+      await fetch('http://localhost:8080/api/dht/put', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: `market:${peerId}:${Date.now()}`, value: item })
+      })
+      alert("Item listed in marketplace DHT.")
+    } catch (error) {
+      console.error('Marketplace list failed:', error)
     }
   }
 
@@ -203,6 +262,52 @@ function App() {
                     <li key={key}>
                       <span className="alias">{alias}</span>
                       <span className="peer-ref">{key.replace('profile:', '').slice(0, 8)}...</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </section>
+
+          <section className="communications-panel">
+            <h2>Communicate</h2>
+            <div className="chat-window">
+              {messages.length === 0 ? (
+                <p className="empty-msg">No messages yet.</p>
+              ) : (
+                <div className="message-list">
+                  {messages.map((msg, idx) => (
+                    <div key={idx} className="message-item">
+                      <span className="sender">{msg.sender.slice(0, 8)}:</span>
+                      <span className="content">{msg.content}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <form onSubmit={handleSendMessage} className="chat-form">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Message mesh..."
+              />
+              <button type="submit">Send</button>
+            </form>
+          </section>
+
+          <section className="marketplace-panel">
+            <h2>Shop & Sell</h2>
+            <button className="action-button" onClick={handleListMarketItem}>List Item for Sale</button>
+            <div className="market-list">
+              {Object.keys(marketItems).length === 0 ? (
+                <p className="empty-msg">No items listed yet.</p>
+              ) : (
+                <ul>
+                  {Object.entries(marketItems).map(([key, value]) => (
+                    <li key={key}>
+                      <span className="market-item">{value}</span>
+                      <span className="peer-ref">{key.split(':')[1].slice(0, 8)}...</span>
                     </li>
                   ))}
                 </ul>

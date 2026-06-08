@@ -190,6 +190,79 @@ h2 {
   overflow: hidden;
 }
 
+.chat-window {
+  background: #1a1a1a;
+  height: 150px;
+  overflow-y: auto;
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #333;
+  text-align: left;
+}
+
+.message-item {
+  margin-bottom: 5px;
+  font-size: 0.8rem;
+}
+
+.message-item .sender {
+  color: #646cff;
+  font-weight: bold;
+  margin-right: 5px;
+  font-family: monospace;
+}
+
+.chat-form {
+  display: flex;
+  gap: 5px;
+}
+
+.chat-form input {
+  flex: 1;
+  background: #1a1a1a;
+  border: 1px solid #444;
+  color: white;
+  padding: 5px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.chat-form button {
+  background: #646cff;
+  border: none;
+  color: white;
+  padding: 0 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.market-list {
+  margin-top: 15px;
+  text-align: left;
+}
+
+.market-list ul {
+  list-style: none;
+  padding: 0;
+}
+
+.market-list li {
+  background: #1a1a1a;
+  padding: 0.8rem;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.market-item {
+  font-weight: bold;
+  color: #fff;
+}
+
 footer {
   margin-top: 2rem;
   font-size: 0.8rem;
