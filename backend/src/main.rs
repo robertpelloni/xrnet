@@ -299,6 +299,40 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .fallback_service(ServeDir::new("frontend/dist"))
         .layer(CorsLayer::permissive());
 
+    // Central Telemetry Reporting Task
+    let reporting_state = Arc::clone(&state);
+    tokio::spawn(async move {
+        loop {
+            tokio::time::sleep(std::time::Duration::from_secs(10)).await;
+
+            let (cpu, mem, peers, peer_id) = {
+                let mut sys = reporting_state.sys.lock().unwrap();
+                sys.refresh_cpu_specifics(CpuRefreshKind::everything());
+                sys.refresh_memory_specifics(MemoryRefreshKind::everything());
+                (
+                    sys.global_cpu_info().cpu_usage(),
+                    sys.used_memory() as f64 / sys.total_memory() as f64 * 100.0,
+                    *reporting_state.peers.lock().unwrap(),
+                    reporting_state.peer_id.clone()
+                )
+            };
+
+            let report = serde_json::json!({
+                "type": "TELEMETRY",
+                "peer_id": peer_id,
+                "cpu": cpu,
+                "memory": mem,
+                "peers": peers,
+                "timestamp": std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs()
+            });
+
+            if let Ok(mut stream) = tokio::net::TcpStream::connect("127.0.0.1:9000").await {
+                let msg = format!("{}\n", report.to_string());
+                let _ = stream.write_all(msg.as_bytes()).await;
+            }
+        }
+    });
+
     let api_port_str = std::env::var("API_PORT").unwrap_or_else(|_| "8080".to_string());
     println!("[INFO] API_PORT env var: {}", api_port_str);
     let api_port = api_port_str.parse::<u16>().unwrap_or(8080);
