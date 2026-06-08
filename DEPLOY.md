@@ -50,6 +50,13 @@ Run the full E2E suite manually:
 python3 tests/e2e_integration.py
 ```
 
+### Performance Monitoring
+To capture a baseline or monitor a live deployment:
+```bash
+python3 scripts/monitor_performance.py
+```
+This script collects CPU/RAM usage alongside P2P network metrics (peers, message throughput, uptime) and logs them to `performance.log`.
+
 ## Troubleshooting
 - **Build Failures:** Ensure `cargo` and `npm` are in your PATH. Check `frontend/node_modules` if React fails to build.
 - **Port Conflicts:** Ensure ports 8080 (Backend API) and any protocol-specific ports are available.

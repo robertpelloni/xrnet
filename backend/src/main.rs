@@ -39,6 +39,9 @@ struct AppState {
     profiles: Mutex<std::collections::HashMap<String, String>>,
     market_items: Mutex<std::collections::HashMap<String, String>>,
     messages: Mutex<Vec<ChatMessage>>,
+    start_time: std::time::Instant,
+    msg_sent_count: Mutex<usize>,
+    msg_recv_count: Mutex<usize>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -118,6 +121,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
         profiles: Mutex::new(std::collections::HashMap::new()),
         market_items: Mutex::new(std::collections::HashMap::new()),
         messages: Mutex::new(Vec::new()),
+        start_time: std::time::Instant::now(),
+        msg_sent_count: Mutex::new(0),
+        msg_recv_count: Mutex::new(0),
     });
 
     // API Server
@@ -129,11 +135,17 @@ async fn main() -> Result<(), Box<dyn Error>> {
             move || async move {
                 let peers = *s.peers.lock().unwrap();
                 let network = s.network.lock().unwrap().clone();
+                let uptime = s.start_time.elapsed().as_secs();
+                let sent = *s.msg_sent_count.lock().unwrap();
+                let recv = *s.msg_recv_count.lock().unwrap();
                 Json(json!({
                     "peer_id": s.peer_id,
                     "peers": peers,
                     "network": network,
                     "version": get_version(),
+                    "uptime_secs": uptime,
+                    "messages_sent": sent,
+                    "messages_received": recv,
                 }))
             }
         }))
@@ -188,6 +200,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             content: content.clone(),
                             timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs(),
                         });
+                    }
+
+                    {
+                        let mut count = s.msg_sent_count.lock().unwrap();
+                        *count += 1;
                     }
 
                     let _ = s.command_tx.send(Command::SendMessage {
@@ -392,6 +409,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 })) => {
                     let content = String::from_utf8_lossy(&message.data).to_string();
                     println!("[PROTOCOL] Got message: '{}' with id: {} from peer: {}", content, id, peer_id);
+
+                    {
+                        let mut count = api_state.msg_recv_count.lock().unwrap();
+                        *count += 1;
+                    }
+
                     let mut m = api_state.messages.lock().unwrap();
                     m.push(ChatMessage {
                         sender: peer_id.to_string(),
