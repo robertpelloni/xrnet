@@ -32,6 +32,12 @@
 - Production Setup and Rollout Scripts (`scripts/setup_production.sh`, `scripts/deploy_prod.sh`).
 - Enhanced Executive Protocol documentation and vision for the "Everything App".
 
+## [0.3.17] - 2026-06-08
+### Added
+- Real-time Mesh Traffic Visualization: Added charting for message propagation statistics.
+- Fleet-Wide Monitoring Integration: Direct UI linking to the Central Mesh Monitor.
+- Enhanced Telemetry Dashboard: v0.3.x production-ready monitoring UI.
+
 ## [0.3.13] - 2026-06-08
 ### Added
 - Production Deployment Verification: Successfully deployed and tested v0.3.x on test device.
@@ -148,4 +154,16 @@
 - Autonomous version bump via Executive Protocol.
 
 ## [0.3.13] - 2026-06-08
+- Autonomous version bump via Executive Protocol.
+
+## [0.3.14] - 2026-06-08
+- Autonomous version bump via Executive Protocol.
+
+## [0.3.15] - 2026-06-08
+- Autonomous version bump via Executive Protocol.
+
+## [0.3.16] - 2026-06-08
+- Autonomous version bump via Executive Protocol.
+
+## [0.3.17] - 2026-06-08
 - Autonomous version bump via Executive Protocol.

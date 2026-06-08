@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
 interface TelemetryData {
   cpu_usage: number;
@@ -79,6 +79,26 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
             </AreaChart>
           </ResponsiveContainer>
         </div>
+
+        <div className="chart-wrapper">
+          <h4>Mesh Traffic (S/R)</h4>
+          <ResponsiveContainer width="100%" height={150}>
+            <LineChart data={history}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+              <XAxis dataKey="time" hide />
+              <YAxis />
+              <Tooltip contentStyle={{ backgroundColor: '#222', border: '1px solid #444' }} />
+              <Line type="monotone" dataKey="sent" stroke="#646cff" dot={false} name="Sent" />
+              <Line type="monotone" dataKey="recv" stroke="#ff9800" dot={false} name="Received" />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      <div className="mesh-link-container">
+        <a href="http://localhost:9001" target="_blank" rel="noopener noreferrer" className="mesh-monitor-link">
+          Open Central Mesh Monitor
+        </a>
       </div>
     </div>
   );

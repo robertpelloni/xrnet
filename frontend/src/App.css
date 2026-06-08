@@ -313,6 +313,25 @@ h2 {
   text-align: center;
 }
 
+.mesh-link-container {
+  margin-top: 15px;
+  text-align: center;
+}
+
+.mesh-monitor-link {
+  color: #646cff;
+  font-size: 0.8rem;
+  text-decoration: none;
+  border: 1px solid #646cff;
+  padding: 5px 10px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.mesh-monitor-link:hover {
+  background: rgba(100, 108, 255, 0.1);
+}
+
 footer {
   margin-top: 2rem;
   font-size: 0.8rem;
