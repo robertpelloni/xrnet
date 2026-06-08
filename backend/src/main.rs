@@ -121,7 +121,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let state = Arc::new(AppState {
         peer_id: peer_id_str.clone(),
-        peers: Mutex::new(42),
+        peers: Mutex::new(0),
         network: Mutex::new("Standalone".to_string()),
         command_tx: tx,
         profiles: Mutex::new(std::collections::HashMap::new()),
@@ -145,6 +145,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 let uptime = s.start_time.elapsed().as_secs();
                 let sent = *s.msg_sent_count.lock().unwrap();
                 let recv = *s.msg_recv_count.lock().unwrap();
+                let dht_count = s.profiles.lock().unwrap().len() + s.market_items.lock().unwrap().len();
 
                 let (cpu, mem) = {
                     let mut sys = s.sys.lock().unwrap();
@@ -161,6 +162,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     "uptime_secs": uptime,
                     "messages_sent": sent,
                     "messages_received": recv,
+                    "dht_records": dht_count,
                     "cpu_usage": cpu,
                     "memory_usage": mem,
                 }))
@@ -391,16 +393,22 @@ async fn main() -> Result<(), Box<dyn Error>> {
     if integrated {
         let mut n = api_state.network.lock().unwrap();
         *n = "Integrated".to_string();
-        let mut p = api_state.peers.lock().unwrap();
-        *p = 43;
     }
 
     println!("[INFO] Everything Protocol initialized successfully.");
     println!("[STATUS] READY");
     set_status("READY");
 
+    let mesh_peer_state = Arc::clone(&state);
+    let mut peer_check_interval = tokio::time::interval(Duration::from_secs(5));
+
     loop {
         tokio::select! {
+            _ = peer_check_interval.tick() => {
+                let peer_count = swarm.connected_peers().count();
+                let mut p = mesh_peer_state.peers.lock().unwrap();
+                *p = peer_count;
+            }
             Some(cmd) = rx.recv() => {
                 match cmd {
                     Command::PutRecord { key, value } => {
@@ -433,8 +441,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 }
                 SwarmEvent::Behaviour(MyBehaviourEvent::Mdns(mdns::Event::Discovered(list))) => {
                     for (peer_id, addr) in list {
-                        let mut p = api_state.peers.lock().unwrap();
-                        *p += 1;
                         println!("[PROTOCOL] Discovered peer {} at {:?}", peer_id, addr);
                         swarm.behaviour_mut().kad.add_address(&peer_id, addr);
                     }

@@ -1,4 +1,4 @@
-# xrnet - Autonomous Mesh Network Ecosystem (v0.2.0)
+# xrnet - Autonomous Mesh Network Ecosystem (v0.3.23)
 
 XRNet is a decentralized spatial computing platform merging photorealistic 3D environments with a P2P internet operating system. It enables users to communicate, trade, and interact within a neutral, autonomous mesh network.
 
@@ -42,7 +42,7 @@ Access the production instance at `http://localhost:8080`.
 - [Deployment Guide](DEPLOY.md) - Detailed production rollout and monitoring instructions.
 - [Usage Manual](USAGE.md) - Step-by-step guide on using mesh features.
 - [Project Vision](VISION.md) - The long-term roadmap for the Everything Protocol.
-- [Release Notes](RELEASE_NOTES.md) - Summary of the v0.2.0 Phase 2 completion.
+- [Release Notes](RELEASE_NOTES.md) - Summary of the v0.3.23 Ecosystem completion.
 
 ---
 

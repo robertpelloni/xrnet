@@ -1,6 +1,6 @@
 [package]
 name = "xrnet-backend"
-version = "0.3.17"
+version = "0.3.23"
 edition = "2021"
 
 [dependencies]

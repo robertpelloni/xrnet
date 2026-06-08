@@ -8,13 +8,29 @@ interface TelemetryData {
   messages_received: number;
   uptime_secs: number;
   peers: number;
+  dht_records: number;
 }
 
 export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
   const [history, setHistory] = useState<any[]>([]);
   const [current, setCurrent] = useState<TelemetryData | null>(null);
+  const [globalMesh, setGlobalMesh] = useState<any>(null);
 
   useEffect(() => {
+    const fetchGlobalMesh = async () => {
+      try {
+        const response = await fetch(`http://localhost:9001/api/mesh/status`);
+        if (response.ok) {
+          const data = await response.json();
+          setGlobalMesh(data);
+        } else {
+          setGlobalMesh(null);
+        }
+      } catch (err) {
+        setGlobalMesh(null);
+      }
+    };
+
     const fetchTelemetry = async () => {
       try {
         const response = await fetch(`${apiBaseUrl}/api/status`);
@@ -27,11 +43,13 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
             cpu: data.cpu_usage,
             mem: data.memory_usage,
             sent: data.messages_sent,
-            recv: data.messages_received
+            recv: data.messages_received,
+            dht: data.dht_records || 0
           }];
           // Keep last 20 data points
           return newHistory.slice(-20);
         });
+        fetchGlobalMesh();
       } catch (error) {
         console.error('Telemetry fetch failed:', error);
       }
@@ -44,24 +62,36 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
 
   if (!current) return <div>Loading Telemetry...</div>;
 
+  const totalMeshNodes = globalMesh ? Object.keys(globalMesh).length : 0;
+
   return (
     <div className="monitoring-dashboard">
+      {totalMeshNodes > 0 && (
+        <div className="global-mesh-info">
+          <label>Global Mesh Intelligence</label>
+          <div className="mesh-summary">
+            <span>Nodes: <strong>{totalMeshNodes}</strong></span>
+            <span>Network: <strong>Healthy</strong></span>
+          </div>
+        </div>
+      )}
+
       <div className="telemetry-metrics">
         <div className="metric-box">
-          <label>CPU Usage</label>
+          <label>Local CPU</label>
           <div className="value">{current.cpu_usage.toFixed(1)}%</div>
         </div>
         <div className="metric-box">
-          <label>Memory Usage</label>
+          <label>Local MEM</label>
           <div className="value">{current.memory_usage.toFixed(1)}%</div>
         </div>
         <div className="metric-box">
-          <label>Uptime</label>
-          <div className="value">{Math.floor(current.uptime_secs / 60)}m {current.uptime_secs % 60}s</div>
+          <label>DHT Records</label>
+          <div className="value">{current.dht_records}</div>
         </div>
         <div className="metric-box">
-          <label>Traffic (S/R)</label>
-          <div className="value">{current.messages_sent} / {current.messages_received}</div>
+          <label>Active Peers</label>
+          <div className="value">{current.peers}</div>
         </div>
       </div>
 
@@ -76,6 +106,7 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
               <Tooltip contentStyle={{ backgroundColor: '#222', border: '1px solid #444' }} />
               <Area type="monotone" dataKey="cpu" stroke="#00ffcc" fill="#00ffcc44" name="CPU %" />
               <Area type="monotone" dataKey="mem" stroke="#ff00cc" fill="#ff00cc44" name="Memory %" />
+              <Area type="monotone" dataKey="dht" stroke="#ffff00" fill="#ffff0022" name="DHT Records" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
