@@ -53,6 +53,18 @@ python3 tests/e2e_integration.py
 ### Production Deployment (Single-Unit)
 For live environments, xrnet can be deployed as a single optimized binary that serves the frontend UI and the mesh protocol API concurrently.
 
+#### Automated Rollout
+We provide automated scripts for setting up and deploying to production environments.
+1. **Initialize Production:**
+   ```bash
+   ./scripts/setup_production.sh
+   ```
+2. **Execute Rollout:**
+   ```bash
+   ./scripts/deploy_prod.sh
+   ```
+
+#### Manual Deployment
 1. **Build in Release Mode:**
    ```bash
    ./build.sh release

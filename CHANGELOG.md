@@ -26,16 +26,6 @@
 - UI panels for real-time mesh chat and marketplace listings.
 - Dynamic API port configuration via `API_PORT` environment variable.
 - Extended DHT API for record retrieval (GET).
+- Comprehensive System Architecture Documentation (`ARCHITECTURE.md`).
+- Production Setup and Rollout Scripts (`scripts/setup_production.sh`, `scripts/deploy_prod.sh`).
 - Enhanced Executive Protocol documentation and vision for the "Everything App".
-
-## [0.2.1] - 2026-06-08
-- Autonomous version bump via Executive Protocol.
-
-## [0.2.2] - 2026-06-08
-- Autonomous version bump via Executive Protocol.
-
-## [0.2.3] - 2026-06-08
-- Autonomous version bump via Executive Protocol.
-
-## [0.2.4] - 2026-06-08
-- Autonomous version bump via Executive Protocol.
