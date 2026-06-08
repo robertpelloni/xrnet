@@ -32,8 +32,10 @@
 - Production Setup and Rollout Scripts (`scripts/setup_production.sh`, `scripts/deploy_prod.sh`).
 - Enhanced Executive Protocol documentation and vision for the "Everything App".
 
-## [0.2.13] - 2026-06-08
+## [0.2.16] - 2026-06-08
 ### Added
+- Distribution Packaging: Automated source bundling via `package.sh`.
+- Maintenance Governance: Comprehensive `MAINTENANCE.md` for long-term health.
 - Mesh-Wide Monitoring Dashboard: Fleet management UI for multi-node health tracking.
 - Standalone Monitoring API: Upgraded central server with HTTP JSON telemetry endpoint.
 - Phase 3 Initial Integration: Central Telemetry Reporting & Multi-node Benchmarking.
@@ -76,4 +78,13 @@
 - Autonomous version bump via Executive Protocol.
 
 ## [0.2.13] - 2026-06-08
+- Autonomous version bump via Executive Protocol.
+
+## [0.2.14] - 2026-06-08
+- Autonomous version bump via Executive Protocol.
+
+## [0.2.15] - 2026-06-08
+- Autonomous version bump via Executive Protocol.
+
+## [0.2.16] - 2026-06-08
 - Autonomous version bump via Executive Protocol.

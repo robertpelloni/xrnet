@@ -1,61 +1,8 @@
-# DEPLOY: xrnet Deployment & Setup
+# XRNet Deployment & Packaging
 
-## Prerequisites
-Before deploying xrnet, ensure your system meets the following requirements:
-- **Rust:** `cargo` 1.70+
-- **Node.js:** `npm` 10+ (Node 20+ recommended)
-- **Python:** `python3` 3.10+
-- **Git:** For repository synchronization.
-
-## Setup Instructions
-1. **Clone the Repository:**
-   ```bash
-   git clone --recursive https://github.com/robertpelloni/xrnet
-   cd xrnet
-   ```
-2. **Initialize Submodules:**
-   ```bash
-   git submodule update --init --recursive
-   ```
-
-## Building the System
-The unified `build.sh` script handles the compilation of the Rust backend and the installation/bundling of the React frontend.
-```bash
-./build.sh
-```
-
-## Running the Application
-Use the `start.sh` script to launch the backend and the application coordinator concurrently.
-```bash
-./start.sh
-```
-
-## Verification & Testing
-### Integrated Pipeline
-For a complete build and test sequence, run:
-```bash
-./pipeline.sh
-```
-This script automates building, integrity validation, and E2E testing.
-
-### Autonomous Execution Protocol
-To execute the full autonomous workflow (Sync, Validate, Build, Test), run:
-```bash
-./autonomous_workflow.sh
-```
-
-### End-to-End Integration
-Run the full E2E suite manually:
-```bash
-python3 tests/e2e_integration.py
-```
-
-### Production Deployment (Single-Unit)
-For live environments, xrnet can be deployed as a single optimized binary that serves the frontend UI and the mesh protocol API concurrently.
-
-#### Automated Rollout
-We provide automated scripts for setting up and deploying to production environments.
-1. **Initialize Production:**
+## Quick Start (Production)
+For rapid deployment on a new system:
+1. **Initialize Environment:**
    ```bash
    ./scripts/setup_production.sh
    ```
@@ -64,26 +11,37 @@ We provide automated scripts for setting up and deploying to production environm
    ./scripts/deploy_prod.sh
    ```
 
-#### Manual Deployment
-1. **Build in Release Mode:**
+## Standard Setup (Source)
+1. **Clone & Submodules:**
    ```bash
-   ./build.sh release
+   git clone --recursive https://github.com/robertpelloni/xrnet && cd xrnet
+   git submodule update --init --recursive
    ```
-2. **Start the Production Instance:**
+2. **Build All Components:**
    ```bash
-   ./start.sh release
+   ./build.sh [release]
    ```
-3. **Access the Application:**
-   Navigate to `http://localhost:8080` (or your configured `API_PORT`). The UI is served directly by the backend node.
+3. **Launch System:**
+   ```bash
+   ./start.sh [release]
+   ```
 
-### Performance Monitoring
-To capture a baseline or monitor a live deployment:
+## Packaging for Distribution
+To create a versioned source bundle for release:
 ```bash
-python3 scripts/monitor_performance.py --duration 3600 --interval 10
+./package.sh
 ```
-This script collects CPU/RAM usage alongside P2P network metrics (peers, message throughput, uptime) and logs them to `performance_{PORT}.log`.
+This generates `xrnet-v{VERSION}.tar.gz` excluding build artifacts.
 
-## Troubleshooting
-- **Build Failures:** Ensure `cargo` and `npm` are in your PATH. Check `frontend/node_modules` if React fails to build.
-- **Port Conflicts:** Ensure ports 8080 (Backend API) and any protocol-specific ports are available.
-- **Permission Denied:** Ensure scripts are executable: `chmod +x *.sh`.
+## Continuous Integration (CI/CD)
+Run the full validation pipeline before any release:
+```bash
+./pipeline.sh
+```
+
+## Advanced Monitoring
+- **Node Monitoring:** `python3 scripts/monitor_performance.py`
+- **Mesh Dashboard:** `python3 scripts/start_mesh_monitor.py` (Port 9001)
+
+---
+For routine operations, see [MAINTENANCE.md](MAINTENANCE.md).
