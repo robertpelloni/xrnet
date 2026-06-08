@@ -16,18 +16,20 @@ if [ ! -f "$BINARY" ]; then
     exit 1
 fi
 
+echo "[INFO] Launching Bobcoin Economic Layer..."
+(cd submodules/bobcoin/bobcoin-consensus && node server.js > ../../../bobcoin.log 2>&1) &
+BOB_PID=$!
+
 echo "[INFO] Launching Backend (integrated UI)..."
-$BINARY &
+./$BINARY &
 BACKEND_PID=$!
 
-echo "[INFO] Launching Frontend Gateway (Placeholder)..."
-# In a real scenario, this might serve the frontend via a local server
-# For now, we'll run main.py to coordinate
+echo "[INFO] Launching Frontend Gateway..."
 python3 main.py &
 MAIN_PID=$!
 
-echo "[INFO] xrnet processes started. PIDs: Backend($BACKEND_PID), Main($MAIN_PID)"
+echo "[INFO] xrnet processes started. PIDs: Bobcoin($BOB_PID), Backend($BACKEND_PID), Main($MAIN_PID)"
 
 # Wait for Ctrl+C
-trap "kill $BACKEND_PID $MAIN_PID; exit" INT TERM
+trap "kill $BOB_PID $BACKEND_PID $MAIN_PID; exit" INT TERM
 wait

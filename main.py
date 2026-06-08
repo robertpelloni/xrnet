@@ -11,23 +11,33 @@ def get_version():
     except Exception:
         return "unknown"
 
-def wait_for_backend_ready(timeout=30):
-    status_file = "backend/status.json"
-    if not os.path.exists(status_file):
-        # Maybe it's in the root
-        status_file = "status.json"
-
+def wait_for_status(status_file, target="READY", timeout=30):
     start_time = time.time()
     while time.time() - start_time < timeout:
         if os.path.exists(status_file):
             try:
                 with open(status_file, "r") as f:
                     data = json.load(f)
-                    if data.get("status") == "READY":
+                    if data.get("status") == target:
                         return True
             except (json.JSONDecodeError, IOError):
                 pass
         time.sleep(0.5)
+    return False
+
+def wait_for_backend_ready(timeout=30):
+    status_file = "backend/status.json" if os.path.exists("backend/status.json") else "status.json"
+    return wait_for_status(status_file, "READY", timeout)
+
+def wait_for_bobcoin_ready(timeout=30):
+    # Check port 4000
+    import socket
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            if s.connect_ex(('127.0.0.1', 4000)) == 0:
+                return True
+        time.sleep(1)
     return False
 
 def run_autonomous_protocol():
@@ -64,6 +74,14 @@ def main():
 
     # Integrated Executive Autonomous Protocol
     run_autonomous_protocol()
+
+    sys.stdout.write("[COORD] Waiting for Economic Layer (Bobcoin) [READY] signal...\n")
+    sys.stdout.flush()
+    if wait_for_bobcoin_ready():
+        sys.stdout.write("[COORD] Economic Layer detected as READY on port 4000.\n")
+    else:
+        sys.stdout.write("[COORD] WARNING: Bobcoin Economic Layer timed out. Proceeding...\n")
+    sys.stdout.flush()
 
     sys.stdout.write("[COORD] Waiting for Everything Protocol [READY] signal...\n")
     sys.stdout.flush()

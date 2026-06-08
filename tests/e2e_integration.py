@@ -69,6 +69,46 @@ class TestEndToEndIntegration(unittest.TestCase):
             self.assertIn("[COORD] Executing Executive Autonomous Protocol...", stdout)
             self.assertIn("[COORD] Executive Protocol Successful.", stdout)
 
+        # Verify Economic Layer
+        self.assertIn("[COORD] Waiting for Economic Layer (Bobcoin) [READY] signal...", stdout)
+        self.assertIn("[COORD] Economic Layer detected as READY on port 4000.", stdout)
+
+    def test_bobcoin_api(self):
+        """Verify that the Bobcoin proxy API works."""
+        print("\n--- Running Bobcoin Proxy API Integration Test ---")
+        api_port = os.environ.get("API_PORT", "8080")
+        api_url = f"http://127.0.0.1:{api_port}"
+
+        kwargs = {}
+        if os.name != 'nt':
+            kwargs['preexec_fn'] = os.setpgrp
+        process = subprocess.Popen(["./start.sh"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, **kwargs)
+
+        try:
+            # Wait for API to be ready
+            for _ in range(60):
+                try:
+                    if requests.get(f"{api_url}/api/status", timeout=1).status_code == 200:
+                        break
+                except:
+                    pass
+                time.sleep(1)
+
+            # Test balance check
+            test_account = "12D3KooWLJSyWyYGmK9J2JHeZff8td613v78XqvMKJ8uTfQMrBy4"
+            response = requests.get(f"{api_url}/api/bobcoin/balance/{test_account}", timeout=10)
+            self.assertEqual(response.status_code, 200)
+            data = response.json()
+            self.assertIn("balance", data)
+            print(f"[SUCCESS] Bobcoin Balance Proxy OK: {data}")
+
+        finally:
+            if os.name != 'nt':
+                os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+            else:
+                process.terminate()
+            process.wait()
+
     def test_protocol_api(self):
         """Verify that the Executive Protocol API can be triggered."""
         print("\n--- Running Executive Protocol API Integration Test ---")

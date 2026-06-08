@@ -1,4 +1,4 @@
-# XRNet API Reference (v0.3.23)
+# XRNet API Reference (v0.5.0)
 
 The XRNet backend exposes a REST API (default port 8080) to interact with the underlying P2P swarm and spatial layers.
 

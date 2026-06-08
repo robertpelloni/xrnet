@@ -13,6 +13,7 @@ use serde_json::json;
 use axum::{routing::{get, post}, Json, Router};
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
+use reqwest::Client;
 use tower_http::{cors::CorsLayer, services::ServeDir};
 use sysinfo::{System, CpuRefreshKind, MemoryRefreshKind};
 use serde::{Deserialize, Serialize};
@@ -135,6 +136,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     // API Server
     let api_state = Arc::clone(&state);
+    let http_client = Client::new();
 
     let app = Router::new()
         .route("/api/status", get({
@@ -257,6 +259,45 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
         }))
+        .route("/api/bobcoin/balance/:account", get({
+            let client = http_client.clone();
+            move |axum::extract::Path(account): axum::extract::Path<String>| async move {
+                let url = format!("http://127.0.0.1:4000/balance/{}", account);
+                match client.get(url).send().await {
+                    Ok(resp) => {
+                        let json: serde_json::Value = resp.json().await.unwrap_or(json!({ "error": "failed to parse" }));
+                        Json(json)
+                    }
+                    Err(e) => Json(json!({ "error": e.to_string() })),
+                }
+            }
+        }))
+        .route("/api/bobcoin/frontier/:account", get({
+            let client = http_client.clone();
+            move |axum::extract::Path(account): axum::extract::Path<String>| async move {
+                let url = format!("http://127.0.0.1:4000/frontier/{}", account);
+                match client.get(url).send().await {
+                    Ok(resp) => {
+                        let json: serde_json::Value = resp.json().await.unwrap_or(json!({ "error": "failed to parse" }));
+                        Json(json)
+                    }
+                    Err(e) => Json(json!({ "error": e.to_string() })),
+                }
+            }
+        }))
+        .route("/api/bobcoin/process", post({
+            let client = http_client.clone();
+            move |Json(payload): Json<serde_json::Value>| async move {
+                let url = "http://127.0.0.1:4000/process";
+                match client.post(url).json(&payload).send().await {
+                    Ok(resp) => {
+                        let json: serde_json::Value = resp.json().await.unwrap_or(json!({ "error": "failed to parse" }));
+                        Json(json)
+                    }
+                    Err(e) => Json(json!({ "error": e.to_string() })),
+                }
+            }
+        }))
         .route("/api/system/protocol", post(|| async move {
             println!("[API] Executive Protocol requested.");
 
@@ -363,7 +404,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
             };
 
             let gossipsub_config = gossipsub::ConfigBuilder::default()
-                .heartbeat_interval(Duration::from_secs(1))
+                .heartbeat_interval(Duration::from_millis(500)) // Increased heartbeat frequency
+                .mesh_n_low(3)
+                .mesh_n(6)
+                .mesh_n_high(12)
+                .gossip_lazy(3)
+                .history_length(5)
+                .history_gossip(3)
                 .validation_mode(gossipsub::ValidationMode::Strict)
                 .message_id_fn(message_id_fn)
                 .build()

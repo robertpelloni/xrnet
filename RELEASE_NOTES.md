@@ -1,4 +1,4 @@
-# Release Notes - XRNet v0.3.23
+# Release Notes - XRNet v0.5.0
 
 ## Phase 3+: Ecosystem Complete
 This update finalizes the Phase 3 "Ecosystem Complete" milestone, providing a fully integrated, production-ready decentralized mesh network with real-time monitoring, fleet management, and automated governance.
@@ -9,9 +9,9 @@ This update finalizes the Phase 3 "Ecosystem Complete" milestone, providing a fu
 - **Multi-Node Benchmarking:** Dedicated suite (`scripts/benchmark_mesh.py`) for stress-testing mesh discovery and throughput.
 - **Real-time Performance Telemetry:** Integrated hardware monitoring (`sysinfo`) visualized via the React `MonitoringDashboard`.
 - **Distribution Infrastructure:** Automated packaging and maintenance governance documentation for enterprise deployment.
-- **Unified Versioning:** Synchronized v0.3.23 baseline across all 40+ system files and metadata targets.
+- **Unified Versioning:** Synchronized v0.5.0 baseline across all 40+ system files and metadata targets.
 
-### Technical Stack (v0.3.23)
+### Technical Stack (v0.5.0)
 - **Telemetry:** `sysinfo` 0.30 (Native Rust).
 - **Visualization:** `recharts` 2.12 (React UI), `Chart.js` 4.4 (Central Dashboard).
 - **Networking:** libp2p 0.54 (TCP, Noise, Yamux, MDNS, Kad, Gossipsub).
