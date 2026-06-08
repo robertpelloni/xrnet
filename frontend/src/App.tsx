@@ -10,6 +10,13 @@ interface SystemStatus {
 }
 
 function App() {
+  const [apiBaseUrl] = useState(() => {
+    // In a production environment, this would be configured via env or window location
+    // For local mesh simulation, we check if a port is specified in the URL or default to 8080
+    const urlParams = new URLSearchParams(window.location.search);
+    const port = urlParams.get('api_port') || '8080';
+    return `http://localhost:${port}`;
+  });
   const [status, setStatus] = useState('Initializing...')
   const [version, setVersion] = useState('...')
   const [peers, setPeers] = useState(0)
@@ -27,7 +34,7 @@ function App() {
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/status')
+        const response = await fetch(`${apiBaseUrl}/api/status`)
         const data: SystemStatus = await response.json()
         setPeers(data.peers)
         setNetwork(data.network)
@@ -41,7 +48,7 @@ function App() {
 
     const fetchProfiles = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/profile')
+        const response = await fetch(`${apiBaseUrl}/api/profile`)
         const data = await response.json()
         setProfiles(data)
       } catch (error) {
@@ -51,7 +58,7 @@ function App() {
 
     const fetchMarketItems = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/market/list')
+        const response = await fetch(`${apiBaseUrl}/api/market/list`)
         const data = await response.json()
         setMarketItems(data)
       } catch (error) {
@@ -61,7 +68,7 @@ function App() {
 
     const fetchMessages = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/messages/list')
+        const response = await fetch(`${apiBaseUrl}/api/messages/list`)
         const data = await response.json()
         setMessages(data)
       } catch (error) {
@@ -90,7 +97,7 @@ function App() {
 
     try {
       // Simulate DHT search by putting a record
-      await fetch('http://localhost:8080/api/dht/put', {
+      await fetch(`${apiBaseUrl}/api/dht/put`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ key: `search:${Date.now()}`, value: searchQuery })
@@ -111,7 +118,7 @@ function App() {
     if (!alias) return
 
     try {
-      await fetch('http://localhost:8080/api/dht/put', {
+      await fetch(`${apiBaseUrl}/api/dht/put`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ key: `profile:${peerId}`, value: alias })
@@ -127,7 +134,7 @@ function App() {
     if (!newMessage) return
 
     try {
-      await fetch('http://localhost:8080/api/messages/send', {
+      await fetch(`${apiBaseUrl}/api/messages/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: newMessage })
@@ -143,7 +150,7 @@ function App() {
     if (!item) return
 
     try {
-      await fetch('http://localhost:8080/api/dht/put', {
+      await fetch(`${apiBaseUrl}/api/dht/put`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ key: `market:${peerId}:${Date.now()}`, value: item })
@@ -158,7 +165,7 @@ function App() {
     setIsSyncing(true)
     setProtocolOutput('Executing Autonomous Executive Protocol...')
     try {
-      const response = await fetch('http://localhost:8080/api/system/protocol', {
+      const response = await fetch(`${apiBaseUrl}/api/system/protocol`, {
         method: 'POST'
       })
       const data = await response.json()

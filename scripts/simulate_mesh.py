@@ -2,54 +2,64 @@ import subprocess
 import time
 import os
 import signal
+import requests
 
 def simulate_mesh():
     print("========================================")
-    print("      xrnet - MESH SIMULATION          ")
+    print("      xrnet - MULTI-NODE BENCHMARK     ")
     print("========================================\n")
 
     # Start a mock central peer
-    print("[MESH] Starting Mock Central Peer...")
+    print("[MESH] Starting Mock Central Peer (Port 9000)...")
     peer = subprocess.Popen(["python3", "scripts/mock_peer.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     time.sleep(2)
-
-    # Start two xrnet instances (using the same backend binary for now)
-    print("[MESH] Starting xrnet Instances...")
 
     kwargs = {}
     if os.name != 'nt':
         kwargs['preexec_fn'] = os.setpgrp
 
-    instance1 = subprocess.Popen(["./start.sh"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, **kwargs)
-    time.sleep(2)
-    # Note: Second instance might have port conflict if not careful, but for this simulation we just want to see logs
-    # In a real scenario we'd pass port args.
+    # Start Node 1 (API Port 8080)
+    print("[MESH] Starting Node 1 (API Port 8080)...")
+    env1 = os.environ.copy()
+    env1["API_PORT"] = "8080"
+    node1 = subprocess.Popen(["backend/target/debug/xrnet-backend"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env1, **kwargs)
 
-    print("[MESH] Simulation running for 10 seconds...")
-    time.sleep(10)
+    # Start Node 2 (API Port 8081)
+    print("[MESH] Starting Node 2 (API Port 8081)...")
+    env2 = os.environ.copy()
+    env2["API_PORT"] = "8081"
+    node2 = subprocess.Popen(["backend/target/debug/xrnet-backend"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env2, **kwargs)
+
+    time.sleep(15)
+
+    print("[MESH] Testing Message Propagation...")
+    try:
+        # Node 1 sends a message
+        requests.post("http://127.0.0.1:8080/api/messages/send", json={"content": "MESH_BENCHMARK_SIGNAL_001"})
+        time.sleep(5)
+
+        # Check Node 2 for the message
+        resp2 = requests.get("http://127.0.0.1:8081/api/messages/list")
+        messages = resp2.json()
+        found = any(m["content"] == "MESH_BENCHMARK_SIGNAL_001" for m in messages)
+
+        if found:
+            print("[SUCCESS] Gossipsub propagation verified between Node 1 and Node 2.")
+        else:
+            print("[FAILURE] Message did not reach Node 2.")
+    except Exception as e:
+        print(f"[ERROR] Benchmark test failed: {e}")
 
     # Cleanup
     print("[MESH] Cleaning up...")
-    if os.name != 'nt':
-        os.killpg(os.getpgid(instance1.pid), signal.SIGTERM)
-    else:
-        instance1.terminate()
-
+    for proc in [node1, node2]:
+        if os.name != 'nt':
+            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+        else:
+            proc.terminate()
     peer.terminate()
 
-    stdout1, _ = instance1.communicate()
-    peer_stdout, _ = peer.communicate()
-
-    print("\n--- Instance 1 Log Snapshot ---")
-    print(stdout1)
-
-    print("\n--- Peer Log Snapshot ---")
-    print(peer_stdout)
-
-    if "Handshake with external system successful" in stdout1 and "Handshake complete" in peer_stdout:
-        print("\n[SUCCESS] Mesh discovery and handshake verified.")
-    else:
-        print("\n[FAILURE] Mesh simulation failed to verify handshake.")
+    print("\n--- Benchmark Complete ---")
 
 if __name__ == "__main__":
     simulate_mesh()

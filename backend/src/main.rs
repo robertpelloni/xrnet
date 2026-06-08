@@ -281,7 +281,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }))
         .layer(CorsLayer::permissive());
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
+    let api_port_str = std::env::var("API_PORT").unwrap_or_else(|_| "8080".to_string());
+    println!("[INFO] API_PORT env var: {}", api_port_str);
+    let api_port = api_port_str.parse::<u16>().unwrap_or(8080);
+
+    let addr = SocketAddr::from(([127, 0, 0, 1], api_port));
     tokio::spawn(async move {
         println!("[API] Server listening on http://{}", addr);
         let listener = tokio::net::TcpListener::bind(addr).await.unwrap();

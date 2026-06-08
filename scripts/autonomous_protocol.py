@@ -51,6 +51,9 @@ def step_documentation():
         log(f"Versioning failed: {e}")
 
 def step_build():
+    if os.environ.get("SKIP_PROTOCOL_BUILD") == "1":
+        log("--- STEP 3: WORKSPACE CLEANUP & BUILD (SKIPPED) ---")
+        return
     log("--- STEP 3: WORKSPACE CLEANUP & BUILD ---")
     run_cmd(["./build.sh"])
 

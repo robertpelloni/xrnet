@@ -4,9 +4,12 @@ import json
 import psutil
 import os
 
-def monitor_performance(duration_secs=30, interval_secs=5):
-    print(f"--- [MONITOR] Performance monitoring started (Duration: {duration_secs}s) ---")
-    log_file = "performance.log"
+def monitor_performance(duration_secs=30, interval_secs=5, api_port=None):
+    if api_port is None:
+        api_port = os.environ.get("API_PORT", "8080")
+
+    print(f"--- [MONITOR] Performance monitoring started (Port: {api_port}, Duration: {duration_secs}s) ---")
+    log_file = f"performance_{api_port}.log"
 
     with open(log_file, "w") as f:
         f.write("timestamp,cpu_percent,mem_percent,uptime_secs,peers,msg_sent,msg_recv\n")
@@ -19,7 +22,7 @@ def monitor_performance(duration_secs=30, interval_secs=5):
             mem = psutil.virtual_memory().percent
 
             # Application metrics from Backend API
-            response = requests.get("http://127.0.0.1:8080/api/status", timeout=2)
+            response = requests.get(f"http://127.0.0.1:{api_port}/api/status", timeout=2)
             data = response.json()
 
             uptime = data.get("uptime_secs", 0)
@@ -42,4 +45,12 @@ def monitor_performance(duration_secs=30, interval_secs=5):
     print(f"--- [MONITOR] Performance monitoring complete. Log saved to {log_file} ---")
 
 if __name__ == "__main__":
-    monitor_performance()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.get_default("duration_secs")
+    parser.add_argument("--duration", type=int, default=30)
+    parser.add_argument("--interval", type=int, default=5)
+    parser.add_argument("--port", type=str, default=None)
+    args = parser.parse_args()
+
+    monitor_performance(duration_secs=args.duration, interval_secs=args.interval, api_port=args.port)
