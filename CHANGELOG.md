@@ -27,5 +27,6 @@
 - Dynamic API port configuration via `API_PORT` environment variable.
 - Extended DHT API for record retrieval (GET).
 - Comprehensive System Architecture Documentation (`ARCHITECTURE.md`).
+- User Manual and Step-by-Step Usage Guide (`USAGE.md`).
 - Production Setup and Rollout Scripts (`scripts/setup_production.sh`, `scripts/deploy_prod.sh`).
 - Enhanced Executive Protocol documentation and vision for the "Everything App".
