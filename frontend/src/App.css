@@ -263,6 +263,56 @@ h2 {
   color: #fff;
 }
 
+/* Telemetry Dashboard Styles */
+.monitoring-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.telemetry-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.metric-box {
+  background: #1a1a1a;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #444;
+  text-align: center;
+}
+
+.metric-box label {
+  display: block;
+  font-size: 0.75rem;
+  color: #888;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+
+.metric-box .value {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #00ffcc;
+}
+
+.charts-container {
+  background: #000;
+  border-radius: 4px;
+  padding: 10px;
+  border: 1px solid #333;
+}
+
+.chart-wrapper h4 {
+  margin: 0 0 10px 0;
+  font-size: 0.9rem;
+  color: #ccc;
+  text-align: center;
+}
+
 footer {
   margin-top: 2rem;
   font-size: 0.8rem;

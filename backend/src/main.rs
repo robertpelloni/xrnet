@@ -14,6 +14,7 @@ use axum::{routing::{get, post}, Json, Router};
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
 use tower_http::{cors::CorsLayer, services::ServeDir};
+use sysinfo::{System, CpuRefreshKind, MemoryRefreshKind};
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc;
 
@@ -42,6 +43,7 @@ struct AppState {
     start_time: std::time::Instant,
     msg_sent_count: Mutex<usize>,
     msg_recv_count: Mutex<usize>,
+    sys: Mutex<System>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -113,6 +115,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let (tx, mut rx) = mpsc::channel(32);
 
+    let mut sys = System::new_all();
+    sys.refresh_cpu_specifics(CpuRefreshKind::everything());
+    sys.refresh_memory_specifics(MemoryRefreshKind::everything());
+
     let state = Arc::new(AppState {
         peer_id: peer_id_str.clone(),
         peers: Mutex::new(42),
@@ -124,6 +130,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         start_time: std::time::Instant::now(),
         msg_sent_count: Mutex::new(0),
         msg_recv_count: Mutex::new(0),
+        sys: Mutex::new(sys),
     });
 
     // API Server
@@ -138,6 +145,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 let uptime = s.start_time.elapsed().as_secs();
                 let sent = *s.msg_sent_count.lock().unwrap();
                 let recv = *s.msg_recv_count.lock().unwrap();
+
+                let (cpu, mem) = {
+                    let mut sys = s.sys.lock().unwrap();
+                    sys.refresh_cpu_specifics(CpuRefreshKind::everything());
+                    sys.refresh_memory_specifics(MemoryRefreshKind::everything());
+                    (sys.global_cpu_info().cpu_usage(), sys.used_memory() as f64 / sys.total_memory() as f64 * 100.0)
+                };
+
                 Json(json!({
                     "peer_id": s.peer_id,
                     "peers": peers,
@@ -146,6 +161,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     "uptime_secs": uptime,
                     "messages_sent": sent,
                     "messages_received": recv,
+                    "cpu_usage": cpu,
+                    "memory_usage": mem,
                 }))
             }
         }))
