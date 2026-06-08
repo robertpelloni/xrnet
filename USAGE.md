@@ -36,12 +36,16 @@ Users can trigger the **Executive Protocol** manually via the button in the **Sy
 - Synchronize the local repository with upstream changes.
 - Perform a gap analysis of the codebase.
 - Increment the internal versioning if required.
-### Performance Monitoring
-System administrators can monitor node health in real-time. Use the `scripts/monitor_performance.py` utility to capture detailed telemetry:
+### Performance Monitoring (Network Health)
+Real-time node health is visible directly in the dashboard via the **Network Health** panel.
+- **Metrics:** Track live CPU and Memory utilization percentages.
+- **System Performance Chart:** View a 1-minute historical trend of resource usage.
+- **Traffic Tracking:** Monitor total messages sent and received on the current session.
+
+For advanced logging, system administrators can use the `scripts/monitor_performance.py` utility:
 ```bash
 python3 scripts/monitor_performance.py --duration 600 --interval 5
 ```
-Metrics include CPU/RAM usage, peer counts, and message throughput.
 
 ## 6. Spatial Layer
 The **Spatial Layer** panel displays a real-time 3D visualization (Three.js) of your environment's digital twin. As spatial scanning modules are integrated, this view will reflect the live photorealistic Gaussian Splatting data.

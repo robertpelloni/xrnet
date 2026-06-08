@@ -16,7 +16,7 @@ fi
 if ! command -v cargo &> /dev/null; then
     echo "[PROD] Installing Rust..."
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    source $HOME/.cargo/env
+    source "$HOME/.cargo/env"
 else
     echo "[PROD] Rust already installed: $(cargo --version)"
 fi

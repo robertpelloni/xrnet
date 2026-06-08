@@ -32,7 +32,7 @@
 - Production Setup and Rollout Scripts (`scripts/setup_production.sh`, `scripts/deploy_prod.sh`).
 - Enhanced Executive Protocol documentation and vision for the "Everything App".
 
-## [0.2.1] - 2026-06-08
+## [0.2.7] - 2026-06-08
 ### Added
 - Real-time Performance Telemetry: Integrated `sysinfo` in the Rust backend.
 - Network Health Dashboard: Visualized CPU and Memory usage with `recharts` in the frontend.
@@ -46,4 +46,13 @@
 - Autonomous version bump via Executive Protocol.
 
 ## [0.2.4] - 2026-06-08
+- Autonomous version bump via Executive Protocol.
+
+## [0.2.5] - 2026-06-08
+- Autonomous version bump via Executive Protocol.
+
+## [0.2.6] - 2026-06-08
+- Autonomous version bump via Executive Protocol.
+
+## [0.2.7] - 2026-06-08
 - Autonomous version bump via Executive Protocol.
