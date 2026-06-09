@@ -33,6 +33,7 @@ pub struct AppState {
     start_time: std::time::Instant,
     msg_sent_count: Mutex<usize>,
     msg_recv_count: Mutex<usize>,
+    peer_latencies: Mutex<std::collections::HashMap<String, u64>>,
     sys: Mutex<System>,
 }
 
@@ -53,6 +54,7 @@ impl AppState {
             start_time: std::time::Instant::now(),
             msg_sent_count: Mutex::new(0),
             msg_recv_count: Mutex::new(0),
+            peer_latencies: Mutex::new(std::collections::HashMap::new()),
             sys: Mutex::new(sys),
         }
     }
@@ -84,6 +86,11 @@ impl AppState {
             let mut m = self.market_items.lock().unwrap();
             m.insert(key, value);
         }
+    }
+
+    fn update_latency(&self, peer_id: String, rtt: u64) {
+        let mut l = self.peer_latencies.lock().unwrap();
+        l.insert(peer_id, rtt);
     }
 }
 
@@ -232,6 +239,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 let uptime = s.start_time.elapsed().as_secs();
                 let sent = *s.msg_sent_count.lock().unwrap();
                 let recv = *s.msg_recv_count.lock().unwrap();
+                let latencies = s.peer_latencies.lock().unwrap().clone();
                 let dht_count = s.profiles.lock().unwrap().len() + s.market_items.lock().unwrap().len();
 
                 let (cpu, mem) = {
@@ -249,6 +257,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     "uptime_secs": uptime,
                     "messages_sent": sent,
                     "messages_received": recv,
+                    "peer_latencies": latencies,
                     "dht_records": dht_count,
                     "cpu_usage": cpu,
                     "memory_usage": mem,
@@ -421,7 +430,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         loop {
             tokio::time::sleep(std::time::Duration::from_secs(10)).await;
 
-            let (cpu, mem, peers, peer_id, sent, recv) = {
+            let (cpu, mem, peers, peer_id, sent, recv, latencies) = {
                 let mut sys = reporting_state.sys.lock().unwrap();
                 sys.refresh_cpu_specifics(CpuRefreshKind::everything());
                 sys.refresh_memory_specifics(MemoryRefreshKind::everything());
@@ -432,6 +441,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     reporting_state.peer_id.clone(),
                     *reporting_state.msg_sent_count.lock().unwrap(),
                     *reporting_state.msg_recv_count.lock().unwrap(),
+                    reporting_state.peer_latencies.lock().unwrap().clone(),
                 )
             };
 
@@ -443,6 +453,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 "peers": peers,
                 "messages_sent": sent,
                 "messages_received": recv,
+                "peer_latencies": latencies,
                 "timestamp": std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs()
             });
 

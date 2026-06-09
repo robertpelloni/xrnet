@@ -19,6 +19,7 @@ interface PeerReport {
   peers: number;
   messages_sent: number;
   messages_received: number;
+  peer_latencies?: Record<string, number>;
   timestamp: number;
 }
 
@@ -158,6 +159,14 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
                       <label>PEERS</label>
                       <span>{latest.peers}</span>
                     </div>
+                    {latest.peer_latencies && Object.keys(latest.peer_latencies).length > 0 && (
+                      <div className="mini-metric">
+                        <label>AVG LATENCY</label>
+                        <span>
+                          {(Object.values(latest.peer_latencies).reduce((a, b) => a + b, 0) / Object.values(latest.peer_latencies).length).toFixed(0)}ms
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               );

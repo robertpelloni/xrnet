@@ -119,6 +119,13 @@ pub async fn run_mesh(
                         swarm.behaviour_mut().kad.add_address(&peer_id, addr);
                     }
                 }
+                SwarmEvent::Behaviour(MyBehaviourEvent::Ping(ping::Event {
+                    peer,
+                    result: Ok(rtt),
+                    ..
+                })) => {
+                    state.update_latency(peer.to_string(), rtt.as_millis() as u64);
+                }
                 SwarmEvent::Behaviour(MyBehaviourEvent::Kad(event)) => {
                     println!("[PROTOCOL] Kademlia Event: {:?}", event);
                     if let kad::Event::OutboundQueryProgressed {
