@@ -153,27 +153,55 @@ class TestEndToEndIntegration(unittest.TestCase):
         """Verify that nodes report telemetry to the central server."""
         print("\n--- Running Mesh Telemetry Reporting Test ---")
 
+        # 0. Ensure ports are clean
+        api_port = "8090"
+        for port in ["9000", "9001", api_port]:
+            if os.name != 'nt':
+                subprocess.run(["fuser", "-k", f"{port}/tcp"], stderr=subprocess.DEVNULL)
+
         # 1. Start the central mock peer
         kwargs = {}
         if os.name != 'nt':
             kwargs['preexec_fn'] = os.setpgrp
         peer_proc = subprocess.Popen(["python3", "scripts/mock_peer.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, **kwargs)
 
+        # Wait for mock peer API to be ready
+        print("[TEST] Waiting for Mock Peer API (9001) to be ready...")
+        peer_ready = False
+        for _ in range(15):
+            try:
+                if requests.get("http://127.0.0.1:9001/api/mesh/status", timeout=1).status_code == 200:
+                    peer_ready = True
+                    break
+            except:
+                pass
+            time.sleep(1)
+
+        if not peer_ready:
+            self.fail("Mock Peer API did not become ready.")
+
         # 2. Start a backend node
         env = os.environ.copy()
-        env["API_PORT"] = "8090"
+        env["API_PORT"] = api_port
         node_proc = subprocess.Popen(["backend/target/debug/xrnet-backend"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env, **kwargs)
 
         try:
             # 3. Wait for the node to report (reports every 10s)
-            print("[TEST] Waiting 25s for telemetry propagation...")
-            time.sleep(25)
+            print("[TEST] Waiting for telemetry propagation (up to 30s)...")
 
-            # 4. Check central server API for the report
-            response = requests.get("http://127.0.0.1:9001/api/mesh/status", timeout=5)
-            self.assertEqual(response.status_code, 200)
-            mesh_data = response.json()
-            data = mesh_data.get("peers", {})
+            # 4. Check central server API for the report with retries
+            data = {}
+            for _ in range(30):
+                try:
+                    response = requests.get("http://127.0.0.1:9001/api/mesh/status", timeout=5)
+                    if response.status_code == 200:
+                        mesh_data = response.json()
+                        data = mesh_data.get("peers", {})
+                        if len(data) > 0:
+                            break
+                except Exception as e:
+                    print(f"[TEST] Telemetry poll failed: {e}")
+                time.sleep(1)
 
             self.assertGreater(len(data), 0, "No peer telemetry found in central server.")
             # Check that at least one peer_id exists

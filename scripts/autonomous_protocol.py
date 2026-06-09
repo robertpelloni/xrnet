@@ -43,19 +43,21 @@ def step_analysis():
 
 def step_documentation():
     log("--- SECTION 4: CORE DOCUMENTATION & VERSIONING ---")
+    if os.environ.get("SKIP_VERSION_BUMP") == "1":
+        log("Version bump skipped (SKIP_VERSION_BUMP=1).")
+        return
+
     # Centralized version bump logic
     try:
         with open("VERSION.md", "r") as f:
-            v = f.read().strip().split('.')
+            version_str = f.read().strip()
+            v = version_str.split('.')
             v[-1] = str(int(v[-1]) + 1)
             new_version = ".".join(v)
+
         with open("VERSION.md", "w") as f:
             f.write(new_version)
 
-        with open("CHANGELOG.md", "a") as f:
-            f.write(f"\n## [{new_version}] - {datetime.now().strftime('%Y-%m-%d')}\n")
-            f.write("- Autonomous version bump via Executive Protocol.\n")
-            f.write("- Integrated mesh health verification in autonomous engine.\n")
         log(f"Version bumped to {new_version}.")
     except Exception as e:
         log(f"Versioning failed: {e}")
