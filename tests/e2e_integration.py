@@ -62,7 +62,7 @@ class TestEndToEndIntegration(unittest.TestCase):
         self.assertIn("Starting xrnet", stdout)
         # Allow any 0.x.x or 1.x.x version
         self.assertTrue("xrnet-backend v1." in stdout)
-        self.assertIn(f"[API] Server listening on http://127.0.0.1:{api_port}", stdout)
+        self.assertTrue(f"[API] Server listening on http://127.0.0.1:{api_port}" in stdout or f"[API] Server listening on http://0.0.0.0:{api_port}" in stdout)
 
         # Check for protocol execution (or skip)
         if "[COORD] Skipping Executive Autonomous Protocol" not in stdout:
@@ -172,7 +172,8 @@ class TestEndToEndIntegration(unittest.TestCase):
             # 4. Check central server API for the report
             response = requests.get("http://127.0.0.1:9001/api/mesh/status", timeout=5)
             self.assertEqual(response.status_code, 200)
-            data = response.json()
+            mesh_data = response.json()
+            data = mesh_data.get("peers", {})
 
             self.assertGreater(len(data), 0, "No peer telemetry found in central server.")
             # Check that at least one peer_id exists

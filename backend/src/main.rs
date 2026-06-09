@@ -150,9 +150,11 @@ fn set_status(status: &str) {
 }
 
 async fn connect_to_surrounding_system() -> bool {
-    println!("[PROTOCOL] Attempting to connect to surrounding system (port 9000)...");
+    let monitor_host = std::env::var("MONITOR_HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
+    let monitor_addr = format!("{}:9000", monitor_host);
+    println!("[PROTOCOL] Attempting to connect to surrounding system ({}) status monitor...", monitor_addr);
     for _ in 0..5 {
-        if let Ok(mut stream) = TcpStream::connect("127.0.0.1:9000").await {
+        if let Ok(mut stream) = TcpStream::connect(&monitor_addr).await {
             println!("[PROTOCOL] Connected to external peer.");
             let _ = stream.write_all(b"XRNET_HANDSHAKE").await;
             let mut buffer = [0; 9];
@@ -523,6 +525,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     // Central Telemetry Reporting Task
     let reporting_state = Arc::clone(&state);
+    let monitor_host = std::env::var("MONITOR_HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
     tokio::spawn(async move {
         loop {
             tokio::time::sleep(std::time::Duration::from_secs(10)).await;
@@ -554,7 +557,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 "timestamp": std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs()
             });
 
-            if let Ok(mut stream) = tokio::net::TcpStream::connect("127.0.0.1:9000").await {
+            let monitor_addr = format!("{}:9000", monitor_host);
+            if let Ok(mut stream) = tokio::net::TcpStream::connect(&monitor_addr).await {
                 let msg = format!("{}\n", report.to_string());
                 let _ = stream.write_all(msg.as_bytes()).await;
             }
@@ -564,7 +568,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let api_port_str = std::env::var("API_PORT").unwrap_or_else(|_| "8080".to_string());
     let api_port = api_port_str.parse::<u16>().unwrap_or(8080);
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], api_port));
+    let addr = SocketAddr::from(([0, 0, 0, 0], api_port));
     tokio::spawn(async move {
         println!("[API] Server listening on http://{}", addr);
         let listener = tokio::net::TcpListener::bind(addr).await.unwrap();

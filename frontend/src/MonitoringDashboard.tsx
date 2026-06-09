@@ -49,7 +49,12 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
   useEffect(() => {
     const fetchGlobalMesh = async () => {
       try {
-        const response = await fetch(`http://localhost:9001/api/mesh/status`);
+        // Use the same hostname as the API but port 9001 for mesh telemetry
+        const monitorUrl = apiBaseUrl.includes('localhost') || apiBaseUrl.includes('127.0.0.1')
+          ? 'http://localhost:9001'
+          : `http://${window.location.hostname}:9001`;
+
+        const response = await fetch(`${monitorUrl}/api/mesh/status`);
         if (response.ok) {
           const data = await response.json();
           setGlobalMesh(data.peers);

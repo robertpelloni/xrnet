@@ -40,6 +40,17 @@ For rapid deployment on a new system:
 4. **Network Configuration:** Open ports 8080 (API), 9000-9001 (Monitoring), and any dynamic P2P ports (typically 30000-65535).
 5. **Autostart:** Configure `systemd` or a similar supervisor to run `./start.sh release` on boot.
 
+## Multi-Device Mesh Integration
+To connect multiple physical devices into the same mesh:
+1. **Seed Node:** Designate one device as the Monitoring/Seed node. Run `scripts/mock_peer.py` on it.
+2. **Client Nodes:** On all other devices, export the IP of the Seed node:
+   ```bash
+   export MONITOR_HOST=192.168.1.50  # Use your seed node's actual IP
+   ./start.sh release
+   ```
+3. **Discovery:** Nodes will automatically discover each other via mDNS (if on the same LAN) or via Kademlia DHT bootstrap.
+4. **Verification:** Access the mesh dashboard from any device: `http://<seed-node-ip>:9001`
+
 ## Packaging for Distribution
 To create a versioned source bundle for release:
 ```bash

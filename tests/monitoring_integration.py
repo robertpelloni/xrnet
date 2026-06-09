@@ -99,7 +99,8 @@ class TestMonitoringIntegration(unittest.TestCase):
         try:
             resp = requests.get("http://127.0.0.1:9001/api/mesh/status", timeout=5)
             self.assertEqual(resp.status_code, 200)
-            mesh_status = resp.json()
+            data = resp.json()
+            mesh_status = data.get("peers", {})
 
             peer_ids = list(mesh_status.keys())
             print(f"[TEST] Reporting Peer IDs: {peer_ids}")
