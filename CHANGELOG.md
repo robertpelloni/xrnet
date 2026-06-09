@@ -41,3 +41,27 @@
 - Initial project documentation and architecture baseline.
 - Functional Rust backend with libp2p and mDNS.
 - React/Vite frontend dashboard.
+
+## [1.0.1] - 2026-06-09
+- Autonomous version bump via Executive Protocol.
+
+## [1.0.2] - 2026-06-09
+- Autonomous version bump via Executive Protocol.
+
+## [1.0.3] - 2026-06-09
+- Autonomous version bump via Executive Protocol.
+
+## [1.0.4] - 2026-06-09
+- Autonomous version bump via Executive Protocol.
+
+## [1.0.5] - 2026-06-09
+- Autonomous version bump via Executive Protocol.
+
+## [1.0.6] - 2026-06-09
+- Autonomous version bump via Executive Protocol.
+
+## [1.0.7] - 2026-06-09
+- Autonomous version bump via Executive Protocol.
+
+## [1.0.0] - 2026-06-09
+- Autonomous version bump via Executive Protocol.

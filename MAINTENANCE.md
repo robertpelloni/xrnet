@@ -29,13 +29,26 @@ This document outlines routine maintenance tasks for the XRNet mesh network ecos
   ./build.sh
   ```
 
-## 4. Performance Benchmarking
+## 4. Performance Benchmarking & Integration Testing
 Run the benchmarking suite monthly to ensure network stability as the mesh grows:
 ```bash
 python3 scripts/benchmark_mesh.py --nodes 5 --duration 300
 ```
 
-## 5. Versioning & Roadmaps
+Execute manual integration tests for routing and monitoring modules:
+```bash
+# Routing (Gossipsub/DHT)
+python3 tests/routing_integration.py
+
+# Monitoring (Telemetry/Aggregation)
+python3 tests/monitoring_integration.py
+```
+*Note: Ensure the backend is built (`./build.sh`) before running integration tests.*
+
+## 5. Automation Strategy
+The integrated `pipeline.sh` is the primary tool for maintaining system health and validating new changes. It coordinates all sub-tests and building phases into a single exit-code-aware execution.
+
+## 6. Versioning & Roadmaps
 Updates to `VERSION.md` and `TODO.md` should be performed via the **Executive Protocol** to maintain monorepo integrity:
 ```bash
 curl -X POST http://localhost:8080/api/system/protocol

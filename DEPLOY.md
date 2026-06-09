@@ -33,11 +33,16 @@ To create a versioned source bundle for release:
 ```
 This generates `xrnet-v{VERSION}.tar.gz` excluding build artifacts.
 
-## Continuous Integration (CI/CD)
-Run the full validation pipeline before any release:
+## Automated Verification (CI/CD)
+The v1.0.0 final release includes a unified automation pipeline. Every deployment should be preceded by a successful run of:
 ```bash
 ./pipeline.sh
 ```
+This script automates:
+1. **Sync:** Repository synchronization and submodule updates.
+2. **Build:** Full system compilation (Backend + Frontend).
+3. **Integrity:** Structural validation and version consistency checks.
+4. **Tests:** Smoke tests, End-to-End full stack, Routing (Gossipsub/DHT), and Monitoring aggregation tests.
 
 ## Advanced Monitoring
 - **Node Monitoring:** `python3 scripts/monitor_performance.py`
