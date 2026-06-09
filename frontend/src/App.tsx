@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import './App.css'
 import { SpatialViewer } from './SpatialViewer'
 import { MonitoringDashboard } from './MonitoringDashboard'
+import { LearningHub } from './components/LearningHub'
 
 interface SystemStatus {
   peer_id: string;
@@ -31,6 +32,9 @@ function App() {
   const [isSearching, setIsSearching] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
   const [protocolOutput, setProtocolOutput] = useState('')
+  const [proposals, setProposals] = useState<any[]>([])
+  const [newPropTitle, setNewPropTitle] = useState('')
+  const [newPropDesc, setNewPropDesc] = useState('')
 
   useEffect(() => {
     const fetchStatus = async () => {
@@ -77,17 +81,29 @@ function App() {
       }
     }
 
+    const fetchProposals = async () => {
+      try {
+        const response = await fetch(`${apiBaseUrl}/api/governance/list`)
+        const data = await response.json()
+        setProposals(data)
+      } catch (error) {
+        console.error('Failed to fetch proposals:', error)
+      }
+    }
+
     const interval = setInterval(() => {
       fetchStatus()
       fetchProfiles()
       fetchMarketItems()
       fetchMessages()
+      fetchProposals()
     }, 3000)
 
     fetchStatus()
     fetchProfiles()
     fetchMarketItems()
     fetchMessages()
+    fetchProposals()
     return () => clearInterval(interval)
   }, [])
 
@@ -149,16 +165,79 @@ function App() {
   const handleListMarketItem = async () => {
     const item = prompt("What are you selling/offering?")
     if (!item) return
+    const price = prompt("Enter price in Bobcoin:")
+    if (!price) return
 
     try {
       await fetch(`${apiBaseUrl}/api/dht/put`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: `market:${peerId}:${Date.now()}`, value: item })
+        body: JSON.stringify({ key: `market:${peerId}:${Date.now()}`, value: `${item}|${price}` })
       })
       alert("Item listed in marketplace DHT.")
     } catch (error) {
       console.error('Marketplace list failed:', error)
+    }
+  }
+
+  const handleBuyItem = async (itemKey: string, itemName: string, price: string) => {
+    const sellerPeerId = itemKey.split(':')[1];
+    if (sellerPeerId === peerId) {
+      alert("You cannot buy your own item.");
+      return;
+    }
+
+    const confirmBuy = window.confirm(`Buy "${itemName}" for ${price} Bobcoin?`);
+    if (!confirmBuy) return;
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/bobcoin/process`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          source: peerId,
+          destination: sellerPeerId,
+          amount: parseFloat(price)
+        })
+      });
+      const data = await response.json();
+      if (data.error) {
+        alert(`Transaction failed: ${data.error}`);
+      } else {
+        alert(`Transaction successful! ${price} Bobcoin sent to ${sellerPeerId.slice(0, 8)}...`);
+      }
+    } catch (error) {
+      console.error('Purchase failed:', error);
+      alert("Purchase failed. Check network connection.");
+    }
+  }
+
+  const handlePropose = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPropTitle) return;
+    try {
+      await fetch(`${apiBaseUrl}/api/governance/propose`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: newPropTitle, description: newPropDesc })
+      });
+      setNewPropTitle('');
+      setNewPropDesc('');
+      alert("Proposal submitted to mesh governance.");
+    } catch (err) {
+      console.error('Proposal failed:', err);
+    }
+  }
+
+  const handleVote = async (id: string, approve: boolean) => {
+    try {
+      await fetch(`${apiBaseUrl}/api/governance/vote`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, approve })
+      });
+    } catch (err) {
+      console.error('Vote failed:', err);
     }
   }
 
@@ -312,15 +391,61 @@ function App() {
                 <p className="empty-msg">No items listed yet.</p>
               ) : (
                 <ul>
-                  {Object.entries(marketItems).map(([key, value]) => (
-                    <li key={key}>
-                      <span className="market-item">{value}</span>
-                      <span className="peer-ref">{key.split(':')[1].slice(0, 8)}...</span>
-                    </li>
-                  ))}
+                  {Object.entries(marketItems).map(([key, value]) => {
+                    const [name, price] = (value as string).split('|');
+                    return (
+                      <li key={key} className="market-item-card">
+                        <div className="item-info">
+                          <span className="market-item-name">{name}</span>
+                          <span className="market-item-price">{price} BC</span>
+                        </div>
+                        <div className="item-meta">
+                          <span className="peer-ref">{key.split(':')[1].slice(0, 8)}...</span>
+                          <button
+                            className="buy-btn"
+                            onClick={() => handleBuyItem(key, name, price)}
+                            disabled={key.split(':')[1] === peerId}
+                          >
+                            Buy
+                          </button>
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>
+          </section>
+
+          <section className="governance-panel">
+            <h2>Governance</h2>
+            <form onSubmit={handlePropose} className="propose-form">
+              <input type="text" placeholder="Task or Rule Title" value={newPropTitle} onChange={e => setNewPropTitle(e.target.value)} />
+              <textarea placeholder="Description of the task or management rule..." value={newPropDesc} onChange={e => setNewPropDesc(e.target.value)} />
+              <button type="submit">Propose Task</button>
+            </form>
+            <div className="proposal-list">
+              {proposals.length === 0 ? <p className="empty-msg">No active governance proposals.</p> : (
+                proposals.map(p => (
+                  <div key={p.id} className="proposal-card">
+                    <h4>{p.title}</h4>
+                    <p>{p.description}</p>
+                    <div className="votes">
+                      <span>FOR: {p.votes_for.length}</span>
+                      <span>AGAINST: {p.votes_against.length}</span>
+                    </div>
+                    <div className="vote-actions">
+                      <button onClick={() => handleVote(p.id, true)}>Vote For</button>
+                      <button onClick={() => handleVote(p.id, false)}>Vote Against</button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </section>
+
+          <section className="learning-panel">
+            <LearningHub apiBaseUrl={apiBaseUrl} peerId={peerId} />
           </section>
 
           <section className="telemetry-panel">

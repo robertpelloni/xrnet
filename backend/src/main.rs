@@ -1,4 +1,6 @@
 mod mesh;
+mod social;
+mod governance;
 
 use std::fs;
 use std::error::Error;
@@ -34,6 +36,8 @@ pub struct AppState {
     msg_sent_count: Mutex<usize>,
     msg_recv_count: Mutex<usize>,
     peer_latencies: Mutex<std::collections::HashMap<String, u64>>,
+    social: social::SocialGraph,
+    governance: governance::GovernanceEngine,
     sys: Mutex<System>,
 }
 
@@ -55,6 +59,8 @@ impl AppState {
             msg_sent_count: Mutex::new(0),
             msg_recv_count: Mutex::new(0),
             peer_latencies: Mutex::new(std::collections::HashMap::new()),
+            social: social::SocialGraph::new(),
+            governance: governance::GovernanceEngine::new(),
             sys: Mutex::new(sys),
         }
     }
@@ -85,6 +91,14 @@ impl AppState {
         } else if key.starts_with("market:") {
             let mut m = self.market_items.lock().unwrap();
             m.insert(key, value);
+        } else if key.starts_with("learn:") {
+            // Simulated learning hub uses profiles map for now
+            let mut p = self.profiles.lock().unwrap();
+            p.insert(key, value);
+        } else if key.starts_with("gov:") {
+            if let Ok(proposal) = serde_json::from_str::<governance::Proposal>(&value) {
+                self.governance.import_proposal(proposal);
+            }
         }
     }
 
@@ -112,6 +126,15 @@ struct UserProfile {
     peer_id: String,
     alias: String,
     status: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct DecentralizedIdentity {
+    pub did: String,
+    pub peer_id: String,
+    pub public_key: String,
+    pub reputation: i32,
+    pub trust_level: f32, // 0.0 to 1.0
 }
 
 fn get_version() -> String {
@@ -240,6 +263,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 let sent = *s.msg_sent_count.lock().unwrap();
                 let recv = *s.msg_recv_count.lock().unwrap();
                 let latencies = s.peer_latencies.lock().unwrap().clone();
+                let trusted = s.social.list_trusted(&s.peer_id);
                 let dht_count = s.profiles.lock().unwrap().len() + s.market_items.lock().unwrap().len();
 
                 let (cpu, mem) = {
@@ -258,6 +282,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     "messages_sent": sent,
                     "messages_received": recv,
                     "peer_latencies": latencies,
+                    "trusted_peers": trusted,
                     "dht_records": dht_count,
                     "cpu_usage": cpu,
                     "memory_usage": mem,
@@ -289,6 +314,24 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     } else {
                         Json(json!({ "status": "error", "message": "missing key" }))
                     }
+                }
+            }
+        }))
+        .route("/api/social/trust", post({
+            let s = Arc::clone(&api_state);
+            move |Json(payload): Json<serde_json::Value>| {
+                let s = Arc::clone(&s);
+                async move {
+                    let target = payload["target"].as_str().unwrap_or("").to_string();
+                    let action = payload["action"].as_str().unwrap_or("trust");
+
+                    if action == "trust" {
+                        s.social.trust_peer(s.peer_id.clone(), target);
+                    } else {
+                        s.social.untrust_peer(s.peer_id.clone(), target);
+                    }
+
+                    Json(json!({ "status": "success" }))
                 }
             }
         }))
@@ -335,10 +378,64 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     } else if payload.key.starts_with("market:") {
                         let mut m = s.market_items.lock().unwrap();
                         m.insert(payload.key, payload.value);
+                    } else if payload.key.starts_with("learn:") {
+                        let mut p = s.profiles.lock().unwrap(); // Reuse profiles map for simple simulated learning hub
+                        p.insert(payload.key, payload.value);
                     }
 
                     Json(json!({ "status": "sent to protocol swarm" }))
                 }
+            }
+        }))
+        .route("/api/governance/propose", post({
+            let s = Arc::clone(&api_state);
+            move |Json(payload): Json<serde_json::Value>| {
+                let s = Arc::clone(&s);
+                async move {
+                    let title = payload["title"].as_str().unwrap_or("").to_string();
+                    let description = payload["description"].as_str().unwrap_or("").to_string();
+                    let id = s.governance.create_proposal(s.peer_id.clone(), title, description);
+
+                    if let Some(prop) = s.governance.get_proposal(&id) {
+                        let value = serde_json::to_string(&prop).unwrap();
+                        let _ = s.command_tx.send(Command::PutRecord {
+                            key: format!("gov:{}", id),
+                            value,
+                        }).await;
+                    }
+
+                    Json(json!({ "status": "success", "id": id }))
+                }
+            }
+        }))
+        .route("/api/governance/vote", post({
+            let s = Arc::clone(&api_state);
+            move |Json(payload): Json<serde_json::Value>| {
+                let s = Arc::clone(&s);
+                async move {
+                    let id = payload["id"].as_str().unwrap_or("").to_string();
+                    let approve = payload["approve"].as_bool().unwrap_or(true);
+                    let success = s.governance.cast_vote(s.peer_id.clone(), id.clone(), approve);
+
+                    if success {
+                        if let Some(prop) = s.governance.get_proposal(&id) {
+                            let value = serde_json::to_string(&prop).unwrap();
+                            let _ = s.command_tx.send(Command::PutRecord {
+                                key: format!("gov:{}", id),
+                                value,
+                            }).await;
+                        }
+                    }
+
+                    Json(json!({ "status": if success { "success" } else { "not_found" } }))
+                }
+            }
+        }))
+        .route("/api/governance/list", get({
+            let s = Arc::clone(&api_state);
+            move || async move {
+                let props = s.governance.list_proposals();
+                Json(props)
             }
         }))
         .route("/api/bobcoin/balance/:account", get({

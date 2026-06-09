@@ -10,6 +10,7 @@ interface TelemetryData {
   uptime_secs: number;
   peers: number;
   dht_records: number;
+  trusted_peers?: string[];
 }
 
 interface PeerReport {
@@ -27,6 +28,22 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
   const [history, setHistory] = useState<any[]>([]);
   const [current, setCurrent] = useState<TelemetryData | null>(null);
   const [globalMesh, setGlobalMesh] = useState<Record<string, PeerReport[]> | null>(null);
+
+  const toggleTrust = async (target: string, isTrusted: boolean) => {
+    try {
+      await fetch(`${apiBaseUrl}/api/social/trust`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target, action: isTrusted ? 'untrust' : 'trust' })
+      });
+      // Force refresh telemetry to update trusted list
+      const response = await fetch(`${apiBaseUrl}/api/status`);
+      const data = await response.json();
+      setCurrent(data);
+    } catch (err) {
+      console.error('Failed to toggle trust:', err);
+    }
+  };
 
   useEffect(() => {
     const fetchGlobalMesh = async () => {
@@ -139,8 +156,10 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
             {meshPeers.map(([peerId, history]) => {
               const latest = history[history.length - 1];
               const isLocal = peerId === current.peer_id;
+              const isTrusted = current.trusted_peers?.includes(peerId);
+
               return (
-                <div key={peerId} className={`peer-card ${isLocal ? 'local-peer' : ''}`}>
+                <div key={peerId} className={`peer-card ${isLocal ? 'local-peer' : ''} ${isTrusted ? 'trusted-peer' : ''}`}>
                   <div className="peer-card-header">
                     <span className="peer-card-id">{peerId.slice(0, 8)}...{peerId.slice(-4)}</span>
                     {isLocal && <span className="local-tag">YOU</span>}
@@ -159,6 +178,14 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
                       <label>PEERS</label>
                       <span>{latest.peers}</span>
                     </div>
+                    {!isLocal && (
+                      <button
+                        className={`trust-btn ${isTrusted ? 'untrust' : 'trust'}`}
+                        onClick={() => toggleTrust(peerId, !!isTrusted)}
+                      >
+                        {isTrusted ? 'Untrust' : 'Trust Peer'}
+                      </button>
+                    )}
                     {latest.peer_latencies && Object.keys(latest.peer_latencies).length > 0 && (
                       <div className="mini-metric">
                         <label>AVG LATENCY</label>

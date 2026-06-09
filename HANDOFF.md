@@ -1,30 +1,25 @@
-# SESSION HANDOFF - xrnet v1.2.8
+# HANDOFF: xrnet v1.3.3
 
-## Overview
-This session successfully transitioned the project to a production-ready baseline (v1.2.8 "Fleet Intelligence III"). The decentralized OS now features high-precision network diagnostics, modularized P2P networking, and a fully automated production rollout and monitoring suite.
+## Session Summary
+Successfully transitioned xrnet from a decentralized infrastructure baseline into a full-featured "Everything App" mesh platform. This session focused on implementing the "Fair Management" and "Neutral Services" layers as requested.
 
-## Completed Features
-- **Latency Tracking (v1.2.7):** Integrated libp2p Ping protocol to track real-time Round-Trip Time (RTT) for all mesh peers. Latency data is visualized in the fleet dashboard.
-- **Production Rollout:** Developed and verified `scripts/deploy_prod.sh`, which automates release-mode builds, background process management, and automated health checks.
-- **Continuous Monitoring:** Established a performance monitoring baseline using `scripts/monitor_performance.py`, capturing CPU, Memory, and Mesh Traffic trends in production-ready logs.
-- **Spatial Foundation:** Initialized `spatial/models/` and resolved all architectural integrity warnings from the Executive Protocol.
+## Major Changes
+1.  **Governance Layer:** Implemented `backend/src/governance.rs` providing a decentralized proposal and voting system. This allows the mesh to "manage and be managed" fairly.
+2.  **Learning Hub:** Added a decentralized knowledge-sharing module (`LearningHub.tsx`) using the `learn:` DHT namespace, enabling peer-to-peer education.
+3.  **Transactional Marketplace:** Upgraded the "Shop & Sell" module to support price metadata and direct Bobcoin transactions via the backend proxy.
+4.  **Unified UI:** Redesigned the dashboard grid to integrate Governance, Learning, and Commerce alongside the existing Spatial and Monitoring layers.
+5.  **Modular Backend:** Integrated the new governance module into the Axum API and enhanced the DHT handler to support extended namespaces.
 
-## Deployment Status
-- **Environment:** System is currently running in **RELEASE mode** on port 8080.
-- **Monitoring:** Performance monitor is active and logging to `performance_monitor.log`.
-- **Integrity:** 100% pass on `./pipeline.sh` and E2E suites.
-- **Versioning:** Advanced to v1.2.8 via automated Executive Protocol cycles.
+## Architectural Notes
+- The `profiles` map in `AppState` is temporarily used as a catch-all for DHT records (including `learn:`) to simplify the simulation of shared storage before Phase 5's dedicated persistence layer.
+- Transactions use the `/api/bobcoin/process` endpoint, which proxies to the internal Bobcoin node (port 4000).
+- Reputation-weighted voting is prototyped; future models should link `SocialGraph` reputation scores directly to the `GovernanceEngine`.
 
-## Notable Architecture Shifts
-- **Diagnostics:** The Mesh Fleet Monitor now provides average latency metrics, enabling proactive network health assessment.
-- **Resilience:** The deployment script handles sandbox environment constraints (skipping git pull) to ensure reliable automated rollouts.
+## Version Status
+- **Current Version:** 1.3.0
+- **Status:** Integrated, Build-Verified, and Feature-Complete for Phase 4 Baseline.
 
-## Environment & Tooling
-- Rust 1.94 (Optimized Release Build)
-- Node 22 (Vite 6, React 18.3)
-- Python 3.12 (Telemetry Aggregation & Performance Monitoring)
-
-## Successor Instructions
-- The system is now ready for **Phase 3: Spatial Integration**.
-- Key focus: Integrating Three.js spatial overlays with real-time P2P sync using the established `mesh.rs` backbone.
-- Monitor `performance_monitor.log` for resource utilization trends under sustained load.
+## Next Steps for Successor Models
+- Implement zero-knowledge matchmaking using homomorphic encryption.
+- Expand the Spatial Layer to support collaborative 3D scene editing.
+- Formalize the reputation surcharges for transactions based on the `SocialGraph`.
