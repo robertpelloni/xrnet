@@ -5,21 +5,44 @@ set -e
 
 echo "--- [DEPLOY] Starting production rollout ---"
 
-# 1. Ensure latest state
-echo "[DEPLOY] Pulling latest changes..."
-git pull origin main
+# 1. Environment Validation
+API_PORT=${API_PORT:-8080}
+echo "[DEPLOY] Target API Port: $API_PORT"
 
-# 2. Build in release mode
+# 2. Ensure latest state
+echo "[DEPLOY] Pulling latest changes from main..."
+git pull origin main --rebase
+
+# 3. Build in release mode
 echo "[DEPLOY] Building optimized binaries and assets..."
 ./build.sh release
 
-# 3. Clean up existing logs
-echo "[DEPLOY] Cleaning previous session logs..."
-rm -f *.log
+# 4. Clean up existing logs to avoid confusion
+echo "[DEPLOY] Archiving previous session logs..."
+mkdir -p logs/archive
+mv *.log logs/archive/ 2>/dev/null || true
 
-# 4. Launch in background
-echo "[DEPLOY] Launching xrnet production unit (API on port 8080)..."
+# 5. Launch in background
+echo "[DEPLOY] Launching xrnet production unit..."
 nohup ./start.sh release > prod_runtime.log 2>&1 &
+DEPLOY_PID=$!
 
-echo "[DEPLOY] Rollout complete. PIDs and logs available in prod_runtime.log."
-echo "[DEPLOY] Monitor status: curl http://localhost:8080/api/status"
+# 6. Automated Health Check
+echo "[DEPLOY] Waiting for API to become ready (max 60s)..."
+READY=false
+for i in {1..60}; do
+    if curl -s "http://localhost:$API_PORT/api/status" | grep -q "peer_id"; then
+        READY=true
+        break
+    fi
+    sleep 1
+done
+
+if [ "$READY" = true ]; then
+    echo "[SUCCESS] Rollout complete. xrnet is live at http://localhost:$API_PORT"
+    echo "[DEPLOY] Main Log: prod_runtime.log"
+else
+    echo "[ERROR] Deployment failed: API did not become ready in time."
+    kill $DEPLOY_PID 2>/dev/null || true
+    exit 1
+fi

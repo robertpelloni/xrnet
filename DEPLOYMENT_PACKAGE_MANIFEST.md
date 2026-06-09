@@ -9,7 +9,7 @@ This manifest details the components included in the XRNet v1.0.0 "Ecosystem Com
   - Integrated REST API (Port 8080).
   - Production-ready static file server for UI assets.
 - **Frontend (`frontend/`):**
-  - React 19 / Vite 8 Dashboard.
+  - React 18.3 / Vite 6 Dashboard.
   - Real-time Gossipsub Chat (Communicate).
   - DHT-based Marketplace (Shop & Sell).
   - Spatial AI 3D Viewer (Three.js).

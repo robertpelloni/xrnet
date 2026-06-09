@@ -16,8 +16,8 @@ XRNet v1.0.0 marks the definitive production release of the world's first autono
 - **Automated Governance:** Integrated Executive Autonomous Protocol for repository synchronization and versioning.
 
 ### Technical Stack
-- **Backend:** Rust 1.94, libp2p 0.54, Axum 0.7, Tokio 1.37.
-- **Frontend:** React 19, TypeScript 6, Three.js 0.184, Recharts, Vite 8.
+- **Backend:** Rust 1.94, libp2p 0.54, Axum 0.7, Tokio 1.37, reqwest 0.12.
+- **Frontend:** React 18.3, TypeScript 5.6, Three.js 0.184, Recharts 2.12, Vite 6.
 - **Economics:** Bobcoin Lattice Consensus.
 - **Infrastructure:** Python 3.12 Coordinator, multi-node benchmarking suite.
 

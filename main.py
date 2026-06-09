@@ -41,8 +41,8 @@ def wait_for_bobcoin_ready(timeout=30):
     return False
 
 def run_autonomous_protocol():
-    if os.environ.get("SKIP_PROTOCOL") == "1":
-        sys.stdout.write("[COORD] Skipping Executive Autonomous Protocol (SKIP_PROTOCOL=1)\n")
+    if os.environ.get("SKIP_PROTOCOL_BUILD") == "1":
+        sys.stdout.write("[COORD] Skipping Executive Autonomous Protocol (SKIP_PROTOCOL_BUILD=1)\n")
         sys.stdout.flush()
         return
     sys.stdout.write("[COORD] Executing Executive Autonomous Protocol...\n")

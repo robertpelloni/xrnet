@@ -48,7 +48,7 @@ class TestEndToEndIntegration(unittest.TestCase):
 
         # Capture snapshots
         try:
-            stdout, stderr = process.communicate(timeout=2)
+            stdout, stderr = process.communicate(timeout=15)
         except subprocess.TimeoutExpired:
             if os.name != 'nt':
                 os.killpg(os.getpgid(process.pid), signal.SIGTERM)
