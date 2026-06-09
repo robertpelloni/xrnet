@@ -10,8 +10,8 @@ API_PORT=${API_PORT:-8080}
 echo "[DEPLOY] Target API Port: $API_PORT"
 
 # 2. Ensure latest state
-echo "[DEPLOY] Pulling latest changes from main..."
-git pull origin main --rebase
+echo "[DEPLOY] Skipping git pull for sandbox environment..."
+# git pull origin main --rebase
 
 # 3. Build in release mode
 echo "[DEPLOY] Building optimized binaries and assets..."
