@@ -29,7 +29,7 @@ The backend is built in Rust using the `tokio` asynchronous runtime and `libp2p`
 - **Handshake Protocol:** A custom TCP handshake for integration with external system components.
 
 ## 3. Frontend (The User Interface)
-Built with React 19 and Vite 8.
+Built with React 18.3 and Vite 6.
 - **Dashboard:** Real-time monitoring of P2P node status, peers, and network metrics.
 - **Communicate:** Interactive chat interface wired to Gossipsub.
 - **Shop & Sell:** DHT-based marketplace browser and listing tool.

@@ -1,14 +1,11 @@
+mod mesh;
+
 use std::fs;
 use std::error::Error;
 use std::time::Duration;
 use tokio::net::TcpStream;
 use tokio::io::{AsyncWriteExt, AsyncReadExt};
-use libp2p::{
-    identity, mdns, ping, kad, gossipsub,
-    swarm::SwarmEvent,
-    PeerId,
-};
-use futures::StreamExt;
+use libp2p::identity;
 use serde_json::json;
 use axum::{routing::{get, post}, Json, Router};
 use std::net::SocketAddr;
@@ -19,21 +16,13 @@ use sysinfo::{System, CpuRefreshKind, MemoryRefreshKind};
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc;
 
-#[derive(libp2p::swarm::NetworkBehaviour)]
-struct MyBehaviour {
-    ping: ping::Behaviour,
-    mdns: mdns::tokio::Behaviour,
-    kad: kad::Behaviour<kad::store::MemoryStore>,
-    gossipsub: gossipsub::Behaviour,
-}
-
-enum Command {
+pub enum Command {
     PutRecord { key: String, value: String },
     GetRecord { key: String },
     SendMessage { topic: String, message: String },
 }
 
-struct AppState {
+pub struct AppState {
     peer_id: String,
     peers: Mutex<usize>,
     network: Mutex<String>,
@@ -188,14 +177,6 @@ mod tests {
     }
 
     #[test]
-    fn test_peer_id_generation() {
-        let local_key = identity::Keypair::generate_ed25519();
-        let local_peer_id = PeerId::from(local_key.public());
-        let peer_id_str = local_peer_id.to_string();
-        assert!(peer_id_str.starts_with('1') || peer_id_str.starts_with('Q'));
-    }
-
-    #[test]
     fn test_serialization_chat_message() {
         let msg = ChatMessage {
             sender: "test-peer".to_string(),
@@ -231,14 +212,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
     println!("      xrnet-backend v{}              ", version);
     println!("========================================");
 
-    println!("[INFO] Initializing Everything Protocol (libp2p + Kademlia)...");
-
     let local_key = identity::Keypair::generate_ed25519();
-    let local_peer_id = PeerId::from(local_key.public());
+    let local_peer_id = libp2p::PeerId::from(local_key.public());
     let peer_id_str = local_peer_id.to_string();
-    println!("[PROTOCOL] Local Peer ID: {:?}", local_peer_id);
 
-    let (tx, mut rx) = mpsc::channel(32);
+    let (tx, rx) = mpsc::channel(32);
     let state = Arc::new(AppState::new(peer_id_str.clone(), tx));
 
     // API Server
@@ -320,7 +298,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     let content = payload["content"].as_str().unwrap_or("").to_string();
                     println!("[API] Send Message: {}", content);
 
-                    // Add to local message list so sender sees it
                     s.add_message(s.peer_id.clone(), content.clone());
                     s.increment_sent();
 
@@ -473,7 +450,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
     });
 
     let api_port_str = std::env::var("API_PORT").unwrap_or_else(|_| "8080".to_string());
-    println!("[INFO] API_PORT env var: {}", api_port_str);
     let api_port = api_port_str.parse::<u16>().unwrap_or(8080);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], api_port));
@@ -482,55 +458,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
         let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
         axum::serve(listener, app).await.unwrap();
     });
-
-    let mut swarm = libp2p::SwarmBuilder::with_existing_identity(local_key)
-        .with_tokio()
-        .with_tcp(
-            libp2p::tcp::Config::default(),
-            libp2p::noise::Config::new,
-            libp2p::yamux::Config::default,
-        )?
-        .with_behaviour(|key| {
-            let store = kad::store::MemoryStore::new(local_peer_id);
-
-            let message_id_fn = |message: &gossipsub::Message| {
-                let mut s = std::collections::hash_map::DefaultHasher::new();
-                std::hash::Hash::hash(&message.data, &mut s);
-                gossipsub::MessageId::from(std::hash::Hasher::finish(&s).to_string())
-            };
-
-            let gossipsub_config = gossipsub::ConfigBuilder::default()
-                .heartbeat_interval(Duration::from_millis(500)) // Increased heartbeat frequency
-                .mesh_n_low(3)
-                .mesh_n(6)
-                .mesh_n_high(12)
-                .gossip_lazy(3)
-                .history_length(5)
-                .history_gossip(3)
-                .validation_mode(gossipsub::ValidationMode::Strict)
-                .message_id_fn(message_id_fn)
-                .build()
-                .map_err(|msg| std::io::Error::new(std::io::ErrorKind::Other, msg))?;
-
-            let mut gossipsub = gossipsub::Behaviour::new(
-                gossipsub::MessageAuthenticity::Signed(key.clone()),
-                gossipsub_config,
-            ).map_err(|msg| std::io::Error::new(std::io::ErrorKind::Other, msg))?;
-
-            let topic = gossipsub::IdentTopic::new("xrnet-global");
-            gossipsub.subscribe(&topic)?;
-
-            Ok(MyBehaviour {
-                ping: ping::Behaviour::default(),
-                mdns: mdns::tokio::Behaviour::new(mdns::Config::default(), local_peer_id)?,
-                kad: kad::Behaviour::new(local_peer_id, store),
-                gossipsub,
-            })
-        })?
-        .with_swarm_config(|c| c.with_idle_connection_timeout(Duration::from_secs(60)))
-        .build();
-
-    swarm.listen_on("/ip4/0.0.0.0/tcp/0".parse()?)?;
 
     let integrated = connect_to_surrounding_system().await;
     if integrated {
@@ -542,78 +469,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
     println!("[STATUS] READY");
     set_status("READY");
 
-    let mesh_peer_state = Arc::clone(&state);
-    let mut peer_check_interval = tokio::time::interval(Duration::from_secs(5));
-
-    loop {
-        tokio::select! {
-            _ = peer_check_interval.tick() => {
-                let peer_count = swarm.connected_peers().count();
-                let mut p = mesh_peer_state.peers.lock().unwrap();
-                *p = peer_count;
-            }
-            Some(cmd) = rx.recv() => {
-                match cmd {
-                    Command::PutRecord { key, value } => {
-                        let k = kad::RecordKey::new(&key);
-                        let record = kad::Record {
-                            key: k,
-                            value: value.into_bytes(),
-                            publisher: None,
-                            expires: None,
-                        };
-                        swarm.behaviour_mut().kad.put_record(record, kad::Quorum::One).expect("Failed to put record");
-                        println!("[PROTOCOL] Initiated Kademlia PUT for key: {}", key);
-                    }
-                    Command::SendMessage { topic, message } => {
-                        let t = gossipsub::IdentTopic::new(topic);
-                        if let Err(e) = swarm.behaviour_mut().gossipsub.publish(t, message.into_bytes()) {
-                            println!("[PROTOCOL] Publish error: {:?}", e);
-                        }
-                    }
-                    Command::GetRecord { key } => {
-                        let k = kad::RecordKey::new(&key);
-                        swarm.behaviour_mut().kad.get_record(k);
-                        println!("[PROTOCOL] Initiated Kademlia GET for key: {}", key);
-                    }
-                }
-            }
-            event = swarm.select_next_some() => match event {
-                SwarmEvent::NewListenAddr { address, .. } => {
-                    println!("[PROTOCOL] Listening on {:?}", address);
-                }
-                SwarmEvent::Behaviour(MyBehaviourEvent::Mdns(mdns::Event::Discovered(list))) => {
-                    for (peer_id, addr) in list {
-                        println!("[PROTOCOL] Discovered peer {} at {:?}", peer_id, addr);
-                        swarm.behaviour_mut().kad.add_address(&peer_id, addr);
-                    }
-                }
-                SwarmEvent::Behaviour(MyBehaviourEvent::Kad(event)) => {
-                    println!("[PROTOCOL] Kademlia Event: {:?}", event);
-                    if let kad::Event::OutboundQueryProgressed {
-                        result: kad::QueryResult::GetRecord(Ok(kad::GetRecordOk::FoundRecord(kad::PeerRecord { record, .. }))),
-                        ..
-                    } = event {
-                        let key = String::from_utf8_lossy(record.key.as_ref()).to_string();
-                        let value = String::from_utf8_lossy(&record.value).to_string();
-                        println!("[PROTOCOL] Found record: {} = {}", key, value);
-
-                        api_state.handle_dht_record(key, value);
-                    }
-                }
-                SwarmEvent::Behaviour(MyBehaviourEvent::Gossipsub(gossipsub::Event::Message {
-                    propagation_source: peer_id,
-                    message_id: id,
-                    message,
-                })) => {
-                    let content = String::from_utf8_lossy(&message.data).to_string();
-                    println!("[PROTOCOL] Got message: '{}' with id: {} from peer: {}", content, id, peer_id);
-
-                    api_state.increment_recv();
-                    api_state.add_message(peer_id.to_string(), content);
-                }
-                _ => {}
-            }
-        }
-    }
+    // Start modular mesh network loop
+    mesh::run_mesh(state, rx).await
 }

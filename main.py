@@ -30,7 +30,6 @@ def wait_for_backend_ready(timeout=30):
     return wait_for_status(status_file, "READY", timeout)
 
 def wait_for_bobcoin_ready(timeout=30):
-    # Check port 4000
     import socket
     start_time = time.time()
     while time.time() - start_time < timeout:
@@ -41,8 +40,8 @@ def wait_for_bobcoin_ready(timeout=30):
     return False
 
 def run_autonomous_protocol():
-    if os.environ.get("SKIP_PROTOCOL_BUILD") == "1":
-        sys.stdout.write("[COORD] Skipping Executive Autonomous Protocol (SKIP_PROTOCOL_BUILD=1)\n")
+    if os.environ.get("SKIP_PROTOCOL") == "1":
+        sys.stdout.write("[COORD] Skipping Executive Autonomous Protocol (SKIP_PROTOCOL=1)\n")
         sys.stdout.flush()
         return
     sys.stdout.write("[COORD] Executing Executive Autonomous Protocol...\n")
@@ -51,7 +50,6 @@ def run_autonomous_protocol():
         result = subprocess.run(["python3", "./scripts/autonomous_protocol.py"], capture_output=True, text=True)
         if result.returncode == 0:
             sys.stdout.write("[COORD] Executive Protocol Successful.\n")
-            # Log the first few lines of output
             lines = result.stdout.splitlines()
             for line in lines[:10]:
                 sys.stdout.write(f"  {line}\n")
@@ -60,6 +58,21 @@ def run_autonomous_protocol():
             sys.stdout.write(f"  {result.stderr}\n")
     except Exception as e:
         sys.stdout.write(f"[COORD] Executive Protocol Error: {e}\n")
+    sys.stdout.flush()
+
+def start_mesh_monitor():
+    sys.stdout.write("[COORD] Launching Mesh Monitoring Service...\n")
+    sys.stdout.flush()
+    # Check if port 9000/9001 are already taken
+    import socket
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        if s.connect_ex(('127.0.0.1', 9000)) == 0:
+            sys.stdout.write("[COORD] Mesh Monitor (port 9000) already active.\n")
+            sys.stdout.flush()
+            return
+
+    subprocess.Popen(["python3", "scripts/mock_peer.py"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    sys.stdout.write("[COORD] Mesh Monitor started on ports 9000 (telemetry) and 9001 (API/UI).\n")
     sys.stdout.flush()
 
 def main():
@@ -71,6 +84,9 @@ def main():
 
     sys.stdout.write("\n[INFO] Orchestrating xrnet system startup...\n")
     sys.stdout.flush()
+
+    # Launch Mesh Monitor
+    start_mesh_monitor()
 
     # Integrated Executive Autonomous Protocol
     run_autonomous_protocol()
@@ -93,7 +109,6 @@ def main():
     sys.stdout.flush()
 
     sys.stdout.write("[COORD] Loading Spatial Layer AI Models...\n")
-    # Simulate loading from spatial/config.toml
     if os.path.exists("spatial/config.toml"):
         sys.stdout.write("[COORD] Loading configuration from spatial/config.toml...\n")
     sys.stdout.flush()
@@ -109,7 +124,6 @@ def main():
     sys.stdout.write("System healthy. Press Ctrl+C to terminate all processes.\n")
     sys.stdout.flush()
 
-    # Keep alive
     try:
         while True:
             time.sleep(1)
