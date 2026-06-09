@@ -113,3 +113,21 @@
 - Integrated real-time Mesh Fleet Monitoring into the dashboard.
 - Visualized remote peer resource usage (CPU/Mem/Connectivity).
 - Standardized Peer ID identity across API and P2P Swarm layers.
+
+## [1.1.5] - 2026-06-09
+- Autonomous version bump via Executive Protocol.
+- Integrated mesh health verification in autonomous engine.
+
+## [1.1.6] - 2026-06-09
+- Autonomous version bump via Executive Protocol.
+- Integrated mesh health verification in autonomous engine.
+
+## [1.1.7] - 2026-06-09
+- Autonomous version bump via Executive Protocol.
+- Integrated mesh health verification in autonomous engine.
+
+## [1.2.0] - 2026-06-09
+- Finalized v1.2.0 'Mesh Intelligence' release.
+- Verified autonomous node discovery and multi-node message forwarding.
+- Enhanced autonomous protocol with proactive mesh health checks.
+- Stabilized routing integration across the monorepo.

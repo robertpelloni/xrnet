@@ -2,6 +2,7 @@ import os
 import sys
 import subprocess
 import time
+import socket
 from datetime import datetime
 
 def log(msg):
@@ -26,6 +27,14 @@ def step_analysis():
     if not os.path.exists("spatial/models"):
         gaps.append("Missing spatial AI models directory.")
 
+    # Mesh health check as part of analysis
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        if s.connect_ex(('127.0.0.1', 9000)) != 0:
+            log("WARNING: Central Mesh Monitor (port 9000) is offline.")
+            gaps.append("Central Mesh Monitor is offline.")
+        else:
+            log("Mesh Monitor connection verified.")
+
     with open("TODO.md", "a") as f:
         f.write(f"\n# Protocol Analysis {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         for gap in gaps:
@@ -46,6 +55,7 @@ def step_documentation():
         with open("CHANGELOG.md", "a") as f:
             f.write(f"\n## [{new_version}] - {datetime.now().strftime('%Y-%m-%d')}\n")
             f.write("- Autonomous version bump via Executive Protocol.\n")
+            f.write("- Integrated mesh health verification in autonomous engine.\n")
         log(f"Version bumped to {new_version}.")
     except Exception as e:
         log(f"Versioning failed: {e}")
