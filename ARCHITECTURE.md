@@ -20,9 +20,10 @@ The backend is built in Rust using the `tokio` asynchronous runtime and `libp2p`
 4. **Discovery:** mDNS for local network peer discovery.
 5. **Messaging:** Gossipsub for mesh-wide pub-sub (real-time chat).
 6. **Data Storage:** Kademlia DHT for decentralized profile and marketplace record storage.
-7. **Utility:** Ping for connection health monitoring.
+7. **Utility:** Ping (RTT) for high-precision latency monitoring and diagnostics.
 
 ### API & Services
+- **Modular Networking Engine:** All libp2p swarm management and behavior definitions are encapsulated in `mesh.rs`, decoupled from the API logic.
 - **Axum REST API:** Exposes endpoints for system status, peer data, DHT operations, and messaging.
 - **Hardware Telemetry:** Integrated `sysinfo` layer that monitors real-time CPU and memory utilization, exposed via the API.
 - **Static File Server:** In production, the backend serves the compiled frontend assets directly using `tower-http`.
@@ -33,7 +34,7 @@ Built with React 18.3 and Vite 6.
 - **Dashboard:** Real-time monitoring of P2P node status, peers, and network metrics.
 - **Communicate:** Interactive chat interface wired to Gossipsub.
 - **Shop & Sell:** DHT-based marketplace browser and listing tool.
-- **Network Health:** Performance visualization using `recharts` to display real-time telemetry from the backend.
+- **Network Health:** Performance visualization using `recharts` to display real-time telemetry, including per-peer latency (RTT) and Gossipsub traffic statistics.
 - **Spatial Viewer:** Three.js integration for 3D Gaussian Splatting and digital twin visualization.
 
 ## 4. Component Interaction
