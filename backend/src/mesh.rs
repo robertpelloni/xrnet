@@ -19,14 +19,11 @@ pub struct MyBehaviour {
 }
 
 pub async fn run_mesh(
+    local_key: identity::Keypair,
     state: Arc<AppState>,
     mut command_rx: mpsc::Receiver<Command>,
 ) -> Result<(), Box<dyn Error>> {
-    let local_key = identity::Keypair::generate_ed25519();
     let local_peer_id = PeerId::from(local_key.public());
-
-    // Note: We are generating a NEW key here, but in a real app we'd probably want to
-    // pass it in or load it. For this modularization, we follow the previous main.rs logic.
 
     let mut swarm = libp2p::SwarmBuilder::with_existing_identity(local_key)
         .with_tokio()

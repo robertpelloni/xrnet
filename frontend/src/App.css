@@ -267,7 +267,16 @@ h2 {
 .monitoring-dashboard {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 20px;
+  text-align: left;
+}
+
+.telemetry-section h3 {
+  font-size: 0.9rem;
+  color: #888;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .telemetry-metrics {
@@ -280,83 +289,132 @@ h2 {
   background: #1a1a1a;
   padding: 10px;
   border-radius: 4px;
-  border: 1px solid #444;
+  border: 1px solid #333;
   text-align: center;
 }
 
 .metric-box label {
   display: block;
-  font-size: 0.75rem;
-  color: #888;
+  font-size: 0.65rem;
+  color: #666;
   margin-bottom: 5px;
-  text-transform: uppercase;
 }
 
 .metric-box .value {
-  font-family: 'Courier New', Courier, monospace;
+  font-family: monospace;
   font-weight: bold;
   font-size: 1.1rem;
   color: #00ffcc;
 }
 
-.global-mesh-info {
-  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-  border: 1px solid #444;
-  border-radius: 4px;
-  padding: 10px;
-  margin-bottom: 15px;
-}
-
-.global-mesh-info label {
-  display: block;
-  font-size: 0.7rem;
-  color: #646cff;
-  text-transform: uppercase;
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-
-.mesh-summary {
-  display: flex;
-  justify-content: space-around;
-  font-size: 0.9rem;
-}
-
-.mesh-summary strong {
-  color: #fff;
-}
-
 .charts-container {
+  margin-top: 10px;
   background: #000;
   border-radius: 4px;
   padding: 10px;
-  border: 1px solid #333;
 }
 
 .chart-wrapper h4 {
-  margin: 0 0 10px 0;
-  font-size: 0.9rem;
-  color: #ccc;
-  text-align: center;
+  margin: 0 0 5px 0;
+  font-size: 0.75rem;
+  color: #444;
+}
+
+.peer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+.peer-card {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 10px;
+  position: relative;
+  transition: transform 0.2s;
+}
+
+.peer-card:hover {
+  border-color: #646cff;
+  transform: translateY(-2px);
+}
+
+.peer-card.local-peer {
+  border-color: #00ffcc;
+  background: rgba(0, 255, 204, 0.05);
+}
+
+.peer-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #333;
+  padding-bottom: 5px;
+}
+
+.peer-card-id {
+  font-family: monospace;
+  font-size: 0.65rem;
+  color: #888;
+}
+
+.local-tag {
+  background: #00ffcc;
+  color: #000;
+  font-size: 0.5rem;
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-weight: bold;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.status-dot.online {
+  background: #4caf50;
+  box-shadow: 0 0 5px #4caf50;
+}
+
+.peer-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mini-metric {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+}
+
+.mini-metric label {
+  color: #555;
+}
+
+.mini-metric span {
+  color: #fff;
+  font-weight: bold;
 }
 
 .mesh-link-container {
-  margin-top: 15px;
+  margin-top: 10px;
   text-align: center;
 }
 
 .mesh-monitor-link {
   color: #646cff;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   text-decoration: none;
-  border: 1px solid #646cff;
-  padding: 5px 10px;
-  border-radius: 4px;
-  transition: all 0.2s;
+  border-bottom: 1px solid transparent;
 }
 
 .mesh-monitor-link:hover {
-  background: rgba(100, 108, 255, 0.1);
+  border-bottom-color: #646cff;
 }
 
 footer {

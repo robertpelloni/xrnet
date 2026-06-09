@@ -96,3 +96,20 @@
 ## [1.1.0] - 2026-06-09
 - Full integration of modular mesh networking and automated monitoring services.
 - Transition to stable Phase 3 baseline.
+
+## [1.1.1] - 2026-06-09
+- Autonomous version bump via Executive Protocol.
+
+## [1.1.2] - 2026-06-09
+- Autonomous version bump via Executive Protocol.
+
+## [1.1.3] - 2026-06-09
+- Autonomous version bump via Executive Protocol.
+
+## [1.1.4] - 2026-06-09
+- Autonomous version bump via Executive Protocol.
+
+## [1.1.4] - 2026-06-09
+- Integrated real-time Mesh Fleet Monitoring into the dashboard.
+- Visualized remote peer resource usage (CPU/Mem/Connectivity).
+- Standardized Peer ID identity across API and P2P Swarm layers.

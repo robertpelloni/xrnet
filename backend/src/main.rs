@@ -470,5 +470,5 @@ async fn main() -> Result<(), Box<dyn Error>> {
     set_status("READY");
 
     // Start modular mesh network loop
-    mesh::run_mesh(state, rx).await
+    mesh::run_mesh(local_key, state, rx).await
 }

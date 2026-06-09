@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
 interface TelemetryData {
+  peer_id: string;
   cpu_usage: number;
   memory_usage: number;
   messages_sent: number;
@@ -11,10 +12,18 @@ interface TelemetryData {
   dht_records: number;
 }
 
+interface PeerReport {
+  peer_id: string;
+  cpu: number;
+  memory: number;
+  peers: number;
+  timestamp: number;
+}
+
 export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
   const [history, setHistory] = useState<any[]>([]);
   const [current, setCurrent] = useState<TelemetryData | null>(null);
-  const [globalMesh, setGlobalMesh] = useState<any>(null);
+  const [globalMesh, setGlobalMesh] = useState<Record<string, PeerReport[]> | null>(null);
 
   useEffect(() => {
     const fetchGlobalMesh = async () => {
@@ -47,7 +56,6 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
             dht: data.dht_records || 0,
             peers: data.peers
           }];
-          // Keep last 20 data points
           return newHistory.slice(-20);
         });
         fetchGlobalMesh();
@@ -63,86 +71,88 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
 
   if (!current) return <div>Loading Telemetry...</div>;
 
-  const totalMeshNodes = globalMesh ? Object.keys(globalMesh).length : 0;
+  const meshPeers = globalMesh ? Object.entries(globalMesh) : [];
 
   return (
     <div className="monitoring-dashboard">
-      {totalMeshNodes > 0 && (
-        <div className="global-mesh-info">
-          <label>Global Mesh Intelligence</label>
-          <div className="mesh-summary">
-            <span>Nodes: <strong>{totalMeshNodes}</strong></span>
-            <span>Network: <strong>Healthy</strong></span>
+      <div className="telemetry-section local-stats">
+        <h3>Local Node Performance</h3>
+        <div className="telemetry-metrics">
+          <div className="metric-box">
+            <label>CPU</label>
+            <div className="value">{current.cpu_usage.toFixed(1)}%</div>
+          </div>
+          <div className="metric-box">
+            <label>Memory</label>
+            <div className="value">{current.memory_usage.toFixed(1)}%</div>
+          </div>
+          <div className="metric-box">
+            <label>DHT Records</label>
+            <div className="value">{current.dht_records}</div>
+          </div>
+          <div className="metric-box">
+            <label>Connections</label>
+            <div className="value">{current.peers}</div>
           </div>
         </div>
-      )}
 
-      <div className="telemetry-metrics">
-        <div className="metric-box">
-          <label>Local CPU</label>
-          <div className="value">{current.cpu_usage.toFixed(1)}%</div>
-        </div>
-        <div className="metric-box">
-          <label>Local MEM</label>
-          <div className="value">{current.memory_usage.toFixed(1)}%</div>
-        </div>
-        <div className="metric-box">
-          <label>DHT Records</label>
-          <div className="value">{current.dht_records}</div>
-        </div>
-        <div className="metric-box">
-          <label>Active Peers</label>
-          <div className="value">{current.peers}</div>
+        <div className="charts-container">
+          <div className="chart-wrapper">
+            <h4>System Resources</h4>
+            <ResponsiveContainer width="100%" height={150}>
+              <AreaChart data={history}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                <XAxis dataKey="time" hide />
+                <YAxis domain={[0, 100]} />
+                <Tooltip contentStyle={{ backgroundColor: '#111', border: '1px solid #444' }} />
+                <Area type="monotone" dataKey="cpu" stroke="#00ffcc" fill="#00ffcc22" name="CPU" />
+                <Area type="monotone" dataKey="mem" stroke="#ff00cc" fill="#ff00cc22" name="Mem" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 
-      <div className="charts-container">
-        <div className="chart-wrapper">
-          <h4>System Performance</h4>
-          <ResponsiveContainer width="100%" height={150}>
-            <AreaChart data={history}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-              <XAxis dataKey="time" hide />
-              <YAxis domain={[0, 100]} />
-              <Tooltip contentStyle={{ backgroundColor: '#222', border: '1px solid #444' }} />
-              <Area type="monotone" dataKey="cpu" stroke="#00ffcc" fill="#00ffcc44" name="CPU %" />
-              <Area type="monotone" dataKey="mem" stroke="#ff00cc" fill="#ff00cc44" name="Memory %" />
-              <Area type="monotone" dataKey="dht" stroke="#ffff00" fill="#ffff0022" name="DHT Records" />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="chart-wrapper">
-          <h4>Mesh Traffic (S/R)</h4>
-          <ResponsiveContainer width="100%" height={150}>
-            <LineChart data={history}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-              <XAxis dataKey="time" hide />
-              <YAxis />
-              <Tooltip contentStyle={{ backgroundColor: '#222', border: '1px solid #444' }} />
-              <Line type="monotone" dataKey="sent" stroke="#646cff" dot={false} name="Sent" />
-              <Line type="monotone" dataKey="recv" stroke="#ff9800" dot={false} name="Received" />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="chart-wrapper">
-          <h4>Peer Connectivity</h4>
-          <ResponsiveContainer width="100%" height={150}>
-            <AreaChart data={history}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-              <XAxis dataKey="time" hide />
-              <YAxis />
-              <Tooltip contentStyle={{ backgroundColor: '#222', border: '1px solid #444' }} />
-              <Area type="stepAfter" dataKey="peers" stroke="#00ccff" fill="#00ccff22" name="Connected Peers" />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
+      <div className="telemetry-section mesh-fleet">
+        <h3>Mesh Fleet Monitor</h3>
+        {meshPeers.length === 0 ? (
+          <p className="empty-msg">No remote peers reporting telemetry.</p>
+        ) : (
+          <div className="peer-grid">
+            {meshPeers.map(([peerId, history]) => {
+              const latest = history[history.length - 1];
+              const isLocal = peerId === current.peer_id;
+              return (
+                <div key={peerId} className={`peer-card ${isLocal ? 'local-peer' : ''}`}>
+                  <div className="peer-card-header">
+                    <span className="peer-card-id">{peerId.slice(0, 8)}...{peerId.slice(-4)}</span>
+                    {isLocal && <span className="local-tag">YOU</span>}
+                    <span className="status-dot online"></span>
+                  </div>
+                  <div className="peer-card-body">
+                    <div className="mini-metric">
+                      <label>CPU</label>
+                      <span>{latest.cpu.toFixed(1)}%</span>
+                    </div>
+                    <div className="mini-metric">
+                      <label>MEM</label>
+                      <span>{latest.memory.toFixed(1)}%</span>
+                    </div>
+                    <div className="mini-metric">
+                      <label>Peers</label>
+                      <span>{latest.peers}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <div className="mesh-link-container">
         <a href="http://localhost:9001" target="_blank" rel="noopener noreferrer" className="mesh-monitor-link">
-          Open Central Mesh Monitor
+          Launch Mesh Fleet Dashboard (Full View)
         </a>
       </div>
     </div>
