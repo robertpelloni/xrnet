@@ -131,3 +131,19 @@
 - Verified autonomous node discovery and multi-node message forwarding.
 - Enhanced autonomous protocol with proactive mesh health checks.
 - Stabilized routing integration across the monorepo.
+
+## [1.2.1] - 2026-06-09
+- Autonomous version bump via Executive Protocol.
+- Integrated mesh health verification in autonomous engine.
+
+## [1.2.2] - 2026-06-09
+- Autonomous version bump via Executive Protocol.
+- Integrated mesh health verification in autonomous engine.
+
+## [1.2.3] - 2026-06-09
+- Autonomous version bump via Executive Protocol.
+- Integrated mesh health verification in autonomous engine.
+
+## [1.2.4] - 2026-06-09
+- Autonomous version bump via Executive Protocol.
+- Integrated mesh health verification in autonomous engine.

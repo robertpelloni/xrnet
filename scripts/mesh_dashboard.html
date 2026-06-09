@@ -21,7 +21,7 @@
         }
         .mesh-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
             gap: 20px;
             margin-top: 30px;
         }
@@ -55,7 +55,7 @@
         }
         .metrics-summary {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 10px;
             margin-bottom: 20px;
         }
@@ -67,17 +67,22 @@
         }
         .metric-val {
             display: block;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: bold;
             color: #fff;
         }
         .metric-lbl {
-            font-size: 0.7rem;
+            font-size: 0.6rem;
             color: #888;
             text-transform: uppercase;
         }
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
         canvas {
-            max-height: 150px;
+            max-height: 120px;
         }
     </style>
 </head>
@@ -95,8 +100,6 @@
                 const response = await fetch('/api/mesh/status');
                 const data = await response.json();
                 const grid = document.getElementById('mesh-grid');
-
-                // Remove nodes that are no longer reporting? (Optional)
 
                 for (const [peerId, history] of Object.entries(data)) {
                     const latest = history[history.length - 1];
@@ -123,15 +126,23 @@
                                     <span class="metric-lbl">MEM</span>
                                 </div>
                                 <div class="metric-item">
-                                    <span id="peers-${peerId}" class="metric-val">0</span>
-                                    <span class="metric-lbl">PEERS</span>
+                                    <span id="sent-${peerId}" class="metric-val">0</span>
+                                    <span class="metric-lbl">SENT</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span id="recv-${peerId}" class="metric-val">0</span>
+                                    <span class="metric-lbl">RECV</span>
                                 </div>
                             </div>
-                            <canvas id="chart-${peerId}"></canvas>
+                            <div class="charts-row">
+                                <canvas id="chart-cpu-${peerId}"></canvas>
+                                <canvas id="chart-msg-${peerId}"></canvas>
+                            </div>
                         `;
 
-                        const ctx = document.getElementById(`chart-${peerId}`).getContext('2d');
-                        charts[peerId] = new Chart(ctx, {
+                        // CPU Chart
+                        const ctxCpu = document.getElementById(`chart-cpu-${peerId}`).getContext('2d');
+                        const cpuChart = new Chart(ctxCpu, {
                             type: 'line',
                             data: {
                                 labels: history.map((_, i) => i),
@@ -148,24 +159,60 @@
                             options: {
                                 responsive: true,
                                 animation: false,
-                                scales: {
-                                    x: { display: false },
-                                    y: { min: 0, max: 100, ticks: { color: '#666' } }
-                                },
+                                scales: { x: { display: false }, y: { min: 0, max: 100 } },
                                 plugins: { legend: { display: false } }
                             }
                         });
+
+                        // Message Chart
+                        const ctxMsg = document.getElementById(`chart-msg-${peerId}`).getContext('2d');
+                        const msgChart = new Chart(ctxMsg, {
+                            type: 'line',
+                            data: {
+                                labels: history.map((_, i) => i),
+                                datasets: [
+                                    {
+                                        label: 'Sent',
+                                        data: history.map(h => h.messages_sent || 0),
+                                        borderColor: '#646cff',
+                                        borderWidth: 1.5,
+                                        pointRadius: 0
+                                    },
+                                    {
+                                        label: 'Recv',
+                                        data: history.map(h => h.messages_received || 0),
+                                        borderColor: '#ff9800',
+                                        borderWidth: 1.5,
+                                        pointRadius: 0
+                                    }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                                animation: false,
+                                scales: { x: { display: false } },
+                                plugins: { legend: { display: false } }
+                            }
+                        });
+
+                        charts[peerId] = { cpuChart, msgChart };
                     }
 
                     // Update UI
                     document.getElementById(`cpu-${peerId}`).innerText = latest.cpu.toFixed(1) + '%';
                     document.getElementById(`mem-${peerId}`).innerText = latest.memory.toFixed(1) + '%';
-                    document.getElementById(`peers-${peerId}`).innerText = latest.peers;
+                    document.getElementById(`sent-${peerId}`).innerText = latest.messages_sent || 0;
+                    document.getElementById(`recv-${peerId}`).innerText = latest.messages_received || 0;
 
-                    // Update Chart
-                    charts[peerId].data.labels = history.map((_, i) => i);
-                    charts[peerId].data.datasets[0].data = history.map(h => h.cpu);
-                    charts[peerId].update();
+                    // Update Charts
+                    charts[peerId].cpuChart.data.labels = history.map((_, i) => i);
+                    charts[peerId].cpuChart.data.datasets[0].data = history.map(h => h.cpu);
+                    charts[peerId].cpuChart.update();
+
+                    charts[peerId].msgChart.data.labels = history.map((_, i) => i);
+                    charts[peerId].msgChart.data.datasets[0].data = history.map(h => h.messages_sent || 0);
+                    charts[peerId].msgChart.data.datasets[1].data = history.map(h => h.messages_received || 0);
+                    charts[peerId].msgChart.update();
                 }
             } catch (err) {
                 console.error("Dashboard update failed:", err);

@@ -421,7 +421,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         loop {
             tokio::time::sleep(std::time::Duration::from_secs(10)).await;
 
-            let (cpu, mem, peers, peer_id) = {
+            let (cpu, mem, peers, peer_id, sent, recv) = {
                 let mut sys = reporting_state.sys.lock().unwrap();
                 sys.refresh_cpu_specifics(CpuRefreshKind::everything());
                 sys.refresh_memory_specifics(MemoryRefreshKind::everything());
@@ -429,7 +429,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     sys.global_cpu_info().cpu_usage(),
                     sys.used_memory() as f64 / sys.total_memory() as f64 * 100.0,
                     *reporting_state.peers.lock().unwrap(),
-                    reporting_state.peer_id.clone()
+                    reporting_state.peer_id.clone(),
+                    *reporting_state.msg_sent_count.lock().unwrap(),
+                    *reporting_state.msg_recv_count.lock().unwrap(),
                 )
             };
 
@@ -439,6 +441,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 "cpu": cpu,
                 "memory": mem,
                 "peers": peers,
+                "messages_sent": sent,
+                "messages_received": recv,
                 "timestamp": std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs()
             });
 

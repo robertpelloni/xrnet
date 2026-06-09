@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, LineChart, Line } from 'recharts';
 
 interface TelemetryData {
   peer_id: string;
@@ -17,6 +17,8 @@ interface PeerReport {
   cpu: number;
   memory: number;
   peers: number;
+  messages_sent: number;
+  messages_received: number;
   timestamp: number;
 }
 
@@ -87,8 +89,8 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
             <div className="value">{current.memory_usage.toFixed(1)}%</div>
           </div>
           <div className="metric-box">
-            <label>DHT Records</label>
-            <div className="value">{current.dht_records}</div>
+            <label>Traffic (S/R)</label>
+            <div className="value">{current.messages_sent} / {current.messages_received}</div>
           </div>
           <div className="metric-box">
             <label>Connections</label>
@@ -99,7 +101,7 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
         <div className="charts-container">
           <div className="chart-wrapper">
             <h4>System Resources</h4>
-            <ResponsiveContainer width="100%" height={150}>
+            <ResponsiveContainer width="100%" height={120}>
               <AreaChart data={history}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#333" />
                 <XAxis dataKey="time" hide />
@@ -108,6 +110,20 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
                 <Area type="monotone" dataKey="cpu" stroke="#00ffcc" fill="#00ffcc22" name="CPU" />
                 <Area type="monotone" dataKey="mem" stroke="#ff00cc" fill="#ff00cc22" name="Mem" />
               </AreaChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="chart-wrapper">
+            <h4>Mesh Traffic</h4>
+            <ResponsiveContainer width="100%" height={120}>
+              <LineChart data={history}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                <XAxis dataKey="time" hide />
+                <YAxis />
+                <Tooltip contentStyle={{ backgroundColor: '#111', border: '1px solid #444' }} />
+                <Line type="monotone" dataKey="sent" stroke="#646cff" dot={false} name="Sent" />
+                <Line type="monotone" dataKey="recv" stroke="#ff9800" dot={false} name="Received" />
+              </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
@@ -131,15 +147,15 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
                   </div>
                   <div className="peer-card-body">
                     <div className="mini-metric">
-                      <label>CPU</label>
-                      <span>{latest.cpu.toFixed(1)}%</span>
+                      <label>CPU/MEM</label>
+                      <span>{latest.cpu.toFixed(0)}% / {latest.memory.toFixed(0)}%</span>
                     </div>
                     <div className="mini-metric">
-                      <label>MEM</label>
-                      <span>{latest.memory.toFixed(1)}%</span>
+                      <label>TRAFFIC</label>
+                      <span>{latest.messages_sent || 0}S / {latest.messages_received || 0}R</span>
                     </div>
                     <div className="mini-metric">
-                      <label>Peers</label>
+                      <label>PEERS</label>
                       <span>{latest.peers}</span>
                     </div>
                   </div>
