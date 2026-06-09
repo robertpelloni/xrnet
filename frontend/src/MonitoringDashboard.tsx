@@ -28,6 +28,7 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
   const [history, setHistory] = useState<any[]>([]);
   const [current, setCurrent] = useState<TelemetryData | null>(null);
   const [globalMesh, setGlobalMesh] = useState<Record<string, PeerReport[]> | null>(null);
+  const [alerts, setAlerts] = useState<any[]>([]);
 
   const toggleTrust = async (target: string, isTrusted: boolean) => {
     try {
@@ -51,12 +52,15 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
         const response = await fetch(`http://localhost:9001/api/mesh/status`);
         if (response.ok) {
           const data = await response.json();
-          setGlobalMesh(data);
+          setGlobalMesh(data.peers);
+          setAlerts(data.alerts || []);
         } else {
           setGlobalMesh(null);
+          setAlerts([]);
         }
       } catch (err) {
         setGlobalMesh(null);
+        setAlerts([]);
       }
     };
 
@@ -95,6 +99,17 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
 
   return (
     <div className="monitoring-dashboard">
+      {alerts.length > 0 && (
+        <div className="mesh-alerts-container">
+          {alerts.map((alert, idx) => (
+            <div key={idx} className={`mesh-alert alert-${alert.type.toLowerCase()}`}>
+              <span className="alert-badge">{alert.type}</span>
+              <span className="alert-msg"><strong>{alert.peer_id.slice(0, 8)}</strong>: {alert.message}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="telemetry-section local-stats">
         <h3>Local Node Performance</h3>
         <div className="telemetry-metrics">

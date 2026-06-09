@@ -7,6 +7,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 
 # In-memory store for active mesh telemetry
 mesh_state = {}
+mesh_alerts = []
 state_lock = threading.Lock()
 
 class MeshAPIHandler(BaseHTTPRequestHandler):
@@ -16,8 +17,18 @@ class MeshAPIHandler(BaseHTTPRequestHandler):
             self.send_header('Content-Type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
+
             with state_lock:
-                self.wfile.write(json.dumps(mesh_state).encode())
+                # Cleanup old alerts (older than 5 mins)
+                now = time.time()
+                global mesh_alerts
+                mesh_alerts = [a for a in mesh_alerts if now - a['timestamp'] < 300]
+
+                response = {
+                    "peers": mesh_state,
+                    "alerts": mesh_alerts
+                }
+                self.wfile.write(json.dumps(response).encode())
         elif self.path == "/" or self.path == "/index.html":
             self.send_response(200)
             self.send_header('Content-Type', 'text/html')
@@ -72,8 +83,27 @@ def start_mock_peer(port=9000):
                                 report = json.loads(line)
                                 if report.get("type") == "TELEMETRY":
                                     peer_id = report.get("peer_id")
+                                    cpu = report.get("cpu", 0)
+                                    mem = report.get("memory", 0)
+
                                     with state_lock:
-                                        # Keep track of last 10 data points per peer for sparklines
+                                        # Analytics: Alerts logic
+                                        if cpu > 80:
+                                            mesh_alerts.append({
+                                                "peer_id": peer_id,
+                                                "type": "CRITICAL",
+                                                "message": f"High CPU usage: {cpu:.1f}%",
+                                                "timestamp": time.time()
+                                            })
+                                        if mem > 90:
+                                            mesh_alerts.append({
+                                                "peer_id": peer_id,
+                                                "type": "WARNING",
+                                                "message": f"High Memory usage: {mem:.1f}%",
+                                                "timestamp": time.time()
+                                            })
+
+                                        # Keep track of last 20 data points per peer for analytics
                                         if peer_id not in mesh_state:
                                             mesh_state[peer_id] = []
                                         mesh_state[peer_id].append(report)

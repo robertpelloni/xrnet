@@ -84,10 +84,29 @@
         canvas {
             max-height: 120px;
         }
+        .alerts-ticker {
+            max-width: 1200px;
+            margin: 20px auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .alert-item {
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .alert-CRITICAL { background: rgba(255, 68, 68, 0.2); border-left: 5px solid #ff4444; }
+        .alert-WARNING { background: rgba(255, 187, 51, 0.2); border-left: 5px solid #ffbb33; }
+        .alert-type { font-weight: bold; margin-right: 10px; }
     </style>
 </head>
 <body>
     <h1>xrnet mesh monitor</h1>
+    <div id="alerts-ticker" class="alerts-ticker"></div>
     <div id="mesh-grid" class="mesh-grid">
         <!-- Node cards will be injected here -->
     </div>
@@ -100,8 +119,23 @@
                 const response = await fetch('/api/mesh/status');
                 const data = await response.json();
                 const grid = document.getElementById('mesh-grid');
+                const ticker = document.getElementById('alerts-ticker');
 
-                for (const [peerId, history] of Object.entries(data)) {
+                // Update Alerts
+                ticker.innerHTML = '';
+                if (data.alerts) {
+                    data.alerts.forEach(alert => {
+                        const div = document.createElement('div');
+                        div.className = `alert-item alert-${alert.type}`;
+                        div.innerHTML = `
+                            <span><span class="alert-type">${alert.type}</span> <strong>${alert.peer_id.slice(0,8)}</strong>: ${alert.message}</span>
+                            <span style="color: #888; font-size: 0.7rem">${new Date(alert.timestamp * 1000).toLocaleTimeString()}</span>
+                        `;
+                        ticker.appendChild(div);
+                    });
+                }
+
+                for (const [peerId, history] of Object.entries(data.peers)) {
                     const latest = history[history.length - 1];
                     let card = document.getElementById(`node-${peerId}`);
 
