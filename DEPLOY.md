@@ -19,12 +19,26 @@ For rapid deployment on a new system:
    ```
 2. **Build All Components:**
    ```bash
-   ./build.sh [release]
+   # Release build is recommended for production hardware
+   ./build.sh release
    ```
 3. **Launch System:**
    ```bash
-   ./start.sh [release]
+   ./start.sh release
    ```
+
+## Target Hardware Requirements
+- **CPU:** Quad-core x86_64 or ARM64 (e.g., Raspberry Pi 5, Jetson Orin).
+- **RAM:** 4GB minimum (8GB recommended for Spatial AI).
+- **Network:** Low-latency Wi-Fi or Ethernet (for mesh stability).
+- **Storage:** 1GB for core OS + additional space for IPFS/Spatial maps.
+
+## Deployment Instructions (Hardware)
+1. **Prepare OS:** Ensure Ubuntu 24.04 or similar Linux distribution is installed.
+2. **Setup Dependencies:** Run `./scripts/setup_production.sh` to install Rust, Node.js, and system libraries.
+3. **Hardware Acceleration:** Ensure NVIDIA drivers or Mesa drivers are active for Spatial rendering.
+4. **Network Configuration:** Open ports 8080 (API), 9000-9001 (Monitoring), and any dynamic P2P ports (typically 30000-65535).
+5. **Autostart:** Configure `systemd` or a similar supervisor to run `./start.sh release` on boot.
 
 ## Packaging for Distribution
 To create a versioned source bundle for release:

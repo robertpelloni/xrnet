@@ -1,7 +1,7 @@
-# XRNet Deployment Package Manifest (v1.0.0)
+# XRNet Deployment Package Manifest (v1.3.10)
 
 ## Package Overview
-This manifest details the components included in the XRNet v1.0.0 "Ecosystem Complete" release.
+This manifest details the components included in the XRNet v1.3.10 "Everything App" release.
 
 ## Core Components
 - **Backend (`backend/`):**
@@ -30,6 +30,7 @@ This manifest details the components included in the XRNet v1.0.0 "Ecosystem Com
 - **Telemetry Reporting:** Native Rust -> Central API [Verified]
 - **Fleet Monitoring:** Central Dashboard [Verified]
 - **Autonomous Governance:** Executive Protocol Engine [Verified]
+- **Decentralized Services:** Governance / Learning / Commerce [Verified]
 
 ---
-*Certified for release v1.0.0*
+*Certified for release v1.3.10*
