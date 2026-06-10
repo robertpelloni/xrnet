@@ -36,9 +36,14 @@ For rapid deployment on a new system:
 ## Deployment Instructions (Hardware)
 1. **Prepare OS:** Ensure Ubuntu 24.04 or similar Linux distribution is installed.
 2. **Setup Dependencies:** Run `./scripts/setup_production.sh` to install Rust, Node.js, and system libraries.
-3. **Hardware Acceleration:** Ensure NVIDIA drivers or Mesa drivers are active for Spatial rendering.
-4. **Network Configuration:** Open ports 8080 (API), 9000-9001 (Monitoring), and any dynamic P2P ports (typically 30000-65535).
-5. **Autostart:** Configure `systemd` or a similar supervisor to run `./start.sh release` on boot.
+3. **Hardware Validation:** Run `python3 scripts/validate_hardware_compatibility.py` to ensure the system meets production requirements.
+4. **Hardware Acceleration:** Ensure NVIDIA drivers or Mesa drivers are active for Spatial rendering.
+5. **Network Configuration:** Open ports 8080 (API), 9000-9001 (Monitoring), and any dynamic P2P ports (typically 30000-65535).
+6. **Autostart:** Generate and install the systemd service:
+   ```bash
+   python3 scripts/generate_systemd_service.py
+   # Follow onscreen instructions to copy the .service file
+   ```
 
 ## Multi-Device Mesh Integration
 To connect multiple physical devices into the same mesh:

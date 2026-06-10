@@ -1,0 +1,16 @@
+[Unit]
+Description=XRNet Autonomous Mesh Node
+After=network.target
+
+[Service]
+Type=simple
+User=jules
+WorkingDirectory=/app
+ExecStart=/app/start.sh release
+Restart=always
+RestartSec=10
+StandardOutput=append:/app/logs/prod_runtime.log
+StandardError=append:/app/logs/prod_runtime.log
+
+[Install]
+WantedBy=multi-user.target
