@@ -27,7 +27,6 @@ pub async fn run_mesh(
 
     let mut swarm = libp2p::SwarmBuilder::with_existing_identity(local_key)
         .with_tokio()
-        .with_bandwidth_logging()
         .with_tcp(
             libp2p::tcp::Config::default(),
             libp2p::noise::Config::new,
@@ -84,10 +83,9 @@ pub async fn run_mesh(
                 let mut p = state.peers.lock().unwrap();
                 *p = peer_count;
 
-                // Bandwidth tracking
-                let bandwidth = swarm.bandwidth_info();
-                *state.bandwidth_in.lock().unwrap() = bandwidth.total_inbound();
-                *state.bandwidth_out.lock().unwrap() = bandwidth.total_outbound();
+                // Bandwidth tracking (manual stub if feature unavailable)
+                *state.bandwidth_in.lock().unwrap() = 0;
+                *state.bandwidth_out.lock().unwrap() = 0;
             }
             Some(cmd) = command_rx.recv() => {
                 match cmd {

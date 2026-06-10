@@ -4,7 +4,7 @@ version = "1.2.0"
 edition = "2021"
 
 [dependencies]
-libp2p = { version = "0.54", features = ["tcp", "dns", "websocket", "noise", "yamux", "kad", "gossipsub", "identify", "ping", "macros", "tokio", "mdns", "bandwidth"] }
+libp2p = { version = "0.54", features = ["tcp", "dns", "websocket", "noise", "yamux", "kad", "gossipsub", "identify", "ping", "macros", "tokio", "mdns"] }
 tokio = { version = "1.37", features = ["full"] }
 futures = "0.3.30"
 serde = { version = "1.0", features = ["derive"] }

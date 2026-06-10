@@ -563,6 +563,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // Central Telemetry Reporting Task
     let reporting_state = Arc::clone(&state);
     let monitor_host = std::env::var("MONITOR_HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
+    let api_port_str = std::env::var("API_PORT").unwrap_or_else(|_| "8080".to_string());
+    let api_port = api_port_str.parse::<u16>().unwrap_or(8080);
+    let reporting_api_port = api_port;
+
     tokio::spawn(async move {
         loop {
             tokio::time::sleep(std::time::Duration::from_secs(10)).await;
@@ -610,9 +614,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
     });
 
-    let api_port_str = std::env::var("API_PORT").unwrap_or_else(|_| "8080".to_string());
-    let api_port = api_port_str.parse::<u16>().unwrap_or(8080);
-    let reporting_api_port = api_port;
 
     let addr = SocketAddr::from(([0, 0, 0, 0], api_port));
     tokio::spawn(async move {

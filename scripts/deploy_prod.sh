@@ -41,6 +41,11 @@ done
 if [ "$READY" = true ]; then
     echo "[SUCCESS] Rollout complete. xrnet is live at http://localhost:$API_PORT"
     echo "[DEPLOY] Main Log: prod_runtime.log"
+
+    # 7. Start Performance Monitoring
+    echo "[DEPLOY] Starting performance monitoring in background..."
+    nohup python3 scripts/monitor_performance.py --port $API_PORT --duration 3600 --interval 10 > monitor_runtime.log 2>&1 &
+    echo "[DEPLOY] Monitoring Log: performance_$API_PORT.log"
 else
     echo "[ERROR] Deployment failed: API did not become ready in time."
     kill $DEPLOY_PID 2>/dev/null || true

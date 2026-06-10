@@ -1,5 +1,12 @@
 # CHANGELOG: xrnet
 
+## [1.8.0] - 2026-06-10
+### Added: Deployment & Monitoring Milestone
+- **Integrated Rollout:** Upgraded `deploy_prod.sh` to automatically initiate background performance monitoring.
+- **Production Baseline:** Established a stable release-ready baseline for live environments.
+- **Telemetry Persistence:** Performance logs (`performance_*.log`) are now archived and tracked for historical analysis.
+- **Health Verification:** Verified system stability in full release mode with real-world resource monitoring.
+
 ## [1.7.0] - 2026-06-10
 ### Added: Network Health & Topology Milestone
 - **Bandwidth Tracking:** Implemented real-time inbound and outbound bandwidth monitoring in the Rust backend.
