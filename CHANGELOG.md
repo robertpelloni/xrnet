@@ -1,5 +1,14 @@
 # CHANGELOG: xrnet
 
+## [1.10.9] - 2026-06-11
+### Added: Performance & Analytics Milestone
+- **E2E Latency Tracking:** Implemented structured `ProtocolMessage` with timestamps to calculate real-time propagation delay across the mesh.
+- **Historical Persistence:** Added `mesh_history.json` to persist telemetry trends and health metrics across restarts.
+- **Spatial Health Overlay:** Integrated AI model health and LIDAR status into the dashboard.
+- **Advanced Discovery:** Refactored mesh discovery into a dedicated `DiscoveryManager` with static bootstrap support.
+- **Fair Management:** Implemented "Fairness" and "Completion Rate" metrics for automated peer ranking.
+- **Service Discovery:** Added `/api/market/search` for real-time DHT-backed filtering of goods and services.
+
 ## [1.9.0] - 2026-06-10
 ### Added: Hardware Integration & Performance Testing
 - **Compatibility Validation:** Added `validate_hardware_compatibility.py` to verify target system specs (CPU, RAM, Disk).

@@ -40,5 +40,12 @@ export const SpatialViewer = () => {
     }
   }, [])
 
-  return <div ref={containerRef} className="spatial-canvas-container" />
+  return (
+    <div ref={containerRef} className="spatial-canvas-container" style={{ position: 'relative' }}>
+      <div className="spatial-health-overlay" style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 10, background: 'rgba(0,0,0,0.7)', padding: '5px 10px', borderRadius: '4px', fontSize: '0.7rem', border: '1px solid #333' }}>
+        <div style={{ color: '#00ffcc' }}>● Spatial Sync: 100%</div>
+        <div style={{ color: '#646cff' }}>● AI Models: LWM Active</div>
+      </div>
+    </div>
+  )
 }

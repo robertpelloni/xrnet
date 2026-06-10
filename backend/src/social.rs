@@ -68,6 +68,8 @@ impl SocialGraph {
             public_key: "".to_string(),
             reputation: 1,
             trust_level: 0.5,
+            fairness_score: 1.0,
+            completion_rate: 1.0,
         });
         entry.reputation += amount;
     }

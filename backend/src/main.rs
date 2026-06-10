@@ -1,6 +1,7 @@
 mod mesh;
 mod social;
 mod governance;
+mod discovery;
 
 use std::fs;
 use std::error::Error;
@@ -22,6 +23,15 @@ pub enum Command {
     PutRecord { key: String, value: String },
     GetRecord { key: String },
     SendMessage { topic: String, message: String },
+    AddPeer { peer_id: String, address: String },
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ProtocolMessage {
+    pub id: String,
+    pub content: String,
+    pub timestamp: u64,
+    pub sender: String,
 }
 
 pub struct AppState {
@@ -36,10 +46,13 @@ pub struct AppState {
     msg_sent_count: Mutex<usize>,
     msg_recv_count: Mutex<usize>,
     peer_latencies: Mutex<std::collections::HashMap<String, u64>>,
+    e2e_latencies: Mutex<Vec<u64>>,
+    messages_delivered: Mutex<usize>,
     bandwidth_in: Mutex<u64>,
     bandwidth_out: Mutex<u64>,
     social: social::SocialGraph,
     governance: governance::GovernanceEngine,
+    discovery: discovery::DiscoveryManager,
     sys: Mutex<System>,
 }
 
@@ -61,10 +74,13 @@ impl AppState {
             msg_sent_count: Mutex::new(0),
             msg_recv_count: Mutex::new(0),
             peer_latencies: Mutex::new(std::collections::HashMap::new()),
+            e2e_latencies: Mutex::new(Vec::new()),
+            messages_delivered: Mutex::new(0),
             bandwidth_in: Mutex::new(0),
             bandwidth_out: Mutex::new(0),
             social: social::SocialGraph::new(),
             governance: governance::GovernanceEngine::new(),
+            discovery: discovery::DiscoveryManager::new(),
             sys: Mutex::new(sys),
         }
     }
@@ -139,6 +155,8 @@ pub struct DecentralizedIdentity {
     pub public_key: String,
     pub reputation: i32,
     pub trust_level: f32, // 0.0 to 1.0
+    pub fairness_score: f32, // 0.0 to 1.0
+    pub completion_rate: f32, // 0.0 to 1.0
 }
 
 fn get_version() -> String {
@@ -269,6 +287,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 let sent = *s.msg_sent_count.lock().unwrap();
                 let recv = *s.msg_recv_count.lock().unwrap();
                 let latencies = s.peer_latencies.lock().unwrap().clone();
+                let e2e_latencies = s.e2e_latencies.lock().unwrap().clone();
+                let delivered = *s.messages_delivered.lock().unwrap();
                 let trusted = s.social.list_trusted(&s.peer_id);
                 let reputation = s.social.get_reputation(&s.peer_id);
                 let dht_count = s.profiles.lock().unwrap().len() + s.market_items.lock().unwrap().len();
@@ -289,6 +309,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     "messages_sent": sent,
                     "messages_received": recv,
                     "peer_latencies": latencies,
+                    "e2e_latencies": e2e_latencies,
+                    "messages_delivered": delivered,
                     "trusted_peers": trusted,
                     "reputation": reputation,
                     "dht_records": dht_count,
@@ -311,6 +333,22 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 Json(items)
             }
         }))
+        .route("/api/market/search", get({
+            let s = Arc::clone(&api_state);
+            move |axum::extract::Query(params): axum::extract::Query<std::collections::HashMap<String, String>>| {
+                let s = Arc::clone(&s);
+                async move {
+                    let query = params.get("q").cloned().unwrap_or_default().to_lowercase();
+                    let items = s.market_items.lock().unwrap();
+                    let filtered: std::collections::HashMap<String, String> = items
+                        .iter()
+                        .filter(|(_, v)| v.to_lowercase().contains(&query))
+                        .map(|(k, v)| (k.clone(), v.clone()))
+                        .collect();
+                    Json(filtered)
+                }
+            }
+        }))
         .route("/api/dht/get", get({
             let s = Arc::clone(&api_state);
             move |axum::extract::Query(params): axum::extract::Query<std::collections::HashMap<String, String>>| {
@@ -322,6 +360,28 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     } else {
                         Json(json!({ "status": "error", "message": "missing key" }))
                     }
+                }
+            }
+        }))
+        .route("/api/discovery/peers", get({
+            let s = Arc::clone(&api_state);
+            move || async move {
+                let table = s.discovery.routing_table.lock().unwrap();
+                let result: std::collections::HashMap<String, Vec<String>> = table.iter().map(|(k, v)| {
+                    (k.to_string(), v.iter().map(|a| a.to_string()).collect())
+                }).collect();
+                Json(result)
+            }
+        }))
+        .route("/api/discovery/add", post({
+            let s = Arc::clone(&api_state);
+            move |Json(payload): Json<serde_json::Value>| {
+                let s = Arc::clone(&s);
+                async move {
+                    let peer_id = payload["peer_id"].as_str().unwrap_or("").to_string();
+                    let address = payload["address"].as_str().unwrap_or("").to_string();
+                    let _ = s.command_tx.send(Command::AddPeer { peer_id, address }).await;
+                    Json(json!({ "status": "sent" }))
                 }
             }
         }))
@@ -477,6 +537,23 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 Json(props)
             }
         }))
+        .route("/api/governance/rank", get({
+            let s = Arc::clone(&api_state);
+            move |axum::extract::Query(params): axum::extract::Query<std::collections::HashMap<String, String>>| {
+                let s = Arc::clone(&s);
+                async move {
+                    let peers = params.get("peers")
+                        .unwrap_or(&"".to_string())
+                        .split(',')
+                        .map(|s| s.to_string())
+                        .filter(|s| !s.is_empty())
+                        .collect::<Vec<String>>();
+
+                    let ranked = s.governance.rank_peers_for_task(&s.social, peers);
+                    Json(ranked)
+                }
+            }
+        }))
         .route("/api/bobcoin/balance/:account", get({
             let client = http_client.clone();
             move |axum::extract::Path(account): axum::extract::Path<String>| async move {
@@ -571,10 +648,17 @@ async fn main() -> Result<(), Box<dyn Error>> {
         loop {
             tokio::time::sleep(std::time::Duration::from_secs(10)).await;
 
-            let (cpu, mem, peers, peer_id, sent, recv, latencies, reputation, bw_in, bw_out) = {
+                let (cpu, mem, peers, peer_id, sent, recv, latencies, reputation, bw_in, bw_out, e2e_lat, delivered, fairness, completion) = {
                 let mut sys = reporting_state.sys.lock().unwrap();
                 sys.refresh_cpu_specifics(CpuRefreshKind::everything());
                 sys.refresh_memory_specifics(MemoryRefreshKind::everything());
+
+                    let ident = reporting_state.social.get_identity(&reporting_state.peer_id);
+                    let (f, c) = match ident {
+                        Some(i) => (i.fairness_score, i.completion_rate),
+                        None => (1.0, 1.0),
+                    };
+
                 (
                     sys.global_cpu_info().cpu_usage(),
                     sys.used_memory() as f64 / sys.total_memory() as f64 * 100.0,
@@ -586,6 +670,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     reporting_state.social.get_reputation(&reporting_state.peer_id),
                     *reporting_state.bandwidth_in.lock().unwrap(),
                     *reporting_state.bandwidth_out.lock().unwrap(),
+                    reporting_state.e2e_latencies.lock().unwrap().clone(),
+                    *reporting_state.messages_delivered.lock().unwrap(),
+                        f,
+                        c,
                 )
             };
 
@@ -597,12 +685,16 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 "peers": peers,
                 "api_port": reporting_api_port,
                 "reputation": reputation,
+                    "fairness_score": fairness,
+                    "completion_rate": completion,
                 "bandwidth_in": bw_in,
                 "bandwidth_out": bw_out,
                 "uptime_secs": reporting_state.start_time.elapsed().as_secs(),
                 "messages_sent": sent,
                 "messages_received": recv,
                 "peer_latencies": latencies,
+                "e2e_latencies": e2e_lat,
+                "messages_delivered": delivered,
                 "timestamp": std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs()
             });
 

@@ -25,6 +25,8 @@
 - [x] Spatial search and navigation UI.
 
 ## Phase 4: Scaling & Governance (Target 2027+)
+- [x] Marketplace Service Discovery and Search.
+- [x] Fair Management automated peer ranking baseline.
 - [ ] Zero-knowledge matchmaking and social features.
 - [ ] Smart-contract based governance and micro-payments.
 - [ ] Ecosystem expansion for third-party apps.

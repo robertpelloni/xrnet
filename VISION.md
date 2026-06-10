@@ -15,8 +15,8 @@ Merging hyper-realistic spatial computing with a completely decentralized, all-i
 - **Unified Services (The Everything App):**
     - **Communicate:** Real-time mesh messaging via Gossipsub and encrypted p2p channels.
     - **Learn:** Decentralized knowledge sharing and peer-to-peer educational modules.
-    - **Shop & Sell:** A distributed marketplace for goods and services using Kademlia DHT for discovery.
-    - **Manage & Be Managed:** Fair, neutral governance and reputation systems for decentralized labor and coordination.
+    - **Shop & Sell:** A distributed marketplace for goods and services with advanced real-time service discovery.
+    - **Manage & Be Managed:** Automated peer matching and fair governance using neutral reputation and completion metrics.
     - **Search:** Decentralized indexing and zero-knowledge search.
     - **Social:** Cryptographic pub-sub for communities and messaging.
     - **Media:** Distributed video streaming with tokenized micro-payments.

@@ -14,6 +14,10 @@ interface TelemetryData {
   reputation?: number;
   bandwidth_in?: number;
   bandwidth_out?: number;
+  e2e_latencies?: number[];
+  messages_delivered?: number;
+  fairness_score?: number;
+  completion_rate?: number;
 }
 
 interface PeerReport {
@@ -23,6 +27,10 @@ interface PeerReport {
   peers: number;
   bandwidth_in?: number;
   bandwidth_out?: number;
+  e2e_latencies?: number[];
+  messages_delivered?: number;
+  fairness_score?: number;
+  completion_rate?: number;
   messages_sent: number;
   messages_received: number;
   peer_latencies?: Record<string, number>;
@@ -99,7 +107,10 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
             dht: data.dht_records || 0,
             peers: data.peers,
             bw_in: (data.bandwidth_in || 0) / 1024, // KB
-            bw_out: (data.bandwidth_out || 0) / 1024 // KB
+            bw_out: (data.bandwidth_out || 0) / 1024, // KB
+            e2e: data.e2e_latencies && data.e2e_latencies.length > 0
+              ? data.e2e_latencies.reduce((a: number, b: number) => a + b, 0) / data.e2e_latencies.length
+              : 0
           }];
           return newHistory.slice(-20);
         });
@@ -153,6 +164,14 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
             <label>Connections</label>
             <div className="value">{current.peers}</div>
           </div>
+          <div className="metric-box">
+            <label>Fairness</label>
+            <div className="value">{((current.fairness_score || 1.0) * 100).toFixed(0)}%</div>
+          </div>
+          <div className="metric-box">
+            <label>Completion</label>
+            <div className="value">{((current.completion_rate || 1.0) * 100).toFixed(0)}%</div>
+          </div>
         </div>
 
         <div className="charts-container">
@@ -195,6 +214,19 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
                 <Area type="monotone" dataKey="bw_in" stroke="#00bcd4" fill="#00bcd422" name="In" />
                 <Area type="monotone" dataKey="bw_out" stroke="#f44336" fill="#f4433622" name="Out" />
               </AreaChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="chart-wrapper">
+            <h4>E2E Latency (ms)</h4>
+            <ResponsiveContainer width="100%" height={120}>
+              <LineChart data={history}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                <XAxis dataKey="time" hide />
+                <YAxis />
+                <Tooltip contentStyle={{ backgroundColor: '#111', border: '1px solid #444' }} />
+                <Line type="monotone" dataKey="e2e" stroke="#ffeb3b" dot={false} name="Latency" />
+              </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
@@ -270,6 +302,16 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
                     <div className="mini-metric">
                       <label>PEERS</label>
                       <span>{latest.peers}</span>
+                    </div>
+                    <div className="mini-metric">
+                      <label>FAIRNESS</label>
+                      <span>{((latest.fairness_score || 1.0) * 100).toFixed(0)}%</span>
+                    </div>
+                    <div className="mini-metric">
+                      <label>LATENCY</label>
+                      <span>{latest.e2e_latencies && latest.e2e_latencies.length > 0
+                        ? (latest.e2e_latencies.reduce((a, b) => a + b, 0) / latest.e2e_latencies.length).toFixed(0)
+                        : '0'}ms</span>
                     </div>
                     {!isLocal && (
                       <button

@@ -32,9 +32,14 @@ function App() {
   const [isSearching, setIsSearching] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
   const [protocolOutput, setProtocolOutput] = useState('')
+  const [marketSearch, setMarketSearch] = useState('')
   const [proposals, setProposals] = useState<any[]>([])
   const [newPropTitle, setNewPropTitle] = useState('')
   const [newPropDesc, setNewPropDesc] = useState('')
+  const [rankedPeers, setRankedPeers] = useState<[string, number][]>([])
+  const [discoveryTable, setDiscoveryTable] = useState<Record<string, string[]>>({})
+  const [newPeerId, setNewPeerId] = useState('')
+  const [newPeerAddr, setNewPeerAddr] = useState('')
 
   useEffect(() => {
     const fetchStatus = async () => {
@@ -63,7 +68,10 @@ function App() {
 
     const fetchMarketItems = async () => {
       try {
-        const response = await fetch(`${apiBaseUrl}/api/market/list`)
+        const endpoint = marketSearch
+          ? `${apiBaseUrl}/api/market/search?q=${encodeURIComponent(marketSearch)}`
+          : `${apiBaseUrl}/api/market/list`;
+        const response = await fetch(endpoint)
         const data = await response.json()
         setMarketItems(data)
       } catch (error) {
@@ -91,12 +99,31 @@ function App() {
       }
     }
 
+    const fetchDiscovery = async () => {
+      try {
+        const response = await fetch(`${apiBaseUrl}/api/discovery/peers`)
+        const data = await response.json()
+        setDiscoveryTable(data)
+
+        // Also fetch ranking for all known peers
+        const peerIds = Object.keys(data).join(',');
+        if (peerIds) {
+          const rankResp = await fetch(`${apiBaseUrl}/api/governance/rank?peers=${peerIds}`);
+          const rankData = await rankResp.json();
+          setRankedPeers(rankData);
+        }
+      } catch (error) {
+        console.error('Failed to fetch discovery table:', error)
+      }
+    }
+
     const interval = setInterval(() => {
       fetchStatus()
       fetchProfiles()
       fetchMarketItems()
       fetchMessages()
       fetchProposals()
+      fetchDiscovery()
     }, 3000)
 
     fetchStatus()
@@ -104,6 +131,7 @@ function App() {
     fetchMarketItems()
     fetchMessages()
     fetchProposals()
+    fetchDiscovery()
     return () => clearInterval(interval)
   }, [])
 
@@ -238,6 +266,23 @@ function App() {
       });
     } catch (err) {
       console.error('Vote failed:', err);
+    }
+  }
+
+  const handleAddPeer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPeerId || !newPeerAddr) return;
+    try {
+      await fetch(`${apiBaseUrl}/api/discovery/add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ peer_id: newPeerId, address: newPeerAddr })
+      });
+      setNewPeerId('');
+      setNewPeerAddr('');
+      alert("Peer addition requested.");
+    } catch (err) {
+      console.error('Add peer failed:', err);
     }
   }
 
@@ -385,7 +430,16 @@ function App() {
 
           <section className="marketplace-panel">
             <h2>Shop & Sell</h2>
-            <button className="action-button" onClick={handleListMarketItem}>List Item for Sale</button>
+            <div className="market-controls">
+              <button className="action-button" onClick={handleListMarketItem}>List Item for Sale</button>
+              <input
+                type="text"
+                placeholder="Search goods & services..."
+                value={marketSearch}
+                onChange={(e) => setMarketSearch(e.target.value)}
+                className="market-search-input"
+              />
+            </div>
             <div className="market-list">
               {Object.keys(marketItems).length === 0 ? (
                 <p className="empty-msg">No items listed yet.</p>
@@ -425,6 +479,16 @@ function App() {
               <button type="submit">Propose Task</button>
             </form>
             <div className="proposal-list">
+              {rankedPeers.length > 0 && (
+                <div className="ranked-peers-hint">
+                  <strong>Recommended Peers for Tasks:</strong>
+                  <ul>
+                    {rankedPeers.slice(0, 3).map(([pid, score]) => (
+                      <li key={pid}>{pid.slice(0, 8)} (Score: {score.toFixed(1)})</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               {proposals.length === 0 ? <p className="empty-msg">No active governance proposals.</p> : (
                 proposals.map(p => (
                   <div key={p.id} className="proposal-card">
@@ -446,6 +510,30 @@ function App() {
 
           <section className="learning-panel">
             <LearningHub apiBaseUrl={apiBaseUrl} peerId={peerId} />
+          </section>
+
+          <section className="discovery-manager-panel">
+            <h2>Discovery Manager</h2>
+            <form onSubmit={handleAddPeer} className="add-peer-form">
+              <input type="text" placeholder="Peer ID" value={newPeerId} onChange={e => setNewPeerId(e.target.value)} />
+              <input type="text" placeholder="Multiaddress (/ip4/...)" value={newPeerAddr} onChange={e => setNewPeerAddr(e.target.value)} />
+              <button type="submit">Add Bootstrap Peer</button>
+            </form>
+            <div className="discovery-table">
+              <h3>Routing Table</h3>
+              {Object.keys(discoveryTable).length === 0 ? <p className="empty-msg">No peers in routing table.</p> : (
+                <ul>
+                  {Object.entries(discoveryTable).map(([pid, addrs]) => (
+                    <li key={pid}>
+                      <strong>{pid.slice(0, 12)}...</strong>
+                      <div className="addrs">
+                        {addrs.map(a => <span key={a} className="addr-tag">{a}</span>)}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </section>
 
           <section className="telemetry-panel">

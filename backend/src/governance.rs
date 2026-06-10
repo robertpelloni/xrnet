@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Mutex;
 use serde::{Serialize, Deserialize};
+use crate::social::SocialGraph;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Proposal {
@@ -80,6 +81,20 @@ impl GovernanceEngine {
     pub fn get_proposal(&self, id: &str) -> Option<Proposal> {
         let props = self.proposals.lock().unwrap();
         props.get(id).cloned()
+    }
+
+    pub fn rank_peers_for_task(&self, social: &SocialGraph, peers: Vec<String>) -> Vec<(String, f32)> {
+        let mut ranked: Vec<(String, f32)> = peers.into_iter().map(|pid| {
+            let ident = social.get_identity(&pid);
+            let score = match ident {
+                Some(i) => (i.reputation as f32 * 0.4) + (i.fairness_score * 30.0) + (i.completion_rate * 30.0),
+                None => 1.0,
+            };
+            (pid, score)
+        }).collect();
+
+        ranked.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+        ranked
     }
 
     pub fn import_proposal(&self, proposal: Proposal) {

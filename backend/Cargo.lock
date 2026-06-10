@@ -4069,7 +4069,7 @@ dependencies = [
 
 [[package]]
 name = "xrnet-backend"
-version = "1.2.0"
+version = "1.10.9"
 dependencies = [
  "axum",
  "futures",

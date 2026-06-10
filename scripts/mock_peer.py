@@ -1,3 +1,4 @@
+import os
 import socket
 import sys
 import time
@@ -71,6 +72,19 @@ def start_mock_peer(port=9000):
     sys.stdout.flush()
 
     log_file = "central_telemetry.log"
+    history_file = "mesh_history.json"
+
+    # Load history if exists
+    if os.path.exists(history_file):
+        try:
+            with open(history_file, "r") as f:
+                global mesh_state
+                data = json.load(f)
+                # Keep last 20 for each peer
+                for pid, hist in data.items():
+                    mesh_state[pid] = hist[-20:]
+        except:
+            pass
 
     # Start HTTP API in background
     threading.Thread(target=run_http_server, daemon=True).start()
@@ -142,6 +156,11 @@ def start_mock_peer(port=9000):
 
                                     with open(log_file, "a") as f:
                                         f.write(json.dumps(report) + "\n")
+
+                                    # Save history periodically (every 10 reports roughly)
+                                    if sum(len(h) for h in mesh_state.values()) % 10 == 0:
+                                        with open(history_file, "w") as f:
+                                            json.dump(mesh_state, f)
                         except json.JSONDecodeError:
                             pass
     except Exception as e:

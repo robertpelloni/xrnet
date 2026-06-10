@@ -8,7 +8,7 @@ use std::time::Duration;
 use futures::StreamExt;
 use tokio::sync::mpsc;
 use std::sync::Arc;
-use crate::{AppState, Command};
+use crate::{AppState, Command, ProtocolMessage};
 
 #[derive(NetworkBehaviour)]
 pub struct MyBehaviour {
@@ -102,8 +102,17 @@ pub async fn run_mesh(
                     }
                     Command::SendMessage { topic, message } => {
                         let t = gossipsub::IdentTopic::new(topic);
-                        if let Err(e) = swarm.behaviour_mut().gossipsub.publish(t, message.into_bytes()) {
-                            println!("[PROTOCOL] Publish error: {:?}", e);
+                        let p_msg = ProtocolMessage {
+                            id: format!("{}_{}", state.peer_id, std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis()),
+                            content: message,
+                            timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
+                            sender: state.peer_id.clone(),
+                        };
+
+                        if let Ok(data) = serde_json::to_vec(&p_msg) {
+                            if let Err(e) = swarm.behaviour_mut().gossipsub.publish(t, data) {
+                                println!("[PROTOCOL] Publish error: {:?}", e);
+                            }
                         }
                     }
                     Command::GetRecord { key } => {
@@ -111,17 +120,21 @@ pub async fn run_mesh(
                         swarm.behaviour_mut().kad.get_record(k);
                         println!("[PROTOCOL] Initiated Kademlia GET for key: {}", key);
                     }
+                    Command::AddPeer { peer_id, address } => {
+                        if let Ok(pid) = peer_id.parse::<PeerId>() {
+                            if let Ok(addr) = address.parse::<libp2p::Multiaddr>() {
+                                state.discovery.add_static_peer(pid, addr, &mut swarm.behaviour_mut().kad);
+                            }
+                        }
+                    }
                 }
             }
             event = swarm.select_next_some() => match event {
                 SwarmEvent::NewListenAddr { address, .. } => {
                     println!("[PROTOCOL] Listening on {:?}", address);
                 }
-                SwarmEvent::Behaviour(MyBehaviourEvent::Mdns(mdns::Event::Discovered(list))) => {
-                    for (peer_id, addr) in list {
-                        println!("[PROTOCOL] Discovered peer {} at {:?}", peer_id, addr);
-                        swarm.behaviour_mut().kad.add_address(&peer_id, addr);
-                    }
+                SwarmEvent::Behaviour(MyBehaviourEvent::Mdns(event)) => {
+                    state.discovery.handle_mdns_event(event, &mut swarm.behaviour_mut().kad);
                 }
                 SwarmEvent::Behaviour(MyBehaviourEvent::Ping(ping::Event {
                     peer,
@@ -143,14 +156,30 @@ pub async fn run_mesh(
                     }
                 }
                 SwarmEvent::Behaviour(MyBehaviourEvent::Gossipsub(gossipsub::Event::Message {
-                    propagation_source: peer_id,
+                    propagation_source: _peer_id,
                     message_id: id,
                     message,
                 })) => {
-                    let content = String::from_utf8_lossy(&message.data).to_string();
-                    println!("[PROTOCOL] Got message: '{}' with id: {} from peer: {}", content, id, peer_id);
-                    state.increment_recv();
-                    state.add_message(peer_id.to_string(), content);
+                    if let Ok(p_msg) = serde_json::from_slice::<ProtocolMessage>(&message.data) {
+                        let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64;
+                        let latency = now.saturating_sub(p_msg.timestamp);
+
+                        {
+                            let mut l = state.e2e_latencies.lock().unwrap();
+                            l.push(latency);
+                            if l.len() > 100 { l.remove(0); }
+                            *state.messages_delivered.lock().unwrap() += 1;
+                        }
+
+                        println!("[PROTOCOL] Got mesh message: '{}' with id: {} from peer: {} (Latency: {}ms)", p_msg.content, id, p_msg.sender, latency);
+                        state.increment_recv();
+                        state.add_message(p_msg.sender, p_msg.content);
+                    } else {
+                        let content = String::from_utf8_lossy(&message.data).to_string();
+                        println!("[PROTOCOL] Got raw message: '{}' with id: {} from source: {}", content, id, _peer_id);
+                        state.increment_recv();
+                        state.add_message(_peer_id.to_string(), content);
+                    }
                 }
                 _ => {}
             }

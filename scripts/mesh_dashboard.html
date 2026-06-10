@@ -78,11 +78,12 @@
         }
         .charts-row {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(3, 1fr);
             gap: 10px;
         }
         canvas {
-            max-height: 120px;
+            max-height: 140px;
+            width: 100% !important;
         }
         .alerts-ticker {
             max-width: 1200px;
@@ -171,10 +172,15 @@
                                     <span id="rep-${peerId}" class="metric-val">1</span>
                                     <span class="metric-lbl">REP</span>
                                 </div>
+                                <div class="metric-item">
+                                    <span id="fair-${peerId}" class="metric-val">100%</span>
+                                    <span class="metric-lbl">FAIR</span>
+                                </div>
                             </div>
                             <div class="charts-row">
                                 <canvas id="chart-cpu-${peerId}"></canvas>
                                 <canvas id="chart-msg-${peerId}"></canvas>
+                                <canvas id="chart-bw-${peerId}"></canvas>
                             </div>
                         `;
 
@@ -233,7 +239,38 @@
                             }
                         });
 
-                        charts[peerId] = { cpuChart, msgChart };
+                        // Bandwidth Chart
+                        const ctxBw = document.getElementById(`chart-bw-${peerId}`).getContext('2d');
+                        const bwChart = new Chart(ctxBw, {
+                            type: 'line',
+                            data: {
+                                labels: history.map((_, i) => i),
+                                datasets: [
+                                    {
+                                        label: 'In (kbps)',
+                                        data: history.map(h => h.kbps_in || 0),
+                                        borderColor: '#00bcd4',
+                                        borderWidth: 1.5,
+                                        pointRadius: 0
+                                    },
+                                    {
+                                        label: 'Out (kbps)',
+                                        data: history.map(h => h.kbps_out || 0),
+                                        borderColor: '#f44336',
+                                        borderWidth: 1.5,
+                                        pointRadius: 0
+                                    }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                                animation: false,
+                                scales: { x: { display: false } },
+                                plugins: { legend: { display: false } }
+                            }
+                        });
+
+                        charts[peerId] = { cpuChart, msgChart, bwChart };
                     }
 
                     // Update UI
@@ -242,6 +279,7 @@
                     document.getElementById(`sent-${peerId}`).innerText = latest.messages_sent || 0;
                     document.getElementById(`recv-${peerId}`).innerText = latest.messages_received || 0;
                     document.getElementById(`rep-${peerId}`).innerText = latest.reputation || 1;
+                    document.getElementById(`fair-${peerId}`).innerText = ((latest.fairness_score || 1.0) * 100).toFixed(0) + '%';
 
                     // Update Charts
                     charts[peerId].cpuChart.data.labels = history.map((_, i) => i);
@@ -252,6 +290,11 @@
                     charts[peerId].msgChart.data.datasets[0].data = history.map(h => h.messages_sent || 0);
                     charts[peerId].msgChart.data.datasets[1].data = history.map(h => h.messages_received || 0);
                     charts[peerId].msgChart.update();
+
+                    charts[peerId].bwChart.data.labels = history.map((_, i) => i);
+                    charts[peerId].bwChart.data.datasets[0].data = history.map(h => h.kbps_in || 0);
+                    charts[peerId].bwChart.data.datasets[1].data = history.map(h => h.kbps_out || 0);
+                    charts[peerId].bwChart.update();
                 }
             } catch (err) {
                 console.error("Dashboard update failed:", err);

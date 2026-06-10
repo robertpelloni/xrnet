@@ -13,6 +13,8 @@
 - Currently in the documentation and structural initialization phase.
 - Aiming for a monorepo-style structure to manage backend, frontend, and spatial components.
 - **Inter-component coordination:** The Python coordinator (`main.py`) synchronizes with the Rust backend via a polling mechanism on `backend/status.json`.
+- **Fairness & Neutrality:** System identity includes automated metrics for Fairness and Completion Rate to enable unbiased task matching.
+- **Service Discovery:** Marketplace data is indexed in the DHT and filtered via dedicated search endpoints for high responsiveness.
 
 ## Proposed Technical Architecture
 - **Backend (The Everything Protocol):**

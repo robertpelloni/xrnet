@@ -58,7 +58,29 @@ def step_documentation():
         with open("VERSION.md", "w") as f:
             f.write(new_version)
 
-        log(f"Version bumped to {new_version}.")
+        # Sync CHANGELOG.md
+        with open("CHANGELOG.md", "r") as f:
+            lines = f.readlines()
+        with open("CHANGELOG.md", "w") as f:
+            for line in lines:
+                if f"## [{version_str}]" in line:
+                    f.write(line.replace(f"## [{version_str}]", f"## [{new_version}]"))
+                else:
+                    f.write(line)
+
+        # Sync backend/Cargo.toml
+        cargo_path = "backend/Cargo.toml"
+        if os.path.exists(cargo_path):
+            with open(cargo_path, "r") as f:
+                lines = f.readlines()
+            with open(cargo_path, "w") as f:
+                for line in lines:
+                    if line.startswith("version ="):
+                        f.write(f'version = "{new_version}"\n')
+                    else:
+                        f.write(line)
+
+        log(f"Version bumped to {new_version} and synchronized across CHANGELOG and Cargo.toml.")
     except Exception as e:
         log(f"Versioning failed: {e}")
 

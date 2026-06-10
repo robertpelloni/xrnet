@@ -238,6 +238,21 @@ h2 {
   font-size: 0.8rem;
 }
 
+.market-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.market-search-input {
+  flex: 1;
+  background: #1a1a1a;
+  border: 1px solid #444;
+  color: white;
+  padding: 8px;
+  border-radius: 4px;
+}
+
 .market-list {
   margin-top: 15px;
   text-align: left;
@@ -342,6 +357,19 @@ h2 {
   flex-direction: column;
   gap: 15px;
   text-align: left;
+}
+
+.ranked-peers-hint {
+  background: rgba(100, 108, 255, 0.1);
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  margin-bottom: 10px;
+}
+
+.ranked-peers-hint ul {
+  padding-left: 20px;
+  margin: 5px 0 0 0;
 }
 
 .proposal-card, .learning-card {
