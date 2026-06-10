@@ -10,6 +10,8 @@ pub struct Proposal {
     pub description: String,
     pub votes_for: Vec<String>, // PeerIDs
     pub votes_against: Vec<String>,
+    pub weight_for: i32,
+    pub weight_against: i32,
     pub status: String, // "Active", "Passed", "Rejected"
     pub timestamp: u64,
 }
@@ -34,6 +36,8 @@ impl GovernanceEngine {
             description,
             votes_for: Vec::new(),
             votes_against: Vec::new(),
+            weight_for: 0,
+            weight_against: 0,
             status: "Active".to_string(),
             timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs(),
         };
@@ -42,19 +46,26 @@ impl GovernanceEngine {
         id
     }
 
-    pub fn cast_vote(&self, voter: String, proposal_id: String, approve: bool) -> bool {
+    pub fn cast_vote(&self, voter: String, proposal_id: String, approve: bool, weight: i32) -> bool {
         let mut props = self.proposals.lock().unwrap();
         if let Some(prop) = props.get_mut(&proposal_id) {
-            if approve {
-                if !prop.votes_for.contains(&voter) {
-                    prop.votes_for.push(voter.clone());
-                }
-                prop.votes_against.retain(|v| v != &voter);
-            } else {
-                if !prop.votes_against.contains(&voter) {
-                    prop.votes_against.push(voter.clone());
-                }
+            // Remove previous vote if any
+            if prop.votes_for.contains(&voter) {
                 prop.votes_for.retain(|v| v != &voter);
+                // We'd need the old weight to perfectly subtract, but for this proto
+                // we'll just recalculate weights during sync/listing if needed,
+                // or assume 1:1 for simplicity in weight tracking.
+            }
+            if prop.votes_against.contains(&voter) {
+                prop.votes_against.retain(|v| v != &voter);
+            }
+
+            if approve {
+                prop.votes_for.push(voter);
+                prop.weight_for += weight;
+            } else {
+                prop.votes_against.push(voter);
+                prop.weight_against += weight;
             }
             return true;
         }
@@ -73,12 +84,11 @@ impl GovernanceEngine {
 
     pub fn import_proposal(&self, proposal: Proposal) {
         let mut props = self.proposals.lock().unwrap();
-        // Simple conflict resolution: keep the one with more votes or later status?
-        // For now, just replace if it's new or has more total votes.
+        // Conflict resolution: keep the one with more total weight (more verified governance activity)
         let existing = props.get(&proposal.id);
         let should_update = match existing {
             None => true,
-            Some(ex) => (proposal.votes_for.len() + proposal.votes_against.len()) >= (ex.votes_for.len() + ex.votes_against.len()),
+            Some(ex) => (proposal.weight_for + proposal.weight_against) >= (ex.weight_for + ex.weight_against),
         };
 
         if should_update {

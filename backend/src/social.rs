@@ -54,4 +54,21 @@ impl SocialGraph {
         let graph = self.trust_graph.lock().unwrap();
         graph.get(source).cloned().unwrap_or_default()
     }
+
+    pub fn get_reputation(&self, peer_id: &str) -> i32 {
+        let idents = self.identities.lock().unwrap();
+        idents.get(peer_id).map(|i| i.reputation).unwrap_or(1) // Default 1
+    }
+
+    pub fn add_reputation(&self, peer_id: &str, amount: i32) {
+        let mut idents = self.identities.lock().unwrap();
+        let entry = idents.entry(peer_id.to_string()).or_insert(DecentralizedIdentity {
+            did: format!("did:xrnet:{}", peer_id),
+            peer_id: peer_id.to_string(),
+            public_key: "".to_string(),
+            reputation: 1,
+            trust_level: 0.5,
+        });
+        entry.reputation += amount;
+    }
 }

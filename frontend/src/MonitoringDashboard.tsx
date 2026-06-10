@@ -11,6 +11,7 @@ interface TelemetryData {
   peers: number;
   dht_records: number;
   trusted_peers?: string[];
+  reputation?: number;
 }
 
 interface PeerReport {
@@ -29,6 +30,7 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
   const [current, setCurrent] = useState<TelemetryData | null>(null);
   const [globalMesh, setGlobalMesh] = useState<Record<string, PeerReport[]> | null>(null);
   const [alerts, setAlerts] = useState<any[]>([]);
+  const [governanceStats, setGovernanceStats] = useState<any>(null);
 
   const toggleTrust = async (target: string, isTrusted: boolean) => {
     try {
@@ -75,6 +77,14 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
         const data = await response.json();
         setCurrent(data);
 
+        const govResp = await fetch(`${apiBaseUrl}/api/governance/list`);
+        const govData = await govResp.json();
+        setGovernanceStats({
+          active_proposals: govData.length,
+          total_votes: govData.reduce((acc: number, p: any) => acc + p.votes_for.length + p.votes_against.length, 0),
+          total_weight: govData.reduce((acc: number, p: any) => acc + p.weight_for + p.weight_against, 0),
+        });
+
         setHistory(prev => {
           const newHistory = [...prev, {
             time: new Date().toLocaleTimeString(),
@@ -116,7 +126,10 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
       )}
 
       <div className="telemetry-section local-stats">
-        <h3>Local Node Performance</h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h3>Local Node Performance</h3>
+          <div className="reputation-badge">Reputation: {current.reputation || 1}</div>
+        </div>
         <div className="telemetry-metrics">
           <div className="metric-box">
             <label>CPU</label>
@@ -166,6 +179,26 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
           </div>
         </div>
       </div>
+
+      {governanceStats && (
+        <div className="telemetry-section mesh-governance">
+          <h3>Mesh Governance Health</h3>
+          <div className="telemetry-metrics">
+            <div className="metric-box">
+              <label>Active Proposals</label>
+              <div className="value">{governanceStats.active_proposals}</div>
+            </div>
+            <div className="metric-box">
+              <label>Total Votes</label>
+              <div className="value">{governanceStats.total_votes}</div>
+            </div>
+            <div className="metric-box">
+              <label>Governance Weight</label>
+              <div className="value">{governanceStats.total_weight}</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="telemetry-section mesh-fleet">
         <h3>Mesh Fleet Monitor</h3>

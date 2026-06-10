@@ -167,6 +167,10 @@
                                     <span id="recv-${peerId}" class="metric-val">0</span>
                                     <span class="metric-lbl">RECV</span>
                                 </div>
+                                <div class="metric-item">
+                                    <span id="rep-${peerId}" class="metric-val">1</span>
+                                    <span class="metric-lbl">REP</span>
+                                </div>
                             </div>
                             <div class="charts-row">
                                 <canvas id="chart-cpu-${peerId}"></canvas>
@@ -237,6 +241,7 @@
                     document.getElementById(`mem-${peerId}`).innerText = latest.memory.toFixed(1) + '%';
                     document.getElementById(`sent-${peerId}`).innerText = latest.messages_sent || 0;
                     document.getElementById(`recv-${peerId}`).innerText = latest.messages_received || 0;
+                    document.getElementById(`rep-${peerId}`).innerText = latest.reputation || 1;
 
                     // Update Charts
                     charts[peerId].cpuChart.data.labels = history.map((_, i) => i);

@@ -266,6 +266,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 let recv = *s.msg_recv_count.lock().unwrap();
                 let latencies = s.peer_latencies.lock().unwrap().clone();
                 let trusted = s.social.list_trusted(&s.peer_id);
+                let reputation = s.social.get_reputation(&s.peer_id);
                 let dht_count = s.profiles.lock().unwrap().len() + s.market_items.lock().unwrap().len();
 
                 let (cpu, mem) = {
@@ -285,6 +286,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     "messages_received": recv,
                     "peer_latencies": latencies,
                     "trusted_peers": trusted,
+                    "reputation": reputation,
                     "dht_records": dht_count,
                     "cpu_usage": cpu,
                     "memory_usage": mem,
@@ -317,6 +319,30 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         Json(json!({ "status": "error", "message": "missing key" }))
                     }
                 }
+            }
+        }))
+        .route("/api/system/stats", get({
+            let s = Arc::clone(&api_state);
+            move || async move {
+                let proposals = s.governance.list_proposals();
+                let active_count = proposals.len();
+                let total_votes = proposals.iter().map(|p| p.votes_for.len() + p.votes_against.len()).sum::<usize>();
+                let total_weight = proposals.iter().map(|p| p.weight_for + p.weight_against).sum::<i32>();
+
+                Json(json!({
+                    "node_id": s.peer_id,
+                    "reputation": s.social.get_reputation(&s.peer_id),
+                    "governance": {
+                        "active_proposals": active_count,
+                        "total_votes": total_votes,
+                        "total_weight": total_weight
+                    },
+                    "mesh": {
+                        "peers": *s.peers.lock().unwrap(),
+                        "messages_sent": *s.msg_sent_count.lock().unwrap(),
+                        "messages_received": *s.msg_recv_count.lock().unwrap()
+                    }
+                }))
             }
         }))
         .route("/api/social/trust", post({
@@ -398,6 +424,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     let description = payload["description"].as_str().unwrap_or("").to_string();
                     let id = s.governance.create_proposal(s.peer_id.clone(), title, description);
 
+                    // Reward proposer
+                    s.social.add_reputation(&s.peer_id, 5);
+
                     if let Some(prop) = s.governance.get_proposal(&id) {
                         let value = serde_json::to_string(&prop).unwrap();
                         let _ = s.command_tx.send(Command::PutRecord {
@@ -417,9 +446,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 async move {
                     let id = payload["id"].as_str().unwrap_or("").to_string();
                     let approve = payload["approve"].as_bool().unwrap_or(true);
-                    let success = s.governance.cast_vote(s.peer_id.clone(), id.clone(), approve);
+
+                    let weight = s.social.get_reputation(&s.peer_id);
+                    let success = s.governance.cast_vote(s.peer_id.clone(), id.clone(), approve, weight);
 
                     if success {
+                        // Reward voter
+                        s.social.add_reputation(&s.peer_id, 1);
                         if let Some(prop) = s.governance.get_proposal(&id) {
                             let value = serde_json::to_string(&prop).unwrap();
                             let _ = s.command_tx.send(Command::PutRecord {
@@ -530,7 +563,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         loop {
             tokio::time::sleep(std::time::Duration::from_secs(10)).await;
 
-            let (cpu, mem, peers, peer_id, sent, recv, latencies) = {
+            let (cpu, mem, peers, peer_id, sent, recv, latencies, reputation) = {
                 let mut sys = reporting_state.sys.lock().unwrap();
                 sys.refresh_cpu_specifics(CpuRefreshKind::everything());
                 sys.refresh_memory_specifics(MemoryRefreshKind::everything());
@@ -542,6 +575,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     *reporting_state.msg_sent_count.lock().unwrap(),
                     *reporting_state.msg_recv_count.lock().unwrap(),
                     reporting_state.peer_latencies.lock().unwrap().clone(),
+                    reporting_state.social.get_reputation(&reporting_state.peer_id),
                 )
             };
 
@@ -551,6 +585,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 "cpu": cpu,
                 "memory": mem,
                 "peers": peers,
+                "api_port": reporting_api_port,
+                "reputation": reputation,
                 "messages_sent": sent,
                 "messages_received": recv,
                 "peer_latencies": latencies,
@@ -567,6 +603,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let api_port_str = std::env::var("API_PORT").unwrap_or_else(|_| "8080".to_string());
     let api_port = api_port_str.parse::<u16>().unwrap_or(8080);
+    let reporting_api_port = api_port;
 
     let addr = SocketAddr::from(([0, 0, 0, 0], api_port));
     tokio::spawn(async move {
