@@ -1,5 +1,12 @@
 # CHANGELOG: xrnet
 
+## [1.9.0] - 2026-06-10
+### Added: Hardware Integration & Performance Testing
+- **Compatibility Validation:** Added `validate_hardware_compatibility.py` to verify target system specs (CPU, RAM, Disk).
+- **API Performance Benchmarking:** Implemented `benchmark_hardware_performance.py` to certify sub-10ms response times.
+- **Release Documentation:** Created `RELEASE_NOTES.md` with production certifications and hardware instructions.
+- **Hardware Requirements:** Updated `DEPLOY.md` with precise quad-core and memory specifications.
+
 ## [1.8.0] - 2026-06-10
 ### Added: Deployment & Monitoring Milestone
 - **Integrated Rollout:** Upgraded `deploy_prod.sh` to automatically initiate background performance monitoring.

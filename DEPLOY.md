@@ -59,7 +59,21 @@ To create a versioned source bundle for release:
 This generates `xrnet-v{VERSION}.tar.gz` excluding build artifacts.
 
 ## Automated Verification (CI/CD)
-The v1.0.0 final release includes a unified automation pipeline. Every deployment should be preceded by a successful run of:
+The v1.9.0 release includes a unified hardware validation and performance benchmarking suite. Every deployment should be preceded by a successful run of:
+
+### Hardware Validation
+Verify target system compatibility (CPU, RAM, Disk):
+```bash
+python3 scripts/validate_hardware_compatibility.py
+```
+
+### Performance Certification
+Verify API response times are within production specs:
+```bash
+python3 scripts/benchmark_hardware_performance.py
+```
+
+### Integrated Pipeline
 ```bash
 ./pipeline.sh
 ```
