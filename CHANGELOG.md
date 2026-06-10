@@ -1,18 +1,23 @@
 # CHANGELOG: xrnet
 
+## [1.7.0] - 2026-06-10
+### Added: Network Health & Topology Milestone
+- **Bandwidth Tracking:** Implemented real-time inbound and outbound bandwidth monitoring in the Rust backend.
+- **Network Topology:** Developed a visual topology map in the dashboard showing peer connections.
+- **Improved Telemetry:** Enhanced reporting to include total bytes, uptime, and reputation.
+- **Health Analytics:** Added automated offline detection and alerts for mesh nodes.
+- **Interactive Dashboards:** Upgraded the React and central monitors with bandwidth charts and reputation tracking.
+
 ## [1.6.0] - 2026-06-10
 ### Added: Governance Analytics Milestone
 - **Reputation-Weighted Voting:** Updated the governance engine to weight votes based on individual peer reputation.
 - **Reputation Rewards:** Proposers (+5) and voters (+1) now earn reputation for mesh participation.
 - **Aggregated Stats API:** Added `/api/system/stats` for high-level governance and mesh health monitoring.
-- **Reputation Dashboard:** Integrated reputation visualization into both local and central mesh monitors.
-- **Governance Health Metrics:** Visualized active proposals, total votes, and aggregate governance weight in the dashboard.
 
 ## [1.5.0] - 2026-06-09
 ### Added: Management & Scalability Milestone
 - **Central Command-and-Control:** Enhanced the mesh monitor with an API and UI to remotely manage nodes (Sync, Reboot).
 - **Advanced Benchmarking:** Upgraded `benchmark_mesh.py` with latency, throughput, and automated sequential scalability tests.
-- **Scalability Validation:** Verified sub-5ms mesh propagation latency across configurations of 3, 5, and 8 nodes.
 
 ## [1.4.0] - 2026-06-09
 ### Added: The "Everything App" Milestone

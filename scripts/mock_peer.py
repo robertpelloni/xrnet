@@ -48,6 +48,24 @@ def run_http_server(port=9001):
     sys.stdout.flush()
     server.serve_forever()
 
+def run_health_checker():
+    while True:
+        time.sleep(15)
+        now = time.time()
+        with state_lock:
+            for peer_id, history in list(mesh_state.items()):
+                if history:
+                    last_report = history[-1].get("timestamp", 0)
+                    if now - last_report > 30:
+                        mesh_alerts.append({
+                            "peer_id": peer_id,
+                            "type": "CRITICAL",
+                            "message": "Peer node offline (no heartbeat for 30s)",
+                            "timestamp": now
+                        })
+                        # Remove from active mesh to keep dashboard clean
+                        del mesh_state[peer_id]
+
 def start_mock_peer(port=9000):
     sys.stdout.write(f"[MOCK-PEER] Starting Central Control on port {port}...\n")
     sys.stdout.flush()
@@ -56,6 +74,8 @@ def start_mock_peer(port=9000):
 
     # Start HTTP API in background
     threading.Thread(target=run_http_server, daemon=True).start()
+    # Start Health Checker in background
+    threading.Thread(target=run_health_checker, daemon=True).start()
 
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -85,8 +105,19 @@ def start_mock_peer(port=9000):
                                     peer_id = report.get("peer_id")
                                     cpu = report.get("cpu", 0)
                                     mem = report.get("memory", 0)
+                                    bw_in = report.get("bandwidth_in", 0)
+                                    bw_out = report.get("bandwidth_out", 0)
 
                                     with state_lock:
+                                        # Throughput calculation (bytes per 10s)
+                                        if peer_id in mesh_state and len(mesh_state[peer_id]) > 0:
+                                            prev = mesh_state[peer_id][-1]
+                                            report["kbps_in"] = (bw_in - prev.get("bandwidth_in", bw_in)) / 1024 / 10
+                                            report["kbps_out"] = (bw_out - prev.get("bandwidth_out", bw_out)) / 1024 / 10
+                                        else:
+                                            report["kbps_in"] = 0
+                                            report["kbps_out"] = 0
+
                                         # Analytics: Alerts logic
                                         if cpu > 80:
                                             mesh_alerts.append({

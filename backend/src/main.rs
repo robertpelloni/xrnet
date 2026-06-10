@@ -36,6 +36,8 @@ pub struct AppState {
     msg_sent_count: Mutex<usize>,
     msg_recv_count: Mutex<usize>,
     peer_latencies: Mutex<std::collections::HashMap<String, u64>>,
+    bandwidth_in: Mutex<u64>,
+    bandwidth_out: Mutex<u64>,
     social: social::SocialGraph,
     governance: governance::GovernanceEngine,
     sys: Mutex<System>,
@@ -59,6 +61,8 @@ impl AppState {
             msg_sent_count: Mutex::new(0),
             msg_recv_count: Mutex::new(0),
             peer_latencies: Mutex::new(std::collections::HashMap::new()),
+            bandwidth_in: Mutex::new(0),
+            bandwidth_out: Mutex::new(0),
             social: social::SocialGraph::new(),
             governance: governance::GovernanceEngine::new(),
             sys: Mutex::new(sys),
@@ -563,7 +567,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         loop {
             tokio::time::sleep(std::time::Duration::from_secs(10)).await;
 
-            let (cpu, mem, peers, peer_id, sent, recv, latencies, reputation) = {
+            let (cpu, mem, peers, peer_id, sent, recv, latencies, reputation, bw_in, bw_out) = {
                 let mut sys = reporting_state.sys.lock().unwrap();
                 sys.refresh_cpu_specifics(CpuRefreshKind::everything());
                 sys.refresh_memory_specifics(MemoryRefreshKind::everything());
@@ -576,6 +580,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     *reporting_state.msg_recv_count.lock().unwrap(),
                     reporting_state.peer_latencies.lock().unwrap().clone(),
                     reporting_state.social.get_reputation(&reporting_state.peer_id),
+                    *reporting_state.bandwidth_in.lock().unwrap(),
+                    *reporting_state.bandwidth_out.lock().unwrap(),
                 )
             };
 
@@ -587,6 +593,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 "peers": peers,
                 "api_port": reporting_api_port,
                 "reputation": reputation,
+                "bandwidth_in": bw_in,
+                "bandwidth_out": bw_out,
+                "uptime_secs": reporting_state.start_time.elapsed().as_secs(),
                 "messages_sent": sent,
                 "messages_received": recv,
                 "peer_latencies": latencies,

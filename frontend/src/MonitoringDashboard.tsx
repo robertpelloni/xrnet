@@ -12,6 +12,8 @@ interface TelemetryData {
   dht_records: number;
   trusted_peers?: string[];
   reputation?: number;
+  bandwidth_in?: number;
+  bandwidth_out?: number;
 }
 
 interface PeerReport {
@@ -19,6 +21,8 @@ interface PeerReport {
   cpu: number;
   memory: number;
   peers: number;
+  bandwidth_in?: number;
+  bandwidth_out?: number;
   messages_sent: number;
   messages_received: number;
   peer_latencies?: Record<string, number>;
@@ -93,7 +97,9 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
             sent: data.messages_sent,
             recv: data.messages_received,
             dht: data.dht_records || 0,
-            peers: data.peers
+            peers: data.peers,
+            bw_in: (data.bandwidth_in || 0) / 1024, // KB
+            bw_out: (data.bandwidth_out || 0) / 1024 // KB
           }];
           return newHistory.slice(-20);
         });
@@ -177,6 +183,20 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
               </LineChart>
             </ResponsiveContainer>
           </div>
+
+          <div className="chart-wrapper">
+            <h4>Bandwidth (KB)</h4>
+            <ResponsiveContainer width="100%" height={120}>
+              <AreaChart data={history}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                <XAxis dataKey="time" hide />
+                <YAxis />
+                <Tooltip contentStyle={{ backgroundColor: '#111', border: '1px solid #444' }} />
+                <Area type="monotone" dataKey="bw_in" stroke="#00bcd4" fill="#00bcd422" name="In" />
+                <Area type="monotone" dataKey="bw_out" stroke="#f44336" fill="#f4433622" name="Out" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 
@@ -199,6 +219,26 @@ export const MonitoringDashboard = ({ apiBaseUrl }: { apiBaseUrl: string }) => {
           </div>
         </div>
       )}
+
+      <div className="telemetry-section network-topology">
+        <h3>Network Topology</h3>
+        <div className="topology-map" style={{ height: '200px', background: '#111', borderRadius: '8px', position: 'relative', overflow: 'hidden', border: '1px solid #333' }}>
+          <div className="center-node" style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: '20px', height: '20px', background: '#646cff', borderRadius: '50%', boxShadow: '0 0 15px #646cff' }}>
+            <span style={{ position: 'absolute', top: '25px', left: '50%', transform: 'translateX(-50%)', fontSize: '0.6rem', whiteSpace: 'nowrap' }}>YOU</span>
+          </div>
+          {meshPeers.filter(([pid]) => pid !== current.peer_id).map(([peerId], idx) => {
+            const angle = (idx / (meshPeers.length - 1)) * 2 * Math.PI;
+            const x = 50 + 35 * Math.cos(angle);
+            const y = 50 + 35 * Math.sin(angle);
+            return (
+              <div key={peerId} className="topology-node" style={{ position: 'absolute', left: `${x}%`, top: `${y}%`, transform: 'translate(-50%, -50%)', width: '12px', height: '12px', background: '#00ffcc', borderRadius: '50%' }}>
+                <div style={{ position: 'absolute', width: '2px', height: '70px', background: 'linear-gradient(to top, #00ffcc44, transparent)', left: '5px', top: '6px', transformOrigin: 'top center', transform: `rotate(${angle + Math.PI/2}rad)`, opacity: 0.3 }}></div>
+                <span style={{ position: 'absolute', top: '15px', left: '50%', transform: 'translateX(-50%)', fontSize: '0.5rem', opacity: 0.7 }}>{peerId.slice(0, 4)}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
       <div className="telemetry-section mesh-fleet">
         <h3>Mesh Fleet Monitor</h3>
