@@ -1,0 +1,136 @@
+--- Starting xrnet v1.11.8 (release mode) ---
+[INFO] Launching Bobcoin Economic Layer...
+[INFO] Launching Backend (integrated UI)...
+[INFO] Launching Frontend Gateway...
+[INFO] xrnet processes started. PIDs: Bobcoin(4166607), Backend(4166609), Main(4166612)
+========================================
+      xrnet-backend v1.11.8
+========================================
+[PROTOCOL] Attempting to connect to surrounding system (127.0.0.1:9000) status monitor...
+[API] Server listening on http://0.0.0.0:8080
+[PROTOCOL] Connected to external peer.
+[PROTOCOL] Handshake with external system successful.
+[INFO] Everything Protocol initialized successfully.
+[STATUS] READY
+[PROTOCOL] Listening on /ip4/127.0.0.1/tcp/44999
+[PROTOCOL] Listening on /ip4/192.168.0.2/tcp/44999
+[PROTOCOL] Listening on /ip4/172.17.0.1/tcp/44999
+[DISCOVERY] mDNS discovered peer 12D3KooWBSbZrrV8t3L7v4vVSEF4Ha7u8mp4jnzA6fpzN38xaA8c at /ip4/192.168.0.2/tcp/45975/p2p/12D3KooWBSbZrrV8t3L7v4vVSEF4Ha7u8mp4jnzA6fpzN38xaA8c
+[PROTOCOL] Kademlia Event: RoutingUpdated { peer: PeerId("12D3KooWBSbZrrV8t3L7v4vVSEF4Ha7u8mp4jnzA6fpzN38xaA8c"), is_new_peer: true, addresses: [/ip4/192.168.0.2/tcp/45975/p2p/12D3KooWBSbZrrV8t3L7v4vVSEF4Ha7u8mp4jnzA6fpzN38xaA8c], bucket_range: (Distance(57896044618658097711785492504343953926634992332820282019728792003956564819968), Distance(115792089237316195423570985008687907853269984665640564039457584007913129639935)), old_peer: None }
+[DISCOVERY] mDNS discovered peer 12D3KooWBSbZrrV8t3L7v4vVSEF4Ha7u8mp4jnzA6fpzN38xaA8c at /ip4/172.17.0.1/tcp/45975/p2p/12D3KooWBSbZrrV8t3L7v4vVSEF4Ha7u8mp4jnzA6fpzN38xaA8c
+[PROTOCOL] Kademlia Event: RoutingUpdated { peer: PeerId("12D3KooWBSbZrrV8t3L7v4vVSEF4Ha7u8mp4jnzA6fpzN38xaA8c"), is_new_peer: false, addresses: [/ip4/192.168.0.2/tcp/45975/p2p/12D3KooWBSbZrrV8t3L7v4vVSEF4Ha7u8mp4jnzA6fpzN38xaA8c, /ip4/172.17.0.1/tcp/45975/p2p/12D3KooWBSbZrrV8t3L7v4vVSEF4Ha7u8mp4jnzA6fpzN38xaA8c], bucket_range: (Distance(57896044618658097711785492504343953926634992332820282019728792003956564819968), Distance(115792089237316195423570985008687907853269984665640564039457584007913129639935)), old_peer: None }
+[DISCOVERY] mDNS discovered peer 12D3KooWMqghKnZRejmkKfFEicji861tjk9YroDzdRzaXhv8bAnD at /ip4/192.168.0.2/tcp/36931/p2p/12D3KooWMqghKnZRejmkKfFEicji861tjk9YroDzdRzaXhv8bAnD
+[DISCOVERY] mDNS discovered peer 12D3KooWMqghKnZRejmkKfFEicji861tjk9YroDzdRzaXhv8bAnD at /ip4/172.17.0.1/tcp/36931/p2p/12D3KooWMqghKnZRejmkKfFEicji861tjk9YroDzdRzaXhv8bAnD
+[PROTOCOL] Kademlia Event: RoutingUpdated { peer: PeerId("12D3KooWMqghKnZRejmkKfFEicji861tjk9YroDzdRzaXhv8bAnD"), is_new_peer: true, addresses: [/ip4/192.168.0.2/tcp/36931/p2p/12D3KooWMqghKnZRejmkKfFEicji861tjk9YroDzdRzaXhv8bAnD], bucket_range: (Distance(57896044618658097711785492504343953926634992332820282019728792003956564819968), Distance(115792089237316195423570985008687907853269984665640564039457584007913129639935)), old_peer: None }
+[PROTOCOL] Kademlia Event: RoutingUpdated { peer: PeerId("12D3KooWMqghKnZRejmkKfFEicji861tjk9YroDzdRzaXhv8bAnD"), is_new_peer: false, addresses: [/ip4/192.168.0.2/tcp/36931/p2p/12D3KooWMqghKnZRejmkKfFEicji861tjk9YroDzdRzaXhv8bAnD, /ip4/172.17.0.1/tcp/36931/p2p/12D3KooWMqghKnZRejmkKfFEicji861tjk9YroDzdRzaXhv8bAnD], bucket_range: (Distance(57896044618658097711785492504343953926634992332820282019728792003956564819968), Distance(115792089237316195423570985008687907853269984665640564039457584007913129639935)), old_peer: None }
+========================================
+      xrnet - Decentralized OS
+      Version: 1.11.8
+========================================
+
+[INFO] Orchestrating xrnet system startup...
+[COORD] Launching Mesh Monitoring Service...
+[COORD] Mesh Monitor (port 9000) already active.
+[COORD] Executing Executive Autonomous Protocol...
+[PROTOCOL] Kademlia Event: OutboundQueryProgressed { id: QueryId(0), result: Bootstrap(Ok(BootstrapOk { peer: PeerId("12D3KooWRhu9qk4RAvAEzwgC5TLWFiBP4KeVVUiUT7KhjQnhUBDo"), num_remaining: 0 })), stats: QueryStats { requests: 2, success: 0, failure: 2, start: Some(Instant { tv_sec: 137468, tv_nsec: 291397236 }), end: Some(Instant { tv_sec: 137468, tv_nsec: 392572624 }) }, step: ProgressStep { count: 1, last: true } }
+[COORD] Executive Protocol Successful.
+  [PROTOCOL] === EXECUTIVE PROTOCOL: AUTONOMOUS ENGINE STARTING ===
+  [PROTOCOL] --- SECTION 2: REPO & GIT SANITIZATION ---
+  [PROTOCOL] Running: sh ./scripts/sync_repo.sh
+  [PROTOCOL] --- SECTION 3: RE-ANALYSIS & ROADMAP EXTRACTION ---
+  [PROTOCOL] Mesh Monitor connection verified.
+  [PROTOCOL] Analysis complete. Updated TODO.md.
+  [PROTOCOL] --- SECTION 4: CORE DOCUMENTATION & VERSIONING ---
+  [PROTOCOL] Version bumped to 1.11.9 and synchronized across CHANGELOG and Cargo.toml.
+  [PROTOCOL] --- STEP 3: WORKSPACE CLEANUP & BUILD ---
+  [PROTOCOL] Running: ./build.sh
+[COORD] Waiting for Economic Layer (Bobcoin) [READY] signal...
+[COORD] Economic Layer detected as READY on port 4000.
+[COORD] Waiting for Everything Protocol [READY] signal...
+[COORD] Everything Protocol detected as READY.
+[COORD] Loading Spatial Layer AI Models...
+[COORD] Loading configuration from spatial/config.toml...
+[COORD] AI Models loaded (Gaussian Splatting LWM).
+[COORD] Starting UI/Frontend Gateway...
+
+[SUCCESS] xrnet is now fully operational.
+System healthy. Press Ctrl+C to terminate all processes.
+[API] DHT PUT Request: spatial:scan:DEVICE_AR_HEADSET_001 = gaussian_splat_v1|layer_0_active|points:1.2M
+[PROTOCOL] Initiated Kademlia PUT for key: spatial:scan:DEVICE_AR_HEADSET_001
+[PROTOCOL] Kademlia Event: OutboundQueryProgressed { id: QueryId(1), result: PutRecord(Err(QuorumFailed { key: Key(b"spatial:scan:DEVICE_AR_HEADSET_001"), success: [], quorum: 1 })), stats: QueryStats { requests: 2, success: 0, failure: 2, start: Some(Instant { tv_sec: 137724, tv_nsec: 28789902 }), end: Some(Instant { tv_sec: 137724, tv_nsec: 72749744 }) }, step: ProgressStep { count: 1, last: true } }
+[API] Send Message: AR_DEVICE_READY_STAGING_001
+[PROTOCOL] Kademlia Event: OutboundQueryProgressed { id: QueryId(2), result: Bootstrap(Ok(BootstrapOk { peer: PeerId("12D3KooWRhu9qk4RAvAEzwgC5TLWFiBP4KeVVUiUT7KhjQnhUBDo"), num_remaining: 0 })), stats: QueryStats { requests: 2, success: 0, failure: 2, start: Some(Instant { tv_sec: 137768, tv_nsec: 291640181 }), end: Some(Instant { tv_sec: 137768, tv_nsec: 332670848 }) }, step: ProgressStep { count: 1, last: true } }
+[PROTOCOL] Kademlia Event: OutboundQueryProgressed { id: QueryId(3), result: Bootstrap(Ok(BootstrapOk { peer: PeerId("12D3KooWRhu9qk4RAvAEzwgC5TLWFiBP4KeVVUiUT7KhjQnhUBDo"), num_remaining: 0 })), stats: QueryStats { requests: 2, success: 0, failure: 2, start: Some(Instant { tv_sec: 138068, tv_nsec: 292174963 }), end: Some(Instant { tv_sec: 138068, tv_nsec: 340456234 }) }, step: ProgressStep { count: 1, last: true } }
+[PROTOCOL] Kademlia Event: OutboundQueryProgressed { id: QueryId(4), result: Bootstrap(Ok(BootstrapOk { peer: PeerId("12D3KooWRhu9qk4RAvAEzwgC5TLWFiBP4KeVVUiUT7KhjQnhUBDo"), num_remaining: 0 })), stats: QueryStats { requests: 2, success: 0, failure: 2, start: Some(Instant { tv_sec: 138368, tv_nsec: 292457741 }), end: Some(Instant { tv_sec: 138368, tv_nsec: 336571315 }) }, step: ProgressStep { count: 1, last: true } }
+[DISCOVERY] mDNS discovered peer 12D3KooWQQ9scfJA4bSZpwWZDwQG4wtzNj5TaWSThTYgqM23vdxj at /ip4/172.17.0.1/tcp/46537/p2p/12D3KooWQQ9scfJA4bSZpwWZDwQG4wtzNj5TaWSThTYgqM23vdxj
+[DISCOVERY] mDNS discovered peer 12D3KooWQQ9scfJA4bSZpwWZDwQG4wtzNj5TaWSThTYgqM23vdxj at /ip4/192.168.0.2/tcp/46537/p2p/12D3KooWQQ9scfJA4bSZpwWZDwQG4wtzNj5TaWSThTYgqM23vdxj
+[PROTOCOL] Kademlia Event: RoutingUpdated { peer: PeerId("12D3KooWQQ9scfJA4bSZpwWZDwQG4wtzNj5TaWSThTYgqM23vdxj"), is_new_peer: true, addresses: [/ip4/172.17.0.1/tcp/46537/p2p/12D3KooWQQ9scfJA4bSZpwWZDwQG4wtzNj5TaWSThTYgqM23vdxj], bucket_range: (Distance(57896044618658097711785492504343953926634992332820282019728792003956564819968), Distance(115792089237316195423570985008687907853269984665640564039457584007913129639935)), old_peer: None }
+[PROTOCOL] Kademlia Event: RoutingUpdated { peer: PeerId("12D3KooWQQ9scfJA4bSZpwWZDwQG4wtzNj5TaWSThTYgqM23vdxj"), is_new_peer: false, addresses: [/ip4/172.17.0.1/tcp/46537/p2p/12D3KooWQQ9scfJA4bSZpwWZDwQG4wtzNj5TaWSThTYgqM23vdxj, /ip4/192.168.0.2/tcp/46537/p2p/12D3KooWQQ9scfJA4bSZpwWZDwQG4wtzNj5TaWSThTYgqM23vdxj], bucket_range: (Distance(57896044618658097711785492504343953926634992332820282019728792003956564819968), Distance(115792089237316195423570985008687907853269984665640564039457584007913129639935)), old_peer: None }
+[DISCOVERY] mDNS discovered peer 12D3KooWNxwgbbKkU3PmgjQ5ACpo7nLM6sA8miAxP9UQAcwSgZ3A at /ip4/192.168.0.2/tcp/40789/p2p/12D3KooWNxwgbbKkU3PmgjQ5ACpo7nLM6sA8miAxP9UQAcwSgZ3A
+[DISCOVERY] mDNS discovered peer 12D3KooWNxwgbbKkU3PmgjQ5ACpo7nLM6sA8miAxP9UQAcwSgZ3A at /ip4/172.17.0.1/tcp/40789/p2p/12D3KooWNxwgbbKkU3PmgjQ5ACpo7nLM6sA8miAxP9UQAcwSgZ3A
+[PROTOCOL] Kademlia Event: RoutingUpdated { peer: PeerId("12D3KooWNxwgbbKkU3PmgjQ5ACpo7nLM6sA8miAxP9UQAcwSgZ3A"), is_new_peer: true, addresses: [/ip4/192.168.0.2/tcp/40789/p2p/12D3KooWNxwgbbKkU3PmgjQ5ACpo7nLM6sA8miAxP9UQAcwSgZ3A], bucket_range: (Distance(57896044618658097711785492504343953926634992332820282019728792003956564819968), Distance(115792089237316195423570985008687907853269984665640564039457584007913129639935)), old_peer: None }
+[PROTOCOL] Kademlia Event: RoutingUpdated { peer: PeerId("12D3KooWNxwgbbKkU3PmgjQ5ACpo7nLM6sA8miAxP9UQAcwSgZ3A"), is_new_peer: false, addresses: [/ip4/192.168.0.2/tcp/40789/p2p/12D3KooWNxwgbbKkU3PmgjQ5ACpo7nLM6sA8miAxP9UQAcwSgZ3A, /ip4/172.17.0.1/tcp/40789/p2p/12D3KooWNxwgbbKkU3PmgjQ5ACpo7nLM6sA8miAxP9UQAcwSgZ3A], bucket_range: (Distance(57896044618658097711785492504343953926634992332820282019728792003956564819968), Distance(115792089237316195423570985008687907853269984665640564039457584007913129639935)), old_peer: None }
+[DISCOVERY] mDNS discovered peer 12D3KooWBuzg57jvaADr7iFW5Nfb1YkCth3shqEPUWAg2heQrdoV at /ip4/172.17.0.1/tcp/46199/p2p/12D3KooWBuzg57jvaADr7iFW5Nfb1YkCth3shqEPUWAg2heQrdoV
+[PROTOCOL] Kademlia Event: RoutingUpdated { peer: PeerId("12D3KooWBuzg57jvaADr7iFW5Nfb1YkCth3shqEPUWAg2heQrdoV"), is_new_peer: true, addresses: [/ip4/172.17.0.1/tcp/46199/p2p/12D3KooWBuzg57jvaADr7iFW5Nfb1YkCth3shqEPUWAg2heQrdoV], bucket_range: (Distance(28948022309329048855892746252171976963317496166410141009864396001978282409984), Distance(57896044618658097711785492504343953926634992332820282019728792003956564819967)), old_peer: None }
+[DISCOVERY] mDNS discovered peer 12D3KooWBuzg57jvaADr7iFW5Nfb1YkCth3shqEPUWAg2heQrdoV at /ip4/192.168.0.2/tcp/46199/p2p/12D3KooWBuzg57jvaADr7iFW5Nfb1YkCth3shqEPUWAg2heQrdoV
+[PROTOCOL] Kademlia Event: RoutingUpdated { peer: PeerId("12D3KooWBuzg57jvaADr7iFW5Nfb1YkCth3shqEPUWAg2heQrdoV"), is_new_peer: false, addresses: [/ip4/172.17.0.1/tcp/46199/p2p/12D3KooWBuzg57jvaADr7iFW5Nfb1YkCth3shqEPUWAg2heQrdoV, /ip4/192.168.0.2/tcp/46199/p2p/12D3KooWBuzg57jvaADr7iFW5Nfb1YkCth3shqEPUWAg2heQrdoV], bucket_range: (Distance(28948022309329048855892746252171976963317496166410141009864396001978282409984), Distance(57896044618658097711785492504343953926634992332820282019728792003956564819967)), old_peer: None }
+[DISCOVERY] mDNS discovered peer 12D3KooWDcvzNZXPi7Hu7L2cckvbT33kjgrw8xzbGGktQxj44TAJ at /ip4/192.168.0.2/tcp/32931/p2p/12D3KooWDcvzNZXPi7Hu7L2cckvbT33kjgrw8xzbGGktQxj44TAJ
+[DISCOVERY] mDNS discovered peer 12D3KooWDcvzNZXPi7Hu7L2cckvbT33kjgrw8xzbGGktQxj44TAJ at /ip4/172.17.0.1/tcp/32931/p2p/12D3KooWDcvzNZXPi7Hu7L2cckvbT33kjgrw8xzbGGktQxj44TAJ
+[PROTOCOL] Kademlia Event: RoutingUpdated { peer: PeerId("12D3KooWDcvzNZXPi7Hu7L2cckvbT33kjgrw8xzbGGktQxj44TAJ"), is_new_peer: true, addresses: [/ip4/192.168.0.2/tcp/32931/p2p/12D3KooWDcvzNZXPi7Hu7L2cckvbT33kjgrw8xzbGGktQxj44TAJ], bucket_range: (Distance(28948022309329048855892746252171976963317496166410141009864396001978282409984), Distance(57896044618658097711785492504343953926634992332820282019728792003956564819967)), old_peer: None }
+[PROTOCOL] Kademlia Event: RoutingUpdated { peer: PeerId("12D3KooWDcvzNZXPi7Hu7L2cckvbT33kjgrw8xzbGGktQxj44TAJ"), is_new_peer: false, addresses: [/ip4/192.168.0.2/tcp/32931/p2p/12D3KooWDcvzNZXPi7Hu7L2cckvbT33kjgrw8xzbGGktQxj44TAJ, /ip4/172.17.0.1/tcp/32931/p2p/12D3KooWDcvzNZXPi7Hu7L2cckvbT33kjgrw8xzbGGktQxj44TAJ], bucket_range: (Distance(28948022309329048855892746252171976963317496166410141009864396001978282409984), Distance(57896044618658097711785492504343953926634992332820282019728792003956564819967)), old_peer: None }
+[DISCOVERY] mDNS discovered peer 12D3KooWMFTFkU2wS1qCjBV1nkANwCRDokNWjJS7vJZug4HdLRbj at /ip4/192.168.0.2/tcp/34875/p2p/12D3KooWMFTFkU2wS1qCjBV1nkANwCRDokNWjJS7vJZug4HdLRbj
+[DISCOVERY] mDNS discovered peer 12D3KooWMFTFkU2wS1qCjBV1nkANwCRDokNWjJS7vJZug4HdLRbj at /ip4/172.17.0.1/tcp/34875/p2p/12D3KooWMFTFkU2wS1qCjBV1nkANwCRDokNWjJS7vJZug4HdLRbj
+[PROTOCOL] Kademlia Event: RoutingUpdated { peer: PeerId("12D3KooWMFTFkU2wS1qCjBV1nkANwCRDokNWjJS7vJZug4HdLRbj"), is_new_peer: true, addresses: [/ip4/192.168.0.2/tcp/34875/p2p/12D3KooWMFTFkU2wS1qCjBV1nkANwCRDokNWjJS7vJZug4HdLRbj], bucket_range: (Distance(57896044618658097711785492504343953926634992332820282019728792003956564819968), Distance(115792089237316195423570985008687907853269984665640564039457584007913129639935)), old_peer: None }
+[PROTOCOL] Kademlia Event: RoutingUpdated { peer: PeerId("12D3KooWMFTFkU2wS1qCjBV1nkANwCRDokNWjJS7vJZug4HdLRbj"), is_new_peer: false, addresses: [/ip4/192.168.0.2/tcp/34875/p2p/12D3KooWMFTFkU2wS1qCjBV1nkANwCRDokNWjJS7vJZug4HdLRbj, /ip4/172.17.0.1/tcp/34875/p2p/12D3KooWMFTFkU2wS1qCjBV1nkANwCRDokNWjJS7vJZug4HdLRbj], bucket_range: (Distance(57896044618658097711785492504343953926634992332820282019728792003956564819968), Distance(115792089237316195423570985008687907853269984665640564039457584007913129639935)), old_peer: None }
+[PROTOCOL] Kademlia Event: OutboundQueryProgressed { id: QueryId(5), result: Bootstrap(Ok(BootstrapOk { peer: PeerId("12D3KooWRhu9qk4RAvAEzwgC5TLWFiBP4KeVVUiUT7KhjQnhUBDo"), num_remaining: 1 })), stats: QueryStats { requests: 7, success: 0, failure: 7, start: Some(Instant { tv_sec: 138413, tv_nsec: 105515129 }), end: Some(Instant { tv_sec: 138413, tv_nsec: 309314267 }) }, step: ProgressStep { count: 1, last: false } }
+[PROTOCOL] Kademlia Event: OutboundQueryProgressed { id: QueryId(5), result: Bootstrap(Ok(BootstrapOk { peer: PeerId("1AZPidjuQf85gYyft48rvnKpQNdLoWYuvMyqiY5pTiFbah"), num_remaining: 0 })), stats: QueryStats { requests: 7, success: 0, failure: 7, start: Some(Instant { tv_sec: 138413, tv_nsec: 309406460 }), end: Some(Instant { tv_sec: 138413, tv_nsec: 432396278 }) }, step: ProgressStep { count: 2, last: true } }
+[API] Send Message: BENCH_LOAD_MSG_0
+[PROTOCOL] Got mesh message: 'BENCH_LOAD_MSG_1' with id: 37393139313631323339383634313939393338 from peer: 12D3KooWBSbZrrV8t3L7v4vVSEF4Ha7u8mp4jnzA6fpzN38xaA8c (Latency: 1ms)
+[PROTOCOL] Got mesh message: 'BENCH_LOAD_MSG_2' with id: 3132313839343437313633353831323036383331 from peer: 12D3KooWMqghKnZRejmkKfFEicji861tjk9YroDzdRzaXhv8bAnD (Latency: 1ms)
+[PROTOCOL] Got mesh message: 'BENCH_LOAD_MSG_3' with id: 3136393739373431313134383738303038323530 from peer: 12D3KooWBuzg57jvaADr7iFW5Nfb1YkCth3shqEPUWAg2heQrdoV (Latency: 1ms)
+[API] DHT PUT Request: bench:key:4 = bench:val:4
+[PROTOCOL] Initiated Kademlia PUT for key: bench:key:4
+[PROTOCOL] Kademlia Event: OutboundQueryProgressed { id: QueryId(6), result: PutRecord(Err(QuorumFailed { key: Key(b"bench:key:4"), success: [], quorum: 1 })), stats: QueryStats { requests: 7, success: 0, failure: 7, start: Some(Instant { tv_sec: 138435, tv_nsec: 383136369 }), end: Some(Instant { tv_sec: 138435, tv_nsec: 425697948 }) }, step: ProgressStep { count: 1, last: true } }
+[PROTOCOL] Got mesh message: 'BENCH_LOAD_MSG_4' with id: 32303539303738373638353238333737383231 from peer: 12D3KooWMFTFkU2wS1qCjBV1nkANwCRDokNWjJS7vJZug4HdLRbj (Latency: 1ms)
+[API] Send Message: BENCH_LOAD_MSG_5
+[PROTOCOL] Got mesh message: 'BENCH_LOAD_MSG_6' with id: 39393639333634363030393232373539353639 from peer: 12D3KooWBSbZrrV8t3L7v4vVSEF4Ha7u8mp4jnzA6fpzN38xaA8c (Latency: 2ms)
+[PROTOCOL] Got mesh message: 'BENCH_LOAD_MSG_7' with id: 31393237363532323235333530373930323430 from peer: 12D3KooWMqghKnZRejmkKfFEicji861tjk9YroDzdRzaXhv8bAnD (Latency: 1ms)
+[PROTOCOL] Got mesh message: 'BENCH_LOAD_MSG_8' with id: 36313239343839323432303630383031393134 from peer: 12D3KooWBuzg57jvaADr7iFW5Nfb1YkCth3shqEPUWAg2heQrdoV (Latency: 1ms)
+[API] DHT PUT Request: bench:key:9 = bench:val:9
+[PROTOCOL] Initiated Kademlia PUT for key: bench:key:9
+[PROTOCOL] Kademlia Event: OutboundQueryProgressed { id: QueryId(7), result: PutRecord(Err(QuorumFailed { key: Key(b"bench:key:9"), success: [], quorum: 1 })), stats: QueryStats { requests: 7, success: 0, failure: 7, start: Some(Instant { tv_sec: 138440, tv_nsec: 414570137 }), end: Some(Instant { tv_sec: 138440, tv_nsec: 500654446 }) }, step: ProgressStep { count: 1, last: true } }
+[PROTOCOL] Got mesh message: 'BENCH_LOAD_MSG_9' with id: 34343134383037393337383433383130323639 from peer: 12D3KooWMFTFkU2wS1qCjBV1nkANwCRDokNWjJS7vJZug4HdLRbj (Latency: 2ms)
+[API] Send Message: BENCH_LOAD_MSG_10
+[PROTOCOL] Got mesh message: 'BENCH_LOAD_MSG_11' with id: 34323431333130343034363134343832363534 from peer: 12D3KooWBSbZrrV8t3L7v4vVSEF4Ha7u8mp4jnzA6fpzN38xaA8c (Latency: 2ms)
+[PROTOCOL] Got mesh message: 'BENCH_LOAD_MSG_12' with id: 35363539303532333538323038303339393430 from peer: 12D3KooWMqghKnZRejmkKfFEicji861tjk9YroDzdRzaXhv8bAnD (Latency: 1ms)
+[PROTOCOL] Got mesh message: 'BENCH_LOAD_MSG_13' with id: 36333633363331303639393436323230333332 from peer: 12D3KooWBuzg57jvaADr7iFW5Nfb1YkCth3shqEPUWAg2heQrdoV (Latency: 1ms)
+[API] DHT PUT Request: bench:key:14 = bench:val:14
+[PROTOCOL] Initiated Kademlia PUT for key: bench:key:14
+[PROTOCOL] Kademlia Event: OutboundQueryProgressed { id: QueryId(8), result: PutRecord(Err(QuorumFailed { key: Key(b"bench:key:14"), success: [], quorum: 1 })), stats: QueryStats { requests: 7, success: 0, failure: 7, start: Some(Instant { tv_sec: 138445, tv_nsec: 455546617 }), end: Some(Instant { tv_sec: 138445, tv_nsec: 504348636 }) }, step: ProgressStep { count: 1, last: true } }
+[PROTOCOL] Got mesh message: 'BENCH_LOAD_MSG_14' with id: 3134323530353138383638303932383837373633 from peer: 12D3KooWMFTFkU2wS1qCjBV1nkANwCRDokNWjJS7vJZug4HdLRbj (Latency: 1ms)
+[API] Send Message: BENCH_LOAD_MSG_15
+[PROTOCOL] Got mesh message: 'BENCH_LOAD_MSG_16' with id: 31363037313136363237353736393833363332 from peer: 12D3KooWBSbZrrV8t3L7v4vVSEF4Ha7u8mp4jnzA6fpzN38xaA8c (Latency: 3ms)
+[PROTOCOL] Got mesh message: 'BENCH_LOAD_MSG_17' with id: 3130353038363233303431353833353630313532 from peer: 12D3KooWMqghKnZRejmkKfFEicji861tjk9YroDzdRzaXhv8bAnD (Latency: 1ms)
+[PROTOCOL] Got mesh message: 'BENCH_LOAD_MSG_18' with id: 33303631393532303639333732333533323233 from peer: 12D3KooWBuzg57jvaADr7iFW5Nfb1YkCth3shqEPUWAg2heQrdoV (Latency: 2ms)
+[API] DHT PUT Request: bench:key:19 = bench:val:19
+[PROTOCOL] Initiated Kademlia PUT for key: bench:key:19
+[PROTOCOL] Kademlia Event: OutboundQueryProgressed { id: QueryId(9), result: PutRecord(Err(QuorumFailed { key: Key(b"bench:key:19"), success: [], quorum: 1 })), stats: QueryStats { requests: 7, success: 0, failure: 7, start: Some(Instant { tv_sec: 138450, tv_nsec: 486184290 }), end: Some(Instant { tv_sec: 138450, tv_nsec: 576559455 }) }, step: ProgressStep { count: 1, last: true } }
+[PROTOCOL] Got mesh message: 'BENCH_LOAD_MSG_19' with id: 39303433353439313732333535353737303034 from peer: 12D3KooWMFTFkU2wS1qCjBV1nkANwCRDokNWjJS7vJZug4HdLRbj (Latency: 1ms)
+[API] Send Message: BENCH_LOAD_MSG_20
+[PROTOCOL] Got mesh message: 'BENCH_LOAD_MSG_21' with id: 3130363037393033313533353633313734393031 from peer: 12D3KooWBSbZrrV8t3L7v4vVSEF4Ha7u8mp4jnzA6fpzN38xaA8c (Latency: 2ms)
+[PROTOCOL] Got mesh message: 'BENCH_LOAD_MSG_22' with id: 3133333130393336343332393331373633303135 from peer: 12D3KooWMqghKnZRejmkKfFEicji861tjk9YroDzdRzaXhv8bAnD (Latency: 0ms)
+[PROTOCOL] Got mesh message: 'BENCH_LOAD_MSG_23' with id: 38343335313339343937373739313230383735 from peer: 12D3KooWBuzg57jvaADr7iFW5Nfb1YkCth3shqEPUWAg2heQrdoV (Latency: 2ms)
+[API] DHT PUT Request: bench:key:24 = bench:val:24
+[PROTOCOL] Initiated Kademlia PUT for key: bench:key:24
+[PROTOCOL] Kademlia Event: OutboundQueryProgressed { id: QueryId(10), result: PutRecord(Err(QuorumFailed { key: Key(b"bench:key:24"), success: [], quorum: 1 })), stats: QueryStats { requests: 7, success: 0, failure: 7, start: Some(Instant { tv_sec: 138455, tv_nsec: 517903089 }), end: Some(Instant { tv_sec: 138455, tv_nsec: 604568371 }) }, step: ProgressStep { count: 1, last: true } }
+[PROTOCOL] Got mesh message: 'BENCH_LOAD_MSG_24' with id: 36333838383935313935373737393230353736 from peer: 12D3KooWMFTFkU2wS1qCjBV1nkANwCRDokNWjJS7vJZug4HdLRbj (Latency: 1ms)
+[API] Send Message: BENCH_LOAD_MSG_25
+[PROTOCOL] Got mesh message: 'BENCH_LOAD_MSG_26' with id: 3137333938303635353636353939363638313332 from peer: 12D3KooWBSbZrrV8t3L7v4vVSEF4Ha7u8mp4jnzA6fpzN38xaA8c (Latency: 2ms)
+[PROTOCOL] Got mesh message: 'BENCH_LOAD_MSG_27' with id: 36313039363634353032393636343133353034 from peer: 12D3KooWMqghKnZRejmkKfFEicji861tjk9YroDzdRzaXhv8bAnD (Latency: 1ms)
+[PROTOCOL] Got mesh message: 'BENCH_LOAD_MSG_28' with id: 3136373137393234363632373539303034323037 from peer: 12D3KooWBuzg57jvaADr7iFW5Nfb1YkCth3shqEPUWAg2heQrdoV (Latency: 2ms)
+[API] DHT PUT Request: bench:key:29 = bench:val:29
+[PROTOCOL] Initiated Kademlia PUT for key: bench:key:29
+[PROTOCOL] Kademlia Event: OutboundQueryProgressed { id: QueryId(11), result: PutRecord(Err(QuorumFailed { key: Key(b"bench:key:29"), success: [], quorum: 1 })), stats: QueryStats { requests: 7, success: 0, failure: 7, start: Some(Instant { tv_sec: 138460, tv_nsec: 546991824 }), end: Some(Instant { tv_sec: 138460, tv_nsec: 676613308 }) }, step: ProgressStep { count: 1, last: true } }
+[PROTOCOL] Got mesh message: 'BENCH_LOAD_MSG_29' with id: 38363337383138373534353032353131383035 from peer: 12D3KooWMFTFkU2wS1qCjBV1nkANwCRDokNWjJS7vJZug4HdLRbj (Latency: 2ms)
+[PROTOCOL] Kademlia Event: OutboundQueryProgressed { id: QueryId(12), result: Bootstrap(Ok(BootstrapOk { peer: PeerId("12D3KooWRhu9qk4RAvAEzwgC5TLWFiBP4KeVVUiUT7KhjQnhUBDo"), num_remaining: 1 })), stats: QueryStats { requests: 7, success: 0, failure: 7, start: Some(Instant { tv_sec: 138713, tv_nsec: 105737400 }), end: Some(Instant { tv_sec: 138713, tv_nsec: 148605630 }) }, step: ProgressStep { count: 1, last: false } }
+[PROTOCOL] Kademlia Event: OutboundQueryProgressed { id: QueryId(12), result: Bootstrap(Ok(BootstrapOk { peer: PeerId("1Ad4F5hu2FaE95xhmq9oQEfyd5HdtvKDthmJwYjtkQJKdk"), num_remaining: 0 })), stats: QueryStats { requests: 7, success: 0, failure: 7, start: Some(Instant { tv_sec: 138713, tv_nsec: 149187196 }), end: Some(Instant { tv_sec: 138713, tv_nsec: 240530165 }) }, step: ProgressStep { count: 2, last: true } }

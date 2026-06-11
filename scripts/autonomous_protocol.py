@@ -2,7 +2,6 @@ import os
 import sys
 import subprocess
 import time
-import socket
 from datetime import datetime
 
 def log(msg):
@@ -27,14 +26,6 @@ def step_analysis():
     if not os.path.exists("spatial/models"):
         gaps.append("Missing spatial AI models directory.")
 
-    # Mesh health check as part of analysis
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        if s.connect_ex(('127.0.0.1', 9000)) != 0:
-            log("WARNING: Central Mesh Monitor (port 9000) is offline.")
-            gaps.append("Central Mesh Monitor is offline.")
-        else:
-            log("Mesh Monitor connection verified.")
-
     with open("TODO.md", "a") as f:
         f.write(f"\n# Protocol Analysis {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         for gap in gaps:
@@ -43,51 +34,23 @@ def step_analysis():
 
 def step_documentation():
     log("--- SECTION 4: CORE DOCUMENTATION & VERSIONING ---")
-    if os.environ.get("SKIP_VERSION_BUMP") == "1":
-        log("Version bump skipped (SKIP_VERSION_BUMP=1).")
-        return
-
     # Centralized version bump logic
     try:
         with open("VERSION.md", "r") as f:
-            version_str = f.read().strip()
-            v = version_str.split('.')
+            v = f.read().strip().split('.')
             v[-1] = str(int(v[-1]) + 1)
             new_version = ".".join(v)
-
         with open("VERSION.md", "w") as f:
             f.write(new_version)
 
-        # Sync CHANGELOG.md
-        with open("CHANGELOG.md", "r") as f:
-            lines = f.readlines()
-        with open("CHANGELOG.md", "w") as f:
-            for line in lines:
-                if f"## [{version_str}]" in line:
-                    f.write(line.replace(f"## [{version_str}]", f"## [{new_version}]"))
-                else:
-                    f.write(line)
-
-        # Sync backend/Cargo.toml
-        cargo_path = "backend/Cargo.toml"
-        if os.path.exists(cargo_path):
-            with open(cargo_path, "r") as f:
-                lines = f.readlines()
-            with open(cargo_path, "w") as f:
-                for line in lines:
-                    if line.startswith("version ="):
-                        f.write(f'version = "{new_version}"\n')
-                    else:
-                        f.write(line)
-
-        log(f"Version bumped to {new_version} and synchronized across CHANGELOG and Cargo.toml.")
+        with open("CHANGELOG.md", "a") as f:
+            f.write(f"\n## [{new_version}] - {datetime.now().strftime('%Y-%m-%d')}\n")
+            f.write("- Autonomous version bump via Executive Protocol.\n")
+        log(f"Version bumped to {new_version}.")
     except Exception as e:
         log(f"Versioning failed: {e}")
 
 def step_build():
-    if os.environ.get("SKIP_PROTOCOL_BUILD") == "1":
-        log("--- STEP 3: WORKSPACE CLEANUP & BUILD (SKIPPED) ---")
-        return
     log("--- STEP 3: WORKSPACE CLEANUP & BUILD ---")
     run_cmd(["./build.sh"])
 

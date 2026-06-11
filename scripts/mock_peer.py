@@ -1,168 +1,32 @@
-import os
 import socket
 import sys
 import time
-import json
-import threading
-from http.server import HTTPServer, BaseHTTPRequestHandler
-
-# In-memory store for active mesh telemetry
-mesh_state = {}
-mesh_alerts = []
-state_lock = threading.Lock()
-
-class MeshAPIHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        if self.path == "/api/mesh/status":
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-
-            with state_lock:
-                # Cleanup old alerts (older than 5 mins)
-                now = time.time()
-                global mesh_alerts
-                mesh_alerts = [a for a in mesh_alerts if now - a['timestamp'] < 300]
-
-                response = {
-                    "peers": mesh_state,
-                    "alerts": mesh_alerts
-                }
-                self.wfile.write(json.dumps(response).encode())
-        elif self.path == "/" or self.path == "/index.html":
-            self.send_response(200)
-            self.send_header('Content-Type', 'text/html')
-            self.end_headers()
-            try:
-                with open("scripts/mesh_dashboard.html", "rb") as f:
-                    self.wfile.write(f.read())
-            except FileNotFoundError:
-                self.wfile.write(b"<h1>Mesh Dashboard Not Found</h1>")
-        else:
-            self.send_response(404)
-            self.end_headers()
-
-def run_http_server(port=9001):
-    server = HTTPServer(('0.0.0.0', port), MeshAPIHandler)
-    sys.stdout.write(f"[MOCK-PEER] Mesh Dashboard API at http://localhost:{port}/api/mesh/status\n")
-    sys.stdout.flush()
-    server.serve_forever()
-
-def run_health_checker():
-    while True:
-        time.sleep(15)
-        now = time.time()
-        with state_lock:
-            for peer_id, history in list(mesh_state.items()):
-                if history:
-                    last_report = history[-1].get("timestamp", 0)
-                    if now - last_report > 30:
-                        mesh_alerts.append({
-                            "peer_id": peer_id,
-                            "type": "CRITICAL",
-                            "message": "Peer node offline (no heartbeat for 30s)",
-                            "timestamp": now
-                        })
-                        # Remove from active mesh to keep dashboard clean
-                        del mesh_state[peer_id]
 
 def start_mock_peer(port=9000):
-    sys.stdout.write(f"[MOCK-PEER] Starting Central Control on port {port}...\n")
+    sys.stdout.write(f"[MOCK-PEER] Starting on port {port}...\n")
     sys.stdout.flush()
-
-    log_file = "central_telemetry.log"
-    history_file = "mesh_history.json"
-
-    # Load history if exists
-    if os.path.exists(history_file):
-        try:
-            with open(history_file, "r") as f:
-                global mesh_state
-                data = json.load(f)
-                # Keep last 20 for each peer
-                for pid, hist in data.items():
-                    mesh_state[pid] = hist[-20:]
-        except:
-            pass
-
-    # Start HTTP API in background
-    threading.Thread(target=run_http_server, daemon=True).start()
-    # Start Health Checker in background
-    threading.Thread(target=run_health_checker, daemon=True).start()
-
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            s.bind(('0.0.0.0', port))
+            s.bind(('127.0.0.1', port))
             s.listen()
-            sys.stdout.write(f"[MOCK-PEER] Listening for xrnet telemetry...\n")
+            sys.stdout.write(f"[MOCK-PEER] Listening for xrnet handshake...\n")
             sys.stdout.flush()
 
             while True:
                 conn, addr = s.accept()
                 with conn:
-                    data = conn.recv(4096)
+                    sys.stdout.write(f"[MOCK-PEER] Connection from {addr}\n")
+                    sys.stdout.flush()
+                    data = conn.recv(1024)
                     if not data:
-                        continue
-
-                    decoded = data.decode().strip()
-
-                    if decoded == "XRNET_HANDSHAKE":
+                        break
+                    sys.stdout.write(f"[MOCK-PEER] Received: {data.decode()}\n")
+                    sys.stdout.flush()
+                    if data.decode() == "XRNET_HANDSHAKE":
                         conn.sendall(b"XRNET_ACK")
-                    else:
-                        try:
-                            for line in decoded.split('\n'):
-                                if not line.strip(): continue
-                                report = json.loads(line)
-                                if report.get("type") == "TELEMETRY":
-                                    peer_id = report.get("peer_id")
-                                    cpu = report.get("cpu", 0)
-                                    mem = report.get("memory", 0)
-                                    bw_in = report.get("bandwidth_in", 0)
-                                    bw_out = report.get("bandwidth_out", 0)
-
-                                    with state_lock:
-                                        # Throughput calculation (bytes per 10s)
-                                        if peer_id in mesh_state and len(mesh_state[peer_id]) > 0:
-                                            prev = mesh_state[peer_id][-1]
-                                            report["kbps_in"] = (bw_in - prev.get("bandwidth_in", bw_in)) / 1024 / 10
-                                            report["kbps_out"] = (bw_out - prev.get("bandwidth_out", bw_out)) / 1024 / 10
-                                        else:
-                                            report["kbps_in"] = 0
-                                            report["kbps_out"] = 0
-
-                                        # Analytics: Alerts logic
-                                        if cpu > 80:
-                                            mesh_alerts.append({
-                                                "peer_id": peer_id,
-                                                "type": "CRITICAL",
-                                                "message": f"High CPU usage: {cpu:.1f}%",
-                                                "timestamp": time.time()
-                                            })
-                                        if mem > 90:
-                                            mesh_alerts.append({
-                                                "peer_id": peer_id,
-                                                "type": "WARNING",
-                                                "message": f"High Memory usage: {mem:.1f}%",
-                                                "timestamp": time.time()
-                                            })
-
-                                        # Keep track of last 20 data points per peer for analytics
-                                        if peer_id not in mesh_state:
-                                            mesh_state[peer_id] = []
-                                        mesh_state[peer_id].append(report)
-                                        mesh_state[peer_id] = mesh_state[peer_id][-20:]
-
-                                    with open(log_file, "a") as f:
-                                        f.write(json.dumps(report) + "\n")
-
-                                    # Save history periodically (every 10 reports roughly)
-                                    if sum(len(h) for h in mesh_state.values()) % 10 == 0:
-                                        with open(history_file, "w") as f:
-                                            json.dump(mesh_state, f)
-                        except json.JSONDecodeError:
-                            pass
+                        sys.stdout.write("[MOCK-PEER] Handshake complete.\n")
+                        sys.stdout.flush()
     except Exception as e:
         sys.stdout.write(f"[MOCK-PEER] Error: {e}\n")
         sys.stdout.flush()

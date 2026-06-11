@@ -1,6 +1,6 @@
 [package]
 name = "xrnet-backend"
-version = "1.11.10"
+version = "0.1.1"
 edition = "2021"
 
 [dependencies]
@@ -9,7 +9,6 @@ tokio = { version = "1.37", features = ["full"] }
 futures = "0.3.30"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-sysinfo = "0.30"
 axum = "0.7.5"
-tower-http = { version = "0.5.2", features = ["cors", "fs"] }
+tower-http = { version = "0.5.2", features = ["cors"] }
 reqwest = { version = "0.12", features = ["json"] }

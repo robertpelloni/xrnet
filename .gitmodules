@@ -1,3 +1,0 @@
-[submodule "submodules/bobcoin"]
-	path = submodules/bobcoin
-	url = https://github.com/robertpelloni/bobcoin

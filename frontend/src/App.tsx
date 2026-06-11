@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 import { SpatialViewer } from './SpatialViewer'
-import { MonitoringDashboard } from './MonitoringDashboard'
-import { LearningHub } from './components/LearningHub'
 
 interface SystemStatus {
   peer_id: string;
@@ -12,39 +10,21 @@ interface SystemStatus {
 }
 
 function App() {
-  const [apiBaseUrl] = useState(() => {
-    // In a production environment, this would be configured via env or window location
-    // For local mesh simulation, we check if a port is specified in the URL or default to 8080
-    const urlParams = new URLSearchParams(window.location.search);
-    const port = urlParams.get('api_port') || '8080';
-    return `http://localhost:${port}`;
-  });
   const [status, setStatus] = useState('Initializing...')
   const [version, setVersion] = useState('...')
   const [peers, setPeers] = useState(0)
   const [network, setNetwork] = useState('Standalone')
   const [peerId, setPeerId] = useState('')
   const [profiles, setProfiles] = useState<Record<string, string>>({})
-  const [marketItems, setMarketItems] = useState<Record<string, string>>({})
-  const [messages, setMessages] = useState<any[]>([])
-  const [newMessage, setNewMessage] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearching, setIsSearching] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
   const [protocolOutput, setProtocolOutput] = useState('')
-  const [marketSearch, setMarketSearch] = useState('')
-  const [proposals, setProposals] = useState<any[]>([])
-  const [newPropTitle, setNewPropTitle] = useState('')
-  const [newPropDesc, setNewPropDesc] = useState('')
-  const [rankedPeers, setRankedPeers] = useState<[string, number][]>([])
-  const [discoveryTable, setDiscoveryTable] = useState<Record<string, string[]>>({})
-  const [newPeerId, setNewPeerId] = useState('')
-  const [newPeerAddr, setNewPeerAddr] = useState('')
 
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const response = await fetch(`${apiBaseUrl}/api/status`)
+        const response = await fetch('http://localhost:8080/api/status')
         const data: SystemStatus = await response.json()
         setPeers(data.peers)
         setNetwork(data.network)
@@ -58,7 +38,7 @@ function App() {
 
     const fetchProfiles = async () => {
       try {
-        const response = await fetch(`${apiBaseUrl}/api/profile`)
+        const response = await fetch('http://localhost:8080/api/profile')
         const data = await response.json()
         setProfiles(data)
       } catch (error) {
@@ -66,72 +46,13 @@ function App() {
       }
     }
 
-    const fetchMarketItems = async () => {
-      try {
-        const endpoint = marketSearch
-          ? `${apiBaseUrl}/api/market/search?q=${encodeURIComponent(marketSearch)}`
-          : `${apiBaseUrl}/api/market/list`;
-        const response = await fetch(endpoint)
-        const data = await response.json()
-        setMarketItems(data)
-      } catch (error) {
-        console.error('Failed to fetch market items:', error)
-      }
-    }
-
-    const fetchMessages = async () => {
-      try {
-        const response = await fetch(`${apiBaseUrl}/api/messages/list`)
-        const data = await response.json()
-        setMessages(data)
-      } catch (error) {
-        console.error('Failed to fetch messages:', error)
-      }
-    }
-
-    const fetchProposals = async () => {
-      try {
-        const response = await fetch(`${apiBaseUrl}/api/governance/list`)
-        const data = await response.json()
-        setProposals(data)
-      } catch (error) {
-        console.error('Failed to fetch proposals:', error)
-      }
-    }
-
-    const fetchDiscovery = async () => {
-      try {
-        const response = await fetch(`${apiBaseUrl}/api/discovery/peers`)
-        const data = await response.json()
-        setDiscoveryTable(data)
-
-        // Also fetch ranking for all known peers
-        const peerIds = Object.keys(data).join(',');
-        if (peerIds) {
-          const rankResp = await fetch(`${apiBaseUrl}/api/governance/rank?peers=${peerIds}`);
-          const rankData = await rankResp.json();
-          setRankedPeers(rankData);
-        }
-      } catch (error) {
-        console.error('Failed to fetch discovery table:', error)
-      }
-    }
-
     const interval = setInterval(() => {
       fetchStatus()
       fetchProfiles()
-      fetchMarketItems()
-      fetchMessages()
-      fetchProposals()
-      fetchDiscovery()
     }, 3000)
 
     fetchStatus()
     fetchProfiles()
-    fetchMarketItems()
-    fetchMessages()
-    fetchProposals()
-    fetchDiscovery()
     return () => clearInterval(interval)
   }, [])
 
@@ -142,7 +63,7 @@ function App() {
 
     try {
       // Simulate DHT search by putting a record
-      await fetch(`${apiBaseUrl}/api/dht/put`, {
+      await fetch('http://localhost:8080/api/dht/put', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ key: `search:${Date.now()}`, value: searchQuery })
@@ -163,7 +84,7 @@ function App() {
     if (!alias) return
 
     try {
-      await fetch(`${apiBaseUrl}/api/dht/put`, {
+      await fetch('http://localhost:8080/api/dht/put', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ key: `profile:${peerId}`, value: alias })
@@ -174,123 +95,11 @@ function App() {
     }
   }
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newMessage) return
-
-    try {
-      await fetch(`${apiBaseUrl}/api/messages/send`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: newMessage })
-      })
-      setNewMessage('')
-    } catch (error) {
-      console.error('Message send failed:', error)
-    }
-  }
-
-  const handleListMarketItem = async () => {
-    const item = prompt("What are you selling/offering?")
-    if (!item) return
-    const price = prompt("Enter price in Bobcoin:")
-    if (!price) return
-
-    try {
-      await fetch(`${apiBaseUrl}/api/dht/put`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: `market:${peerId}:${Date.now()}`, value: `${item}|${price}` })
-      })
-      alert("Item listed in marketplace DHT.")
-    } catch (error) {
-      console.error('Marketplace list failed:', error)
-    }
-  }
-
-  const handleBuyItem = async (itemKey: string, itemName: string, price: string) => {
-    const sellerPeerId = itemKey.split(':')[1];
-    if (sellerPeerId === peerId) {
-      alert("You cannot buy your own item.");
-      return;
-    }
-
-    const confirmBuy = window.confirm(`Buy "${itemName}" for ${price} Bobcoin?`);
-    if (!confirmBuy) return;
-
-    try {
-      const response = await fetch(`${apiBaseUrl}/api/bobcoin/process`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          source: peerId,
-          destination: sellerPeerId,
-          amount: parseFloat(price)
-        })
-      });
-      const data = await response.json();
-      if (data.error) {
-        alert(`Transaction failed: ${data.error}`);
-      } else {
-        alert(`Transaction successful! ${price} Bobcoin sent to ${sellerPeerId.slice(0, 8)}...`);
-      }
-    } catch (error) {
-      console.error('Purchase failed:', error);
-      alert("Purchase failed. Check network connection.");
-    }
-  }
-
-  const handlePropose = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newPropTitle) return;
-    try {
-      await fetch(`${apiBaseUrl}/api/governance/propose`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: newPropTitle, description: newPropDesc })
-      });
-      setNewPropTitle('');
-      setNewPropDesc('');
-      alert("Proposal submitted to mesh governance.");
-    } catch (err) {
-      console.error('Proposal failed:', err);
-    }
-  }
-
-  const handleVote = async (id: string, approve: boolean) => {
-    try {
-      await fetch(`${apiBaseUrl}/api/governance/vote`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, approve })
-      });
-    } catch (err) {
-      console.error('Vote failed:', err);
-    }
-  }
-
-  const handleAddPeer = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newPeerId || !newPeerAddr) return;
-    try {
-      await fetch(`${apiBaseUrl}/api/discovery/add`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ peer_id: newPeerId, address: newPeerAddr })
-      });
-      setNewPeerId('');
-      setNewPeerAddr('');
-      alert("Peer addition requested.");
-    } catch (err) {
-      console.error('Add peer failed:', err);
-    }
-  }
-
   const handleProtocol = async () => {
     setIsSyncing(true)
     setProtocolOutput('Executing Autonomous Executive Protocol...')
     try {
-      const response = await fetch(`${apiBaseUrl}/api/system/protocol`, {
+      const response = await fetch('http://localhost:8080/api/system/protocol', {
         method: 'POST'
       })
       const data = await response.json()
@@ -399,146 +208,6 @@ function App() {
                 </ul>
               )}
             </div>
-          </section>
-
-          <section className="communications-panel">
-            <h2>Communicate</h2>
-            <div className="chat-window">
-              {messages.length === 0 ? (
-                <p className="empty-msg">No messages yet.</p>
-              ) : (
-                <div className="message-list">
-                  {messages.map((msg, idx) => (
-                    <div key={idx} className="message-item">
-                      <span className="sender">{msg.sender.slice(0, 8)}:</span>
-                      <span className="content">{msg.content}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <form onSubmit={handleSendMessage} className="chat-form">
-              <input
-                type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Message mesh..."
-              />
-              <button type="submit">Send</button>
-            </form>
-          </section>
-
-          <section className="marketplace-panel">
-            <h2>Shop & Sell</h2>
-            <div className="market-controls">
-              <button className="action-button" onClick={handleListMarketItem}>List Item for Sale</button>
-              <input
-                type="text"
-                placeholder="Search goods & services..."
-                value={marketSearch}
-                onChange={(e) => setMarketSearch(e.target.value)}
-                className="market-search-input"
-              />
-            </div>
-            <div className="market-list">
-              {Object.keys(marketItems).length === 0 ? (
-                <p className="empty-msg">No items listed yet.</p>
-              ) : (
-                <ul>
-                  {Object.entries(marketItems).map(([key, value]) => {
-                    const [name, price] = (value as string).split('|');
-                    return (
-                      <li key={key} className="market-item-card">
-                        <div className="item-info">
-                          <span className="market-item-name">{name}</span>
-                          <span className="market-item-price">{price} BC</span>
-                        </div>
-                        <div className="item-meta">
-                          <span className="peer-ref">{key.split(':')[1].slice(0, 8)}...</span>
-                          <button
-                            className="buy-btn"
-                            onClick={() => handleBuyItem(key, name, price)}
-                            disabled={key.split(':')[1] === peerId}
-                          >
-                            Buy
-                          </button>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </div>
-          </section>
-
-          <section className="governance-panel">
-            <h2>Governance</h2>
-            <form onSubmit={handlePropose} className="propose-form">
-              <input type="text" placeholder="Task or Rule Title" value={newPropTitle} onChange={e => setNewPropTitle(e.target.value)} />
-              <textarea placeholder="Description of the task or management rule..." value={newPropDesc} onChange={e => setNewPropDesc(e.target.value)} />
-              <button type="submit">Propose Task</button>
-            </form>
-            <div className="proposal-list">
-              {rankedPeers.length > 0 && (
-                <div className="ranked-peers-hint">
-                  <strong>Recommended Peers for Tasks:</strong>
-                  <ul>
-                    {rankedPeers.slice(0, 3).map(([pid, score]) => (
-                      <li key={pid}>{pid.slice(0, 8)} (Score: {score.toFixed(1)})</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {proposals.length === 0 ? <p className="empty-msg">No active governance proposals.</p> : (
-                proposals.map(p => (
-                  <div key={p.id} className="proposal-card">
-                    <h4>{p.title}</h4>
-                    <p>{p.description}</p>
-                    <div className="votes">
-                      <span>FOR: {p.votes_for.length}</span>
-                      <span>AGAINST: {p.votes_against.length}</span>
-                    </div>
-                    <div className="vote-actions">
-                      <button onClick={() => handleVote(p.id, true)}>Vote For</button>
-                      <button onClick={() => handleVote(p.id, false)}>Vote Against</button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </section>
-
-          <section className="learning-panel">
-            <LearningHub apiBaseUrl={apiBaseUrl} peerId={peerId} />
-          </section>
-
-          <section className="discovery-manager-panel">
-            <h2>Discovery Manager</h2>
-            <form onSubmit={handleAddPeer} className="add-peer-form">
-              <input type="text" placeholder="Peer ID" value={newPeerId} onChange={e => setNewPeerId(e.target.value)} />
-              <input type="text" placeholder="Multiaddress (/ip4/...)" value={newPeerAddr} onChange={e => setNewPeerAddr(e.target.value)} />
-              <button type="submit">Add Bootstrap Peer</button>
-            </form>
-            <div className="discovery-table">
-              <h3>Routing Table</h3>
-              {Object.keys(discoveryTable).length === 0 ? <p className="empty-msg">No peers in routing table.</p> : (
-                <ul>
-                  {Object.entries(discoveryTable).map(([pid, addrs]) => (
-                    <li key={pid}>
-                      <strong>{pid.slice(0, 12)}...</strong>
-                      <div className="addrs">
-                        {addrs.map(a => <span key={a} className="addr-tag">{a}</span>)}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </section>
-
-          <section className="telemetry-panel">
-            <h2>Network Health</h2>
-            <MonitoringDashboard apiBaseUrl={apiBaseUrl} />
           </section>
         </div>
       </main>

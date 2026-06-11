@@ -1,30 +1,20 @@
-# VISION: xrnet
+# XRNet Vision: The Decentralized Spatial Operating System
 
-## The Ultimate Goal
-Merging hyper-realistic spatial computing with a completely decentralized, all-in-one internet operating system.
+XRNet is a transformative platform that merges photorealistic spatial computing with a completely decentralized, all-in-one internet operating system.
 
-## Core Foundational Concepts
+## Core Pillars
 
-### 1. Spatial Scanning & Cataloging (The Physical-Digital Bridge)
-- **Real-time photorealism:** Utilizing 3D Gaussian Splatting and NeRFs for millimeter-accurate digital twins.
-- **AI-Driven Semantic Understanding:** Onboard Multimodal Large World Models (LWM) to identify and catalog objects in real-time.
-- **Spatial Search:** A "search bar for your life" using Visual Inertial Odometry (VIO) to locate items in physical space.
+1. **Spatial Intelligence (Gaussian Splatting & AI):**
+   Continuous, real-time photorealistic mapping of physical spaces using 3D Gaussian Splatting, cataloged by onboard Multimodal Large World Models (LWM) for semantic object recognition and spatial search.
 
-### 2. The Everything Protocol (The Distributed Web)
-- **Decentralized Foundations:** Leveraging P2P frameworks like libp2p, DHTs, and IPFS to replace centralized silos.
-- **Unified Services (The Everything App):**
-    - **Communicate:** Real-time mesh messaging via Gossipsub and encrypted p2p channels.
-    - **Learn:** Decentralized knowledge sharing and peer-to-peer educational modules.
-    - **Shop & Sell:** A distributed marketplace for goods and services with advanced real-time service discovery.
-    - **Manage & Be Managed:** Automated peer matching and fair governance using neutral reputation and completion metrics.
-    - **Search:** Decentralized indexing and zero-knowledge search.
-    - **Social:** Cryptographic pub-sub for communities and messaging.
-    - **Media:** Distributed video streaming with tokenized micro-payments.
-    - **Gaming:** Edge cloud gaming using local spatial compute.
-    - **Matchmaking:** Zero-knowledge compatibility checking via homomorphic encryption.
-    - **Governance:** Smart-contract based voting and public registries.
+2. **The Everything Protocol (P2P Mesh):**
+   A unified cryptographic protocol replacing centralized silos (Search, Social, Commerce, Entertainment) with peer-to-peer alternatives running on a global DHT and distributed storage.
 
-## User-Satisfaction Design
-- **Privacy First:** Data remains on the device; interactions are zero-knowledge or encrypted.
-- **Seamless Integration:** Reality itself becomes indexable and interactive.
-- **Autonomy:** Users own their data and their digital/physical interactions without middleman interference.
+3. **Neutral Governance & Economic Fairness:**
+   Automated, transparent management via quadratic voting, smart contracts, and decentralized identity, ensuring a fair and neutral digital ecosystem.
+
+## Target Architecture
+
+- **Backend:** Rust-based libp2p node (Gossipsub, Kademlia, mDNS).
+- **Frontend:** React-based dashboard with Three.js for spatial visualization.
+- **Coordination:** Python-based autonomous coordinator and protocol engine.

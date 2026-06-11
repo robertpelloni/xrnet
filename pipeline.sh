@@ -22,12 +22,6 @@ python3 backend/test_smoke.py
 echo "\n[STEP 4] Running end-to-end integration tests..."
 python3 tests/e2e_integration.py
 
-echo "\n[STEP 5] Running routing integration tests..."
-python3 tests/routing_integration.py
-
-echo "\n[STEP 6] Running monitoring integration tests..."
-python3 tests/monitoring_integration.py
-
 echo "\n========================================"
 echo "      PIPELINE SUCCESSFUL               "
 echo "========================================"
