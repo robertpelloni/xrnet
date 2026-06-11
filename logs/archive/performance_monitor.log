@@ -1,8 +1,0 @@
---- [MONITOR] Performance monitoring started (Port: 8080, Duration: 30s) ---
-[MONITOR] 2026-06-09 10:39:07,100.0,10.6,17821,1,9,0
-[MONITOR] 2026-06-09 10:39:12,17.9,10.8,17826,1,9,0
-[MONITOR] 2026-06-09 10:39:17,21.2,10.6,17831,1,9,0
-[MONITOR] 2026-06-09 10:39:22,28.2,10.8,17836,1,9,0
-[MONITOR] 2026-06-09 10:39:27,21.6,10.6,17841,1,9,0
-[MONITOR] 2026-06-09 10:39:32,26.4,10.7,17846,1,9,0
---- [MONITOR] Performance monitoring complete. Log saved to performance_8080.log ---

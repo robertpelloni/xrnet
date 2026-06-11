@@ -1,56 +1,53 @@
-# DEPLOY: xrnet Deployment & Setup
+# XRNet Deployment Guide
 
-## Prerequisites
-Before deploying xrnet, ensure your system meets the following requirements:
-- **Rust:** `cargo` 1.70+
-- **Node.js:** `npm` 10+ (Node 20+ recommended)
-- **Python:** `python3` 3.10+
-- **Git:** For repository synchronization.
+This guide provides instructions for deploying XRNet across multiple devices and production environments.
 
-## Setup Instructions
-1. **Clone the Repository:**
-   ```bash
-   git clone --recursive https://github.com/robertpelloni/xrnet
-   cd xrnet
-   ```
-2. **Initialize Submodules:**
-   ```bash
-   git submodule update --init --recursive
-   ```
+## 1. Environment Requirements
 
-## Building the System
-The unified `build.sh` script handles the compilation of the Rust backend and the installation/bundling of the React frontend.
+- **Operating System:** Ubuntu 22.04+ (Recommended), Debian 12, or macOS.
+- **Hardware:**
+  - **Minimal:** Raspberry Pi 4 (4GB RAM).
+  - **Recommended:** Raspberry Pi 5 or NVIDIA Jetson Orin (8GB+ RAM for Spatial AI).
+- **Toolchains:** Rust 1.75+, Node.js 18+, Python 3.10+.
+
+## 2. Multi-Device Mesh Configuration
+
+To form a wide-area mesh, nodes must be able to discover each other beyond the local network.
+
+### Static Bootstrap Peers
+If mDNS discovery is insufficient (e.g., across different subnets), configure bootstrap peers in the `main.py` coordinator or backend environment:
 ```bash
-./build.sh
-```
-
-## Running the Application
-Use the `start.sh` script to launch the backend and the application coordinator concurrently.
-```bash
+export BOOTSTRAP_PEERS="/ip4/1.2.3.4/tcp/4001/p2p/12D3KooW..."
 ./start.sh
 ```
 
-## Verification & Testing
-### Integrated Pipeline
-For a complete build and test sequence, run:
-```bash
-./pipeline.sh
-```
-This script automates building, integrity validation, and E2E testing.
+## 3. Production Build
 
-### Autonomous Execution Protocol
-To execute the full autonomous workflow (Sync, Validate, Build, Test), run:
+Generate optimized release binaries:
 ```bash
-./autonomous_workflow.sh
+./build.sh release
 ```
 
-### End-to-End Integration
-Run the full E2E suite manually:
-```bash
-python3 tests/e2e_integration.py
+## 4. Automatic Start (Systemd)
+
+Create a service file `/etc/systemd/system/xrnet.service`:
+```ini
+[Unit]
+Description=XRNet Autonomous Node
+After=network.target
+
+[Service]
+ExecStart=/path/to/xrnet/start.sh
+WorkingDirectory=/path/to/xrnet
+Restart=always
+User=xrnet-user
+
+[Install]
+WantedBy=multi-user.target
 ```
 
-## Troubleshooting
-- **Build Failures:** Ensure `cargo` and `npm` are in your PATH. Check `frontend/node_modules` if React fails to build.
-- **Port Conflicts:** Ensure ports 8080 (Backend API) and any protocol-specific ports are available.
-- **Permission Denied:** Ensure scripts are executable: `chmod +x *.sh`.
+## 5. Monitoring & Maintenance
+
+- **Mesh Dashboard:** Access the real-time telemetry at `http://<node-ip>:5173`.
+- **Logs:** Monitor `node.log` and `app_output.log` for protocol events.
+- **Auto-Update:** The Executive Protocol (`POST /api/system/protocol`) can be triggered via webhook to pull the latest changes and rebuild the node.
