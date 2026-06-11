@@ -1,7 +1,7 @@
-# XRNet Deployment Package Manifest (v1.3.10)
+# XRNet Deployment Package Manifest (v1.11.10)
 
 ## Package Overview
-This manifest details the components included in the XRNet v1.3.10 "Everything App" release.
+This manifest details the components included in the XRNet v1.11.10 "Everything App" release.
 
 ## Core Components
 - **Backend (`backend/`):**
@@ -31,6 +31,8 @@ This manifest details the components included in the XRNet v1.3.10 "Everything A
 - **Fleet Monitoring:** Central Dashboard [Verified]
 - **Autonomous Governance:** Executive Protocol Engine [Verified]
 - **Decentralized Services:** Governance / Learning / Commerce [Verified]
+- **Fair Management:** Automated Peer Ranking / Neutrality Engine [Verified]
+- **Market Discovery:** Real-time DHT-backed Search [Verified]
 
 ---
-*Certified for release v1.3.10*
+*Certified for release v1.11.10*

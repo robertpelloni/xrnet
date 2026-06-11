@@ -1,6 +1,17 @@
 # XRNet Deployment & Packaging
 
-## Quick Start (Production)
+## 🚀 One-Click Quick Start (End-Users)
+For users who just want to get XRNet running immediately:
+1. **Download the Release:** Get the latest `xrnet-v1.11.10.tar.gz`.
+2. **Extract and Run:**
+   ```bash
+   tar -xzf xrnet-v1.11.10.tar.gz && cd xrnet-v1.11.10
+   ./scripts/setup_production.sh
+   ./scripts/deploy_prod.sh
+   ```
+3. **Access:** Open `http://localhost:8080` in your browser.
+
+## Quick Start (Developers)
 For rapid deployment on a new system:
 1. **Initialize Environment:**
    ```bash
@@ -87,6 +98,27 @@ This script automates:
 2. **Build:** Full system compilation (Backend + Frontend).
 3. **Integrity:** Structural validation and version consistency checks.
 4. **Tests:** Smoke tests, End-to-End full stack, Routing (Gossipsub/DHT), and Monitoring aggregation tests.
+
+## 🛠️ Troubleshooting & Common Issues
+
+### 1. "Address Already in Use" (Port 8080/9000)
+If XRNet fails to start because a port is occupied:
+- **Solution:** Identify the process using `lsof -i :8080` and kill it, or change the port via `export API_PORT=8081`.
+
+### 2. No Peers Discovered
+If you are alone in the mesh:
+- **Local Network:** Ensure all devices are on the same Wi-Fi/LAN for mDNS.
+- **Firewall:** Open ports 8080, 9000, 9001 and the P2P range (30000-65535).
+- **Manual Add:** Use the **Discovery Manager** in the dashboard to manually add a peer's Multiaddress.
+
+### 3. Spatial Viewer is Blank
+- **Solution:** Ensure your browser supports WebGL 2.0. Check for "Hardware Acceleration" in browser settings.
+
+## 🚀 Staging-to-Production Migration
+To move your data from a staging node to a production environment:
+1. **Export Identity:** Copy your Peer ID from the dashboard.
+2. **Backup DHT:** (Future) Copy `~/.local/share/xrnet/dht_cache`.
+3. **Sync Version:** Ensure both environments are running v1.11.10.
 
 ## Advanced Monitoring
 - **Node Monitoring:** `python3 scripts/monitor_performance.py`
