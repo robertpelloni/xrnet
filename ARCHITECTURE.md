@@ -33,20 +33,27 @@ The backend is built in Rust using the `tokio` asynchronous runtime and `libp2p`
 Built with React 18.3 and Vite 6.
 - **Dashboard:** Real-time monitoring of P2P node status, peers, and network metrics.
 - **Communicate:** Interactive chat interface wired to Gossipsub.
-- **Shop & Sell:** DHT-based marketplace browser and listing tool.
-- **Network Health:** Performance visualization using `recharts` to display real-time telemetry, including per-peer latency (RTT) and Gossipsub traffic statistics.
+- **Shop & Sell:** Advanced real-time service discovery with DHT filtering and marketplace search.
+- **Manage & Be Managed:** Neutral reputation-weighted governance with automated peer ranking based on fairness and completion metrics.
+- **Network Health:** Comprehensive telemetry dashboard displaying real-time bandwidth (kbps), E2E latency, and node health status.
 - **Spatial Viewer:** Three.js integration for 3D Gaussian Splatting and digital twin visualization.
 
-## 4. Component Interaction
+## 4. Governance & Fairness Engine
+The system implements a proprietary neutrality algorithm that ranks peers for decentralized tasks:
+- **Reputation (40%):** Derived from community participation (voting, proposing).
+- **Fairness Score (30%):** Automated metric based on resource contribution and mesh reliability.
+- **Completion Rate (30%):** Tracked success rate for assigned decentralized tasks.
+
+## 5. Component Interaction
 1. **Backend ↔ P2P:** The Swarm event loop handles all incoming network events and propagates them to internal state.
 2. **Backend ↔ Frontend:** The Frontend polls the Backend API for real-time updates and pushes user actions (messages, listings) via POST requests.
 3. **Coordinator (`main.py`) ↔ Backend:** Orchestrates startup, waits for the backend 'READY' signal via `status.json`, and triggers the Executive Autonomous Protocol.
 
-## 5. Deployment Model
+## 6. Deployment Model
 - **Debug:** Backend and Frontend run as separate processes (API on 8080, Vite on 5173).
 - **Production (Single-Unit):** Optimized Rust binary serves both the API and the UI on a single port (8080 default).
 
-## 6. Mesh-Wide Monitoring
+## 7. Mesh-Wide Monitoring
 The ecosystem includes a centralized monitoring layer for large-scale mesh deployments.
 - **Central Control Server:** A Python-based collector (`mock_peer.py`) that aggregates telemetry from all nodes.
 - **Mesh API:** Exposes aggregated health data for the entire mesh via JSON.

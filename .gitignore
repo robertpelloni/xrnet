@@ -17,6 +17,7 @@ Thumbs.db
 # Logs & Telemetry
 *.log
 central_telemetry.log
+mesh_history.json
 
 # IDEs
 .vscode/

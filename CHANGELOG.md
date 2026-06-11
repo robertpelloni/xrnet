@@ -1,5 +1,12 @@
 # CHANGELOG: xrnet
 
+## [1.11.1] - 2026-06-11
+### Added: Production Readiness Milestone
+- **System Architecture:** Finalized comprehensive `ARCHITECTURE.md` detailing Phase 4 advancements.
+- **Rollout Automation:** Enhanced `deploy_prod.sh` with automated health checks and systemd service generation.
+- **Fairness Engine:** Fully documented the reputation and neutrality-weighted task matching algorithm.
+- **Operational Stability:** Verified full system deployment with persistent telemetry and dashboard integration.
+
 ## [1.10.9] - 2026-06-11
 ### Added: Performance & Analytics Milestone
 - **E2E Latency Tracking:** Implemented structured `ProtocolMessage` with timestamps to calculate real-time propagation delay across the mesh.
