@@ -41,6 +41,7 @@ pub struct AppState {
     command_tx: mpsc::Sender<Command>,
     profiles: Mutex<std::collections::HashMap<String, String>>,
     market_items: Mutex<std::collections::HashMap<String, String>>,
+    spatial_scans: Mutex<std::collections::HashMap<String, String>>,
     messages: Mutex<Vec<ChatMessage>>,
     start_time: std::time::Instant,
     msg_sent_count: Mutex<usize>,
@@ -69,6 +70,7 @@ impl AppState {
             command_tx,
             profiles: Mutex::new(std::collections::HashMap::new()),
             market_items: Mutex::new(std::collections::HashMap::new()),
+            spatial_scans: Mutex::new(std::collections::HashMap::new()),
             messages: Mutex::new(Vec::new()),
             start_time: std::time::Instant::now(),
             msg_sent_count: Mutex::new(0),
@@ -111,6 +113,9 @@ impl AppState {
         } else if key.starts_with("market:") {
             let mut m = self.market_items.lock().unwrap();
             m.insert(key, value);
+        } else if key.starts_with("spatial:") {
+            let mut s = self.spatial_scans.lock().unwrap();
+            s.insert(key, value);
         } else if key.starts_with("learn:") {
             // Simulated learning hub uses profiles map for now
             let mut p = self.profiles.lock().unwrap();
@@ -333,6 +338,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 Json(items)
             }
         }))
+        .route("/api/spatial/list", get({
+            let s = Arc::clone(&api_state);
+            move || async move {
+                let scans = s.spatial_scans.lock().unwrap().clone();
+                Json(scans)
+            }
+        }))
         .route("/api/market/search", get({
             let s = Arc::clone(&api_state);
             move |axum::extract::Query(params): axum::extract::Query<std::collections::HashMap<String, String>>| {
@@ -470,6 +482,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     } else if payload.key.starts_with("market:") {
                         let mut m = s.market_items.lock().unwrap();
                         m.insert(payload.key, payload.value);
+                    } else if payload.key.starts_with("spatial:") {
+                        let mut sp = s.spatial_scans.lock().unwrap();
+                        sp.insert(payload.key, payload.value);
                     } else if payload.key.starts_with("learn:") {
                         let mut p = s.profiles.lock().unwrap(); // Reuse profiles map for simple simulated learning hub
                         p.insert(payload.key, payload.value);
