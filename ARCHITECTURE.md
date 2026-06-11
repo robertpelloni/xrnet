@@ -16,8 +16,8 @@ The core of XRNet is a Rust-based node utilizing the `libp2p` library for autono
 
 ## 2. API Gateway & Coordination (Axum + Python)
 
-- **Axum (Rust):** Provides a high-performance REST API for the frontend and external control systems.
-- **Python Coordinator:** Orchestrates component lifecycle, autonomous protocol execution, and system-level monitoring.
+- **Axum (Rust):** Provides a high-performance REST API (detailed in \`API.md\`) for the frontend and external control systems.
+- **Python Coordinator:** Orchestrates component lifecycle, autonomous protocol execution, and system-level monitoring. Verified via \`tests/e2e_integration.py\`.
 
 ## 3. Economic Layer (Bobcoin Integration)
 

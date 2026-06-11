@@ -16,9 +16,11 @@ export function MonitoringDashboard({ apiBaseUrl }: { apiBaseUrl: string }) {
   useEffect(() => {
     const fetchMeshStatus = async () => {
       try {
-        // We poll the central control server (mock_peer.py) which aggregates telemetry
-        // The mock peer usually runs on port 9001
-        const response = await fetch(`http://${window.location.hostname}:9001/api/mesh/status`)
+        // Construct monitor URL based on apiBaseUrl or hostname
+        const url = new URL(apiBaseUrl);
+        const monitorUrl = `http://${url.hostname}:9001/api/mesh/status`;
+
+        const response = await fetch(monitorUrl)
         const data = await response.json()
         setPeers(data.peers || {})
         setLoading(false)

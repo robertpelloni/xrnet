@@ -223,7 +223,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }))
         .layer(CorsLayer::permissive());
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     tokio::spawn(async move {
         println!("[API] Server listening on http://{}", addr);
         let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
