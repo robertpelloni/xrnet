@@ -28,9 +28,15 @@ XRNet enables fair, decentralized commerce via the **Shop & Sell** panel.
 3. The listing is stored in the DHT with a unique identifier linked to your Peer ID.
 ### Browsing Marketplace
 - Active listings from the network are displayed in the marketplace list.
-- The list updates automatically as the mesh discovers new DHT records.
+- **Search:** Use the search bar in the Marketplace panel to filter for specific goods or services (e.g., "AI scanning", "CPU power").
 
-## 5. System Management
+## 5. Governance & Fairness
+The **Governance** panel allows community-driven management of the mesh.
+- **Proposing Tasks:** Submit new tasks or network rules for peer voting.
+- **Fair Ranking:** View automated peer recommendations. The system ranks peers based on their **Fairness Score** and **Completion Rate** to ensure neutral task allocation.
+- **Reputation:** Earn reputation points by proposing passed tasks or participating in votes.
+
+## 6. System Management
 ### Autonomous Executive Protocol
 Users can trigger the **Executive Protocol** manually via the button in the **System Status** panel. This will:
 - Synchronize the local repository with upstream changes.
@@ -56,5 +62,5 @@ For multi-node deployments, use the centralized mesh monitor:
 2. **Access the Global Dashboard:** Open `http://localhost:9001` in your browser.
 3. **Analyze Trends:** View real-time CPU/Memory charts for every active node in the mesh simultaneously.
 
-## 6. Spatial Layer
+## 7. Spatial Layer
 The **Spatial Layer** panel displays a real-time 3D visualization (Three.js) of your environment's digital twin. As spatial scanning modules are integrated, this view will reflect the live photorealistic Gaussian Splatting data.

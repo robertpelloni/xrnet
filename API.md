@@ -1,4 +1,4 @@
-# XRNet API Reference (v1.2.8)
+# XRNet API Reference (v1.11.0)
 
 The XRNet backend exposes a REST API (default port 8080) to interact with the underlying P2P swarm and spatial layers.
 
@@ -11,11 +11,14 @@ Returns real-time telemetry and identity data for the node.
     "peer_id": "12D3Koo...",
     "peers": 42,
     "network": "Standalone | Integrated",
-    "version": "1.2.8",
+    "version": "1.11.0",
     "uptime_secs": 3600,
     "messages_sent": 10,
     "messages_received": 15,
     "peer_latencies": { "PEER_ID": 91 },
+    "reputation": 10,
+    "fairness_score": 1.0,
+    "completion_rate": 0.95,
     "cpu_usage": 15.5,
     "memory_usage": 42.1
   }
@@ -49,6 +52,8 @@ Publishes a message to the "xrnet-global" Gossipsub topic.
 ## 4. Marketplace (Shop & Sell)
 ### `GET /api/market/list`
 Returns a list of all marketplace items discovered on the network.
+### `GET /api/market/search?q={QUERY}`
+Performs a case-insensitive search for goods and services in the local marketplace cache.
 
 ## 5. Mesh-Wide Monitoring API (Central Control)
 ### `GET /api/mesh/status` (Port 9001)
@@ -71,7 +76,13 @@ Returns aggregated telemetry for all reporting peers in the mesh.
   }
   ```
 
-## 6. Executive Protocol
+## 6. Governance & Ranking
+### `GET /api/governance/list`
+Returns all active proposals and their current vote weights.
+### `GET /api/governance/rank?peers={ID1,ID2}`
+Returns a ranked list of specified peers based on the weighted Fairness Engine.
+
+## 7. Executive Protocol
 ### `POST /api/system/protocol`
 Triggers the Autonomous Executive Protocol engine for repository sync and codebase analysis.
 - **Response:** Success/Error with stdout/stderr logs.

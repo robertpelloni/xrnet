@@ -1,6 +1,6 @@
 # CHANGELOG: xrnet
 
-## [1.11.1] - 2026-06-11
+## [1.11.2] - 2026-06-11
 ### Added: Production Readiness Milestone
 - **System Architecture:** Finalized comprehensive `ARCHITECTURE.md` detailing Phase 4 advancements.
 - **Rollout Automation:** Enhanced `deploy_prod.sh` with automated health checks and systemd service generation.
