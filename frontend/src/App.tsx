@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 import { SpatialViewer } from './SpatialViewer'
+import { MonitoringDashboard } from './MonitoringDashboard'
 
 interface SystemStatus {
   peer_id: string;
@@ -208,6 +209,11 @@ function App() {
                 </ul>
               )}
             </div>
+          </section>
+
+          <section className="telemetry-panel">
+            <h2>Network Health</h2>
+            <MonitoringDashboard apiBaseUrl="http://localhost:8080" />
           </section>
         </div>
       </main>
