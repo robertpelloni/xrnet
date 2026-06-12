@@ -31,4 +31,17 @@ The core of XRNet is a Rust-based node utilizing the `libp2p` library for autono
 ## 5. Security & Governance
 
 - **Cryptographic Identity:** Every node is identified by a unique public/private keypair.
-- **Neutral Arbitration:** (Phase 4) Automated selection of neutral peers for dispute resolution.
+- **Neutral Arbitration:** Automated selection of neutral peers for dispute resolution via the **Neutrality Index**, which monitors and weights peer reputation for unbiased management.
+- **ZK-Matchmaking:** Privacy-preserving discovery of peers and services using hashed interest vectors to ensure zero-knowledge matchmaking in social and professional contexts.
+
+## 6. Functional Layer Mapping (User-Centric Requirements)
+
+The XRNet mesh architecture is designed to fulfill the following core "App in a Mesh" requirements:
+
+| Requirement | Implementation Component | Protocol Layer |
+| :--- | :--- | :--- |
+| **Communicate** | Gossipsub Messenger | Real-time P2P Mesh |
+| **Learn** | Learning Hub | Distributed Storage / Reputation |
+| **Shop / Sell** | Job Task Board & Marketplace | Kademlia DHT |
+| **Find Goods** | ZK-Matchmaking / DHT Search | Discovery / Privacy |
+| **Manage / Be Managed** | Neutral Arbitration / Escrow | Governance / Bobcoin |

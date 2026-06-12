@@ -1,0 +1,49 @@
+--- Starting xrnet v0.1.20 ---
+[INFO] Launching Backend...
+[INFO] Launching Frontend Gateway (Placeholder)...
+[INFO] xrnet processes started. PIDs: Backend(1925410), Main(1925411)
+========================================
+      xrnet-backend v0.1.20
+========================================
+[PROTOCOL] Attempting to connect to surrounding system (port 9000)...
+[API] Server listening on http://0.0.0.0:8080
+[PROTOCOL] Connected to external peer.
+[PROTOCOL] Handshake with external system successful.
+[INFO] Everything Protocol initialized successfully.
+[STATUS] READY
+[PROTOCOL] Listening on /ip4/127.0.0.1/tcp/38385
+[PROTOCOL] Listening on /ip4/192.168.0.2/tcp/38385
+[PROTOCOL] Listening on /ip4/172.17.0.1/tcp/38385
+[PROTOCOL] Discovered peer 12D3KooWE1ddfxG7z7x6Zj3mcphiRGfKTpXTY3W6JuorUWEwT6hF at /ip4/192.168.0.2/tcp/44965/p2p/12D3KooWE1ddfxG7z7x6Zj3mcphiRGfKTpXTY3W6JuorUWEwT6hF
+[PROTOCOL] Discovered peer 12D3KooWE1ddfxG7z7x6Zj3mcphiRGfKTpXTY3W6JuorUWEwT6hF at /ip4/172.17.0.1/tcp/44965/p2p/12D3KooWE1ddfxG7z7x6Zj3mcphiRGfKTpXTY3W6JuorUWEwT6hF
+[PROTOCOL] Kademlia Event: RoutingUpdated { peer: PeerId("12D3KooWE1ddfxG7z7x6Zj3mcphiRGfKTpXTY3W6JuorUWEwT6hF"), is_new_peer: true, addresses: [/ip4/192.168.0.2/tcp/44965/p2p/12D3KooWE1ddfxG7z7x6Zj3mcphiRGfKTpXTY3W6JuorUWEwT6hF], bucket_range: (Distance(28948022309329048855892746252171976963317496166410141009864396001978282409984), Distance(57896044618658097711785492504343953926634992332820282019728792003956564819967)), old_peer: None }
+[PROTOCOL] Kademlia Event: RoutingUpdated { peer: PeerId("12D3KooWE1ddfxG7z7x6Zj3mcphiRGfKTpXTY3W6JuorUWEwT6hF"), is_new_peer: false, addresses: [/ip4/192.168.0.2/tcp/44965/p2p/12D3KooWE1ddfxG7z7x6Zj3mcphiRGfKTpXTY3W6JuorUWEwT6hF, /ip4/172.17.0.1/tcp/44965/p2p/12D3KooWE1ddfxG7z7x6Zj3mcphiRGfKTpXTY3W6JuorUWEwT6hF], bucket_range: (Distance(28948022309329048855892746252171976963317496166410141009864396001978282409984), Distance(57896044618658097711785492504343953926634992332820282019728792003956564819967)), old_peer: None }
+========================================
+      xrnet - Decentralized OS
+      Version: 0.1.20
+========================================
+
+[INFO] Orchestrating xrnet system startup...
+[COORD] Executing Executive Autonomous Protocol...
+[PROTOCOL] Kademlia Event: OutboundQueryProgressed { id: QueryId(0), result: Bootstrap(Ok(BootstrapOk { peer: PeerId("12D3KooWRJftX2wkF2XRgHS9pSLyM3UqoUrG27vkAxDmZ55eVgto"), num_remaining: 1 })), stats: QueryStats { requests: 1, success: 0, failure: 1, start: Some(Instant { tv_sec: 184396, tv_nsec: 5248969 }), end: Some(Instant { tv_sec: 184396, tv_nsec: 105253585 }) }, step: ProgressStep { count: 1, last: false } }
+[PROTOCOL] Kademlia Event: OutboundQueryProgressed { id: QueryId(0), result: Bootstrap(Ok(BootstrapOk { peer: PeerId("1Ag9js6CduQy8BLCpA3uVnn5i5qYHajk3WcQGsmh8eZavr"), num_remaining: 0 })), stats: QueryStats { requests: 1, success: 0, failure: 1, start: Some(Instant { tv_sec: 184396, tv_nsec: 105590234 }), end: Some(Instant { tv_sec: 184396, tv_nsec: 121474327 }) }, step: ProgressStep { count: 2, last: true } }
+[COORD] Executive Protocol Successful.
+  [PROTOCOL] === EXECUTIVE PROTOCOL: AUTONOMOUS ENGINE STARTING ===
+  [PROTOCOL] --- SECTION 2: REPO & GIT SANITIZATION ---
+  [PROTOCOL] Running: sh ./scripts/sync_repo.sh
+  [PROTOCOL] --- SECTION 3: RE-ANALYSIS & ROADMAP EXTRACTION ---
+  [PROTOCOL] Analysis complete. Updated TODO.md.
+  [PROTOCOL] --- SECTION 4: CORE DOCUMENTATION & VERSIONING ---
+  [PROTOCOL] Version bumped to 0.1.21.
+  [PROTOCOL] --- STEP 3: WORKSPACE CLEANUP & BUILD ---
+  [PROTOCOL] Running: ./build.sh
+  [PROTOCOL] === EXECUTIVE PROTOCOL: COMPLETED ===
+[COORD] Waiting for Everything Protocol [READY] signal...
+[COORD] Everything Protocol detected as READY.
+[COORD] Loading Spatial Layer AI Models...
+[COORD] Loading configuration from spatial/config.toml...
+[COORD] AI Models loaded (Gaussian Splatting LWM).
+[COORD] Starting UI/Frontend Gateway...
+
+[SUCCESS] xrnet is now fully operational.
+System healthy. Press Ctrl+C to terminate all processes.

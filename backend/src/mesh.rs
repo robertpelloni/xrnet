@@ -9,6 +9,7 @@ use futures::StreamExt;
 use tokio::sync::mpsc;
 use std::sync::Arc;
 use crate::{AppState, Command};
+use crate::routing::{RoutingEngine, MeshPacket};
 
 #[derive(NetworkBehaviour)]
 pub struct MyBehaviour {
@@ -24,6 +25,7 @@ pub async fn run_mesh(
     mut command_rx: mpsc::Receiver<Command>,
 ) -> Result<(), Box<dyn Error>> {
     let local_peer_id = PeerId::from(local_key.public());
+    let mut routing_engine = RoutingEngine::new();
 
     let mut swarm = libp2p::SwarmBuilder::with_existing_identity(local_key)
         .with_tokio()
@@ -55,6 +57,9 @@ pub async fn run_mesh(
 
             let topic = gossipsub::IdentTopic::new("xrnet-global");
             gossipsub.subscribe(&topic)?;
+
+            let route_topic = gossipsub::IdentTopic::new("xrnet-routing");
+            gossipsub.subscribe(&route_topic)?;
 
             Ok(MyBehaviour {
                 ping: ping::Behaviour::default(),
@@ -101,6 +106,9 @@ pub async fn run_mesh(
                         *p += 1;
                         println!("[PROTOCOL] Discovered peer {} at {:?}", peer_id, addr);
                         swarm.behaviour_mut().kad.add_address(&peer_id, addr);
+
+                        // Seed routing engine with baseline neutrality
+                        routing_engine.update_neutrality(peer_id.to_string(), 1.0);
                     }
                 }
                 SwarmEvent::Behaviour(MyBehaviourEvent::Kad(event)) => {
@@ -111,7 +119,24 @@ pub async fn run_mesh(
                     message_id: id,
                     message,
                 })) => {
-                    println!("[PROTOCOL] Got mesh message: '{}' with id: {} from peer: {}", String::from_utf8_lossy(&message.data), id, peer_id);
+                    let topic = message.topic.to_string();
+                    if topic == "xrnet-routing" {
+                        if let Ok(packet) = serde_json::from_slice::<MeshPacket>(&message.data) {
+                            if packet.destination == local_peer_id.to_string() {
+                                println!("[ROUTING] Packet reached destination: {:?}", packet);
+                            } else {
+                                println!("[ROUTING] Forwarding packet from {} destined for {}", packet.source, packet.destination);
+                                // Implementation of Neutrality-Aware Forwarding
+                                let available_peers: Vec<String> = swarm.connected_peers().map(|p| p.to_string()).collect();
+                                if let Some(next_hop) = routing_engine.route_packet(&packet, available_peers) {
+                                    println!("[ROUTING] Next hop selected: {}", next_hop);
+                                    // In a real multi-hop, we would send directly to next_hop
+                                }
+                            }
+                        }
+                    } else {
+                        println!("[PROTOCOL] Got mesh message: '{}' with id: {} from peer: {}", String::from_utf8_lossy(&message.data), id, peer_id);
+                    }
                 }
                 _ => {}
             }

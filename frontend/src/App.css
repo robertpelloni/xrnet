@@ -264,3 +264,42 @@ footer {
   color: #fff;
   font-weight: bold;
 }
+
+.feedback-form {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #333;
+  text-align: left;
+}
+
+.feedback-form h3 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: #fff;
+}
+
+.feedback-form textarea {
+  width: 100%;
+  background: #1a1a1a;
+  color: #fff;
+  border: 1px solid #444;
+  border-radius: 4px;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.feedback-form button {
+  padding: 0.4rem 1rem;
+  background: #4caf50;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.feedback-form button:disabled {
+  opacity: 0.5;
+}

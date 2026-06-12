@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import './App.css'
-import { SpatialViewer } from './SpatialViewer'
-import { MonitoringDashboard } from './MonitoringDashboard'
+import { SpatialViewer } from './components/SpatialViewer'
+import { MonitoringDashboard } from './components/MonitoringDashboard'
+import { JobTaskBoard } from './components/JobTaskBoard'
 
 interface SystemStatus {
   peer_id: string;
   peers: number;
   network: string;
+  neutrality: number;
   version: string;
 }
 
@@ -15,12 +17,14 @@ function App() {
   const [version, setVersion] = useState('...')
   const [peers, setPeers] = useState(0)
   const [network, setNetwork] = useState('Standalone')
+  const [neutrality, setNeutrality] = useState(1.0)
   const [peerId, setPeerId] = useState('')
   const [profiles, setProfiles] = useState<Record<string, string>>({})
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearching, setIsSearching] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
   const [protocolOutput, setProtocolOutput] = useState('')
+  const [userFeedback, setUserFeedback] = useState('')
 
   useEffect(() => {
     const fetchStatus = async () => {
@@ -29,6 +33,7 @@ function App() {
         const data: SystemStatus = await response.json()
         setPeers(data.peers)
         setNetwork(data.network)
+        setNeutrality(data.neutrality)
         setPeerId(data.peer_id)
         setVersion(data.version)
         setStatus('Operational')
@@ -93,6 +98,22 @@ function App() {
       alert("Profile published to DHT.")
     } catch (error) {
       console.error('Profile publish failed:', error)
+    }
+  }
+
+  const handleFeedback = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!userFeedback) return
+    try {
+        await fetch('http://localhost:8080/api/system/feedback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ feedback: userFeedback })
+        })
+        setUserFeedback('')
+        alert("Thank you! Your feedback has been published to the mesh DHT for system evolution.")
+    } catch (e) {
+        console.error("Feedback failed", e)
     }
   }
 
@@ -191,6 +212,7 @@ function App() {
               <label>AI Recognition:</label>
               <span>Active</span>
             </div>
+            <button className="action-button">Enter Learning Hub</button>
           </section>
 
           <section className="discovery-panel">
@@ -211,14 +233,24 @@ function App() {
             </div>
           </section>
 
-          <section className="telemetry-panel">
-            <h2>Network Health</h2>
-            <MonitoringDashboard apiBaseUrl="http://localhost:8080" />
-          </section>
+          <JobTaskBoard />
+
+          <MonitoringDashboard peers={peers} neutrality={neutrality} network={network} />
         </div>
       </main>
 
       <footer>
+        <div className="feedback-form-container">
+            <form onSubmit={handleFeedback} className="feedback-form">
+                <h3>System Evolution Feedback</h3>
+                <textarea
+                    placeholder="Contribute system improvement suggestions to the mesh DHT..."
+                    value={userFeedback}
+                    onChange={(e) => setUserFeedback(e.target.value)}
+                />
+                <button type="submit">Publish to Mesh</button>
+            </form>
+        </div>
         <p>Decentralized Spatial Operating System</p>
       </footer>
     </div>

@@ -1,4 +1,8 @@
 mod mesh;
+mod governance;
+mod social;
+mod escrow;
+mod routing;
 
 use std::fs;
 use std::error::Error;
@@ -26,6 +30,7 @@ pub struct AppState {
     network: Mutex<String>,
     command_tx: mpsc::Sender<Command>,
     profiles: Mutex<std::collections::HashMap<String, String>>,
+    neutrality_index: Mutex<f64>,
 }
 
 #[derive(Deserialize, Clone)]
@@ -93,6 +98,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         network: Mutex::new("Standalone".to_string()),
         command_tx: tx,
         profiles: Mutex::new(std::collections::HashMap::new()),
+        neutrality_index: Mutex::new(1.0),
     });
 
     // API Server
@@ -105,10 +111,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
             move || async move {
                 let peers = *s.peers.lock().unwrap();
                 let network = s.network.lock().unwrap().clone();
+                let neutrality = *s.neutrality_index.lock().unwrap();
                 Json(json!({
                     "peer_id": s.peer_id,
                     "peers": peers,
                     "network": network,
+                    "neutrality": neutrality,
                     "version": get_version(),
                 }))
             }
@@ -165,6 +173,23 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     }
                     Err(e) => Json(json!({ "error": e.to_string() })),
                 }
+            }
+        }))
+        .route("/api/system/feedback", post({
+            let s = Arc::clone(&api_state);
+            move |Json(payload): Json<serde_json::Value>| async move {
+                let feedback = payload["feedback"].as_str().unwrap_or("").to_string();
+                let peer_id = s.peer_id.clone();
+                let key = format!("feedback:{}:{}", peer_id, std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs());
+
+                println!("[API] Feedback received from {}: {}", peer_id, feedback);
+
+                let _ = s.command_tx.send(Command::PutRecord {
+                    key: key.clone(),
+                    value: feedback.clone(),
+                }).await;
+
+                Json(json!({ "status": "feedback_stored_in_dht", "key": key }))
             }
         }))
         .route("/api/bobcoin/process", post({
