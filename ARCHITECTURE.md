@@ -1,47 +1,55 @@
 # XRNet System Architecture
 
-XRNet is a decentralized spatial operating system built on a modular peer-to-peer (P2P) stack.
+XRNet is a decentralized spatial operating system built on a modular peer-to-peer (P2P) stack, merging photorealistic spatial computing with a P2P internet operating system.
 
 ## 1. Modular P2P Stack (Rust Backend)
 
-The core of XRNet is a Rust-based node utilizing the `libp2p` library for autonomous connectivity.
+The core of XRNet is a high-performance Rust node utilizing `libp2p` for autonomous networking. The backend is modularized into specialized domain engines:
 
-### Peer Discovery & Connectivity
-- **mDNS:** Local peer discovery for automatic mesh formation on LANs.
-- **Kademlia DHT:** Global decentralized discovery and storage for peer profiles and marketplace records.
-- **TCP Swarm:** Reliable, multiplexed connections using Noise encryption and Yamux.
+### Connectivity & Discovery (`mesh.rs`)
+- **mDNS:** Automatic local peer discovery.
+- **Kademlia DHT:** Decentralized storage for peer profiles, marketplace records, and system feedback.
+- **Gossipsub:** Real-time mesh messaging and event propagation.
 
-### Messaging & Event Propagation
-- **Gossipsub:** Real-time mesh messaging for decentralized "Communicate" features.
+### Neutrality-Aware Routing (`routing.rs`)
+- **Engine:** Prioritizes packet forwarding through peers with high **Neutrality Index** scores.
+- **Fairness:** Prevents data bottlenecks and ensures unbiased network transit.
 
-## 2. API Gateway & Coordination (Axum + Python)
+### Neutral Governance (`governance.rs`)
+- **Neutrality Index:** Tracks peer performance (uptime, task completion, dispute history).
+- **Arbitration:** Automated selection of neutral third-party nodes to resolve economic or social disputes.
 
-- **Axum (Rust):** Provides a high-performance REST API (detailed in \`API.md\`) for the frontend and external control systems.
-- **Python Coordinator:** Orchestrates component lifecycle, autonomous protocol execution, and system-level monitoring. Verified via \`tests/e2e_integration.py\`.
+### Social Matchmaking (`social.rs`)
+- **ZK-Matchmaking:** Uses hashed interest vectors for privacy-preserving discovery.
+- **Learning Hub:** A decentralized knowledge exchange where reputation weights the value of shared information.
 
-## 3. Economic Layer (Bobcoin Integration)
+### Economic Escrow (`escrow.rs`)
+- **Lifecycle:** Manages the state of marketplace transactions (Pending -> Funded -> Completed/Disputed).
+- **Bobcoin Integration:** Links task completion to automated value transfer via the Bobcoin layer.
 
-- **Bobcoin Proxy:** The Rust backend acts as a secure proxy to the Node.js Bobcoin consensus service, enabling decentralized transactions and balance management without direct frontend access to the consensus engine.
+## 2. Distributed Economic Layer (Bobcoin)
 
-## 4. Spatial Layer (Three.js & AI)
+XRNet integrates **Bobcoin** as its native decentralized currency.
+- **Proxy Pattern:** The backend exposes REST endpoints (`/api/bobcoin/*`) that interface with the `bobcoin-consensus` service.
+- **Security:** Simplifies frontend integration while keeping consensus logic isolated.
 
-- **Spatial Viewer:** A React/Three.js frontend component for visualizing 3D Gaussian Splatting data.
-- **AI Models:** Onboard world models (LWM) for semantic labeling and spatial search (cataloged in `spatial/models/`).
+## 3. Spatial & AI Layer
 
-## 5. Security & Governance
+- **Spatial Viewer:** React/Three.js component for real-time interaction with Gaussian Splatting/LIDAR data.
+- **Spatial AI (LWM):** Large World Models stored in `spatial/models/` for semantic environment understanding.
 
-- **Cryptographic Identity:** Every node is identified by a unique public/private keypair.
-- **Neutral Arbitration:** Automated selection of neutral peers for dispute resolution via the **Neutrality Index**, which monitors and weights peer reputation for unbiased management.
-- **ZK-Matchmaking:** Privacy-preserving discovery of peers and services using hashed interest vectors to ensure zero-knowledge matchmaking in social and professional contexts.
+## 4. User Interaction (React Frontend)
 
-## 6. Functional Layer Mapping (User-Centric Requirements)
+- **Mesh Dashboard:** Unified interface for network monitoring, marketplace interaction, and system evolution feedback.
+- **Job Task Board:** Interactive marketplace for selling services and accepting mesh-assigned tasks.
+- **Discovery Panel:** Live view of decentralized profiles retrieved from the DHT.
 
-The XRNet mesh architecture is designed to fulfill the following core "App in a Mesh" requirements:
+## 5. Functional Layer Mapping
 
 | Requirement | Implementation Component | Protocol Layer |
 | :--- | :--- | :--- |
-| **Communicate** | Gossipsub Messenger | Real-time P2P Mesh |
-| **Learn** | Learning Hub | Distributed Storage / Reputation |
-| **Shop / Sell** | Job Task Board & Marketplace | Kademlia DHT |
-| **Find Goods** | ZK-Matchmaking / DHT Search | Discovery / Privacy |
-| **Manage / Be Managed** | Neutral Arbitration / Escrow | Governance / Bobcoin |
+| **Communicate** | Gossipsub / Mesh Router | libp2p Gossipsub |
+| **Learn** | Learning Hub / ZK-Social | Kademlia DHT |
+| **Shop / Sell** | Job Board / Escrow Manager | DHT + Bobcoin |
+| **Find Goods** | DHT Search / Mesh Packet | Kademlia / Routing |
+| **Manage** | Neutrality Index / Arbitration | Governance Engine |

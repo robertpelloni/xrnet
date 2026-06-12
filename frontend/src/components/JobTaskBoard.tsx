@@ -14,13 +14,45 @@ export const JobTaskBoard: React.FC = () => {
 
   const fetchJobs = async () => {
     setLoading(true);
-    // Simulating DHT fetch of jobs
-    const mockJobs: Job[] = [
-      { id: '1', title: '3D Mesh Optimization', description: 'Optimize Gaussian Splatting for mobile', reward: 50, status: 'Open' },
-      { id: '2', title: 'Neutral Arbitration', description: 'Resolve dispute #4421 in economic layer', reward: 10, status: 'Open' },
-    ];
-    setJobs(mockJobs);
-    setLoading(false);
+    try {
+      const response = await fetch('http://localhost:8080/api/jobs');
+      const data: Record<string, string> = await response.json();
+
+      const parsedJobs: Job[] = Object.entries(data).map(([key, value]) => {
+        try {
+          const parsed = JSON.parse(value);
+          return {
+            id: key,
+            title: parsed.title || 'Untitled Task',
+            description: parsed.description || 'No description provided.',
+            reward: parsed.reward || 0,
+            status: parsed.status || 'Open'
+          };
+        } catch {
+          return {
+            id: key,
+            title: 'Legacy Task',
+            description: value,
+            reward: 0,
+            status: 'Open'
+          };
+        }
+      });
+
+      // If no jobs in DHT, show seed data for demonstration
+      if (parsedJobs.length === 0) {
+        setJobs([
+          { id: 'job:seed:1', title: '3D Mesh Optimization', description: 'Optimize Gaussian Splatting for mobile', reward: 50, status: 'Open' },
+          { id: 'job:seed:2', title: 'Neutral Arbitration', description: 'Resolve dispute #4421 in economic layer', reward: 10, status: 'Open' },
+        ]);
+      } else {
+        setJobs(parsedJobs);
+      }
+    } catch (error) {
+      console.error('Failed to fetch jobs from DHT:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

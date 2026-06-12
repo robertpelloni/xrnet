@@ -111,6 +111,18 @@ pub async fn run_mesh(
                         routing_engine.update_neutrality(peer_id.to_string(), 1.0);
                     }
                 }
+                SwarmEvent::Behaviour(MyBehaviourEvent::Kad(kad::Event::OutboundQueryProgressed {
+                    result: kad::QueryResult::GetRecord(Ok(kad::GetRecordOk::FoundRecord(record))), ..
+                })) => {
+                    let key = String::from_utf8_lossy(record.record.key.as_ref()).to_string();
+                    let value = String::from_utf8_lossy(&record.record.value).to_string();
+                    println!("[PROTOCOL] Found DHT Record: {} = {}", key, value);
+
+                    if key.starts_with("job:") {
+                        let mut jobs = state.jobs.lock().unwrap();
+                        jobs.insert(key, value);
+                    }
+                }
                 SwarmEvent::Behaviour(MyBehaviourEvent::Kad(event)) => {
                     println!("[PROTOCOL] Kademlia Event: {:?}", event);
                 }
@@ -121,16 +133,24 @@ pub async fn run_mesh(
                 })) => {
                     let topic = message.topic.to_string();
                     if topic == "xrnet-routing" {
-                        if let Ok(packet) = serde_json::from_slice::<MeshPacket>(&message.data) {
+                        if let Ok(mut packet) = serde_json::from_slice::<MeshPacket>(&message.data) {
                             if packet.destination == local_peer_id.to_string() {
                                 println!("[ROUTING] Packet reached destination: {:?}", packet);
                             } else {
-                                println!("[ROUTING] Forwarding packet from {} destined for {}", packet.source, packet.destination);
-                                // Implementation of Neutrality-Aware Forwarding
+                                packet.hop_count += 1;
+                                println!("[ROUTING] Forwarding packet from {} destined for {} (hop {})", packet.source, packet.destination, packet.hop_count);
+
                                 let available_peers: Vec<String> = swarm.connected_peers().map(|p| p.to_string()).collect();
-                                if let Some(next_hop) = routing_engine.route_packet(&packet, available_peers) {
-                                    println!("[ROUTING] Next hop selected: {}", next_hop);
-                                    // In a real multi-hop, we would send directly to next_hop
+                                if let Some(next_hop_str) = routing_engine.route_packet(&packet, available_peers) {
+                                    println!("[ROUTING] Next hop selected: {}", next_hop_str);
+
+                                    // Functional Forwarding: Re-publish with Neutrality bias
+                                    // In a real multi-hop with direct P2P messaging, we would use swarm.dial() or direct Send
+                                    // For this simulation, we use a targeted Gossipsub re-broadcast
+                                    if let Ok(next_data) = serde_json::to_vec(&packet) {
+                                        let t = gossipsub::IdentTopic::new("xrnet-routing");
+                                        let _ = swarm.behaviour_mut().gossipsub.publish(t, next_data);
+                                    }
                                 }
                             }
                         }

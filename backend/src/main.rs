@@ -18,6 +18,7 @@ use reqwest::Client;
 use tower_http::cors::CorsLayer;
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc;
+use std::collections::HashMap;
 
 pub enum Command {
     PutRecord { key: String, value: String },
@@ -29,7 +30,8 @@ pub struct AppState {
     peers: Mutex<usize>,
     network: Mutex<String>,
     command_tx: mpsc::Sender<Command>,
-    profiles: Mutex<std::collections::HashMap<String, String>>,
+    profiles: Mutex<HashMap<String, String>>,
+    jobs: Mutex<HashMap<String, String>>,
     neutrality_index: Mutex<f64>,
 }
 
@@ -97,7 +99,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         peers: Mutex::new(0),
         network: Mutex::new("Standalone".to_string()),
         command_tx: tx,
-        profiles: Mutex::new(std::collections::HashMap::new()),
+        profiles: Mutex::new(HashMap::new()),
+        jobs: Mutex::new(HashMap::new()),
         neutrality_index: Mutex::new(1.0),
     });
 
@@ -128,6 +131,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 Json(profiles)
             }
         }))
+        .route("/api/jobs", get({
+            let s = Arc::clone(&api_state);
+            move || async move {
+                let jobs = s.jobs.lock().unwrap().clone();
+                Json(jobs)
+            }
+        }))
         .route("/api/dht/put", post({
             let s = Arc::clone(&api_state);
             move |Json(payload): Json<DhtPutRequest>| {
@@ -142,6 +152,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     if payload.key.starts_with("profile:") {
                         let mut p = s.profiles.lock().unwrap();
                         p.insert(payload.key, payload.value);
+                    } else if payload.key.starts_with("job:") {
+                        let mut j = s.jobs.lock().unwrap();
+                        j.insert(payload.key, payload.value);
                     }
 
                     Json(json!({ "status": "sent to protocol swarm" }))

@@ -1,53 +1,75 @@
-# XRNet Deployment Guide
+# XRNet Deployment & Rollout Guide
 
-This guide provides instructions for deploying XRNet across multiple devices and production environments.
+This guide provides definitive instructions for deploying XRNet v0.1.33+ across diverse hardware and mesh environments.
 
-## 1. Environment Requirements
+## 1. Production Requirements
 
-- **Operating System:** Ubuntu 22.04+ (Recommended), Debian 12, or macOS.
-- **Hardware:**
-  - **Minimal:** Raspberry Pi 4 (4GB RAM).
-  - **Recommended:** Raspberry Pi 5 or NVIDIA Jetson Orin (8GB+ RAM for Spatial AI).
-- **Toolchains:** Rust 1.75+, Node.js 18+, Python 3.10+.
+### Hardware
+- **Standard Node:** Quad-core x86_64 or ARM64 (Pi 5), 4GB RAM.
+- **Spatial AI Node:** NVIDIA Jetson Orin or PC with 8GB+ VRAM (for Gaussian Splatting/LWM).
+- **Storage:** 10GB+ free space for mesh logs and spatial caches.
 
-## 2. Multi-Device Mesh Configuration
+### Software Toolchains
+- **Rust:** 1.75+ (Stable)
+- **Node.js:** 20.x+ (LTS)
+- **Python:** 3.10+
+- **OpenSSL:** 1.1 or 3.0 headers.
 
-To form a wide-area mesh, nodes must be able to discover each other beyond the local network.
+## 2. Production Rollout Sequence
 
-### Static Bootstrap Peers
-If mDNS discovery is insufficient (e.g., across different subnets), configure bootstrap peers in the `main.py` coordinator or backend environment:
+Execute the unified deployment script to prepare the node:
 ```bash
-export BOOTSTRAP_PEERS="/ip4/1.2.3.4/tcp/4001/p2p/12D3KooW..."
-./start.sh
+sh scripts/deploy_prod.sh
 ```
 
-## 3. Production Build
+This script will:
+1. Validate local system integrity.
+2. Synchronize all decentralized submodules.
+3. Build release-optimized binaries.
+4. Generate a `xrnet.service` for systemd.
+5. Perform a localized API health check.
 
-Generate optimized release binaries:
+## 3. Persistence (Systemd)
+
+To ensure the node restarts automatically:
 ```bash
-./build.sh release
+sudo cp xrnet.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now xrnet
 ```
 
-## 4. Automatic Start (Systemd)
-
-Create a service file `/etc/systemd/system/xrnet.service`:
-```ini
-[Unit]
-Description=XRNet Autonomous Node
-After=network.target
-
-[Service]
-ExecStart=/path/to/xrnet/start.sh
-WorkingDirectory=/path/to/xrnet
-Restart=always
-User=xrnet-user
-
-[Install]
-WantedBy=multi-user.target
+Monitor production logs:
+```bash
+tail -f prod_runtime.log
 ```
 
-## 5. Monitoring & Maintenance
+## 4. Multi-Node Mesh Configuration
 
-- **Mesh Dashboard:** Access the real-time telemetry at `http://<node-ip>:5173`.
-- **Logs:** Monitor `node.log` and `app_output.log` for protocol events.
-- **Auto-Update:** The Executive Protocol (`POST /api/system/protocol`) can be triggered via webhook to pull the latest changes and rebuild the node.
+### Discovery & Bootstrapping
+- **LAN:** Discovery is automatic via mDNS.
+- **WAN:** Configure a static bootstrap peer to bridge network segments.
+  ```bash
+  export BOOTSTRAP_PEER="/ip4/<remote-ip>/tcp/4001/p2p/<peer-id>"
+  ./start.sh
+  ```
+
+### Neutrality-Aware Routing
+Nodes with higher Neutrality Index scores (visible in the Mesh Dashboard) are prioritized for packet forwarding. Ensure high uptime and successful task completion to maintain a high index.
+
+## 5. Hardware-Specific Optimizations
+
+### Raspberry Pi 5
+- Ensure adequate cooling for sustained mesh load.
+- Use `arm64` specific builds: `cargo build --release --target aarch64-unknown-linux-gnu`.
+
+### NVIDIA Jetson (Spatial Layer)
+- Enable MAX-N mode for maximum AI throughput.
+- Mount `spatial/models/` on high-speed NVMe storage.
+
+## 6. Maintenance & Updates
+
+Trigger the autonomous update protocol via the API or dashboard:
+```bash
+curl -X POST http://localhost:8080/api/system/protocol
+```
+This will pull the latest features, re-synchronize the mesh, and restart the node service.
