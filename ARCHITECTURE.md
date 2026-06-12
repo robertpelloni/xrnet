@@ -20,7 +20,7 @@ The core of XRNet is a high-performance Rust node utilizing `libp2p` for autonom
 - **Arbitration:** Automated selection of neutral third-party nodes to resolve economic or social disputes.
 
 ### Social Matchmaking (`social.rs`)
-- **ZK-Matchmaking:** Uses hashed interest vectors for privacy-preserving discovery.
+- **Blinded Discovery:** Uses SHA-256 hashed interest vectors for privacy-preserving discovery. Peers can identify mutual interests without exposing raw keywords to the DHT (Matchmaking Engine).
 - **Learning Hub:** A decentralized knowledge exchange where reputation weights the value of shared information.
 
 ### Economic Escrow (`escrow.rs`)
@@ -49,7 +49,7 @@ XRNet integrates **Bobcoin** as its native decentralized currency.
 | Requirement | Implementation Component | Protocol Layer |
 | :--- | :--- | :--- |
 | **Communicate** | Gossipsub / Mesh Router | libp2p Gossipsub |
-| **Learn** | Learning Hub / ZK-Social | Kademlia DHT |
+| **Learn** | Learning Hub / Social Engine | Kademlia DHT |
 | **Shop / Sell** | Job Board / Escrow Manager | DHT + Bobcoin |
 | **Find Goods** | DHT Search / Mesh Packet | Kademlia / Routing |
 | **Manage** | Neutrality Index / Arbitration | Governance Engine |

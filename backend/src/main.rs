@@ -11,14 +11,18 @@ use tokio::net::TcpStream;
 use tokio::io::{AsyncWriteExt, AsyncReadExt};
 use libp2p::identity;
 use serde_json::json;
-use axum::{routing::{get, post}, Json, Router};
+use axum::{routing::{get, post}, Json, Router, extract::Path, extract::ConnectInfo};
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
 use reqwest::Client;
 use tower_http::cors::CorsLayer;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use tokio::sync::mpsc;
 use std::collections::HashMap;
+
+use governance::{NeutralArbitrator, NeutralityMetric};
+use social::{MatchmakingEngine, InterestProfile};
+use escrow::EscrowManager;
 
 pub enum Command {
     PutRecord { key: String, value: String },
@@ -33,19 +37,14 @@ pub struct AppState {
     profiles: Mutex<HashMap<String, String>>,
     jobs: Mutex<HashMap<String, String>>,
     neutrality_index: Mutex<f64>,
+    arbitrator: Mutex<NeutralArbitrator>,
+    escrow: Mutex<EscrowManager>,
 }
 
 #[derive(Deserialize, Clone)]
 struct DhtPutRequest {
     key: String,
     value: String,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-struct UserProfile {
-    peer_id: String,
-    alias: String,
-    status: String,
 }
 
 fn get_version() -> String {
@@ -102,6 +101,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         profiles: Mutex::new(HashMap::new()),
         jobs: Mutex::new(HashMap::new()),
         neutrality_index: Mutex::new(1.0),
+        arbitrator: Mutex::new(NeutralArbitrator::new()),
+        escrow: Mutex::new(EscrowManager::new()),
     });
 
     // API Server
@@ -115,11 +116,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 let peers = *s.peers.lock().unwrap();
                 let network = s.network.lock().unwrap().clone();
                 let neutrality = *s.neutrality_index.lock().unwrap();
+                let arbitrator = s.arbitrator.lock().unwrap();
+                let best_arbitrator = arbitrator.select_arbitrator().unwrap_or_else(|| "None Available".to_string());
+
                 Json(json!({
                     "peer_id": s.peer_id,
                     "peers": peers,
                     "network": network,
                     "neutrality": neutrality,
+                    "best_arbitrator": best_arbitrator,
                     "version": get_version(),
                 }))
             }
@@ -136,6 +141,66 @@ async fn main() -> Result<(), Box<dyn Error>> {
             move || async move {
                 let jobs = s.jobs.lock().unwrap().clone();
                 Json(jobs)
+            }
+        }))
+        .route("/api/social/match", post({
+            let _s = Arc::clone(&api_state);
+            move |Json(payload): Json<serde_json::Value>| async move {
+                let interests = payload["interests"].as_array().unwrap_or(&vec![]).iter()
+                    .map(|v| v.as_str().unwrap_or("").to_string())
+                    .collect::<Vec<String>>();
+
+                let other_interests = payload["other_interests"].as_array().unwrap_or(&vec![]).iter()
+                    .map(|v| v.as_str().unwrap_or("").to_string())
+                    .collect::<Vec<String>>();
+
+                let my_profile = InterestProfile { hashed_interests: interests.iter().map(|i| MatchmakingEngine::hash_interest(i)).collect() };
+                let other_profile = InterestProfile { hashed_interests: other_interests.iter().map(|i| MatchmakingEngine::hash_interest(i)).collect() };
+
+                let matches = MatchmakingEngine::find_matches(&my_profile, &other_profile);
+
+                Json(json!({
+                    "hashed_interests": my_profile.hashed_interests,
+                    "matches": matches
+                }))
+            }
+        }))
+        .route("/api/escrow/create", post({
+            let s = Arc::clone(&api_state);
+            move |Json(payload): Json<serde_json::Value>| async move {
+                let payer = payload["payer"].as_str().unwrap_or("").to_string();
+                let payee = payload["payee"].as_str().unwrap_or("").to_string();
+                let amount = payload["amount"].as_f64().unwrap_or(0.0);
+
+                let mut escrow = s.escrow.lock().unwrap();
+                let id = escrow.create_transaction(payer, payee, amount);
+                Json(json!({ "escrow_id": id }))
+            }
+        }))
+        .route("/api/escrow/release/:id", post({
+            let s = Arc::clone(&api_state);
+            move |Path(id): Path<String>| async move {
+                let mut escrow = s.escrow.lock().unwrap();
+                let success = escrow.release(&id);
+                Json(json!({ "success": success }))
+            }
+        }))
+        .route("/api/governance/register_metric", post({
+            let s = Arc::clone(&api_state);
+            move |Json(payload): Json<NeutralityMetric>| async move {
+                let mut arbitrator = s.arbitrator.lock().unwrap();
+                let score = NeutralArbitrator::calculate_score(&payload);
+                println!("[GOV] Calculated neutrality score for {}: {}", payload.peer_id, score);
+                arbitrator.peers.push(payload);
+                Json(json!({ "score": score }))
+            }
+        }))
+        .route("/api/escrow/fund/:id", post({
+            let s = Arc::clone(&api_state);
+            move |Path(id): Path<String>| async move {
+                let mut escrow = s.escrow.lock().unwrap();
+                let success = escrow.fund(&id);
+                Json(json!({ "success": success }))
             }
         }))
         .route("/api/dht/put", post({
@@ -177,7 +242,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }))
         .route("/api/bobcoin/balance/:account", get({
             let client = http_client.clone();
-            move |axum::extract::Path(account): axum::extract::Path<String>| async move {
+            move |Path(account): Path<String>| async move {
                 let url = format!("http://127.0.0.1:4000/balance/{}", account);
                 match client.get(url).send().await {
                     Ok(resp) => {
@@ -218,8 +283,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
         }))
-        .route("/api/system/protocol", post(|| async move {
-            println!("[API] Executive Protocol requested.");
+        .route("/api/system/protocol", post(|ConnectInfo(addr): ConnectInfo<SocketAddr>| async move {
+            // SECURITY: Restrict Remote Code Execution to localhost only
+            if !addr.ip().is_loopback() {
+                println!("[SECURITY] Blocked unauthorized remote protocol request from {}", addr);
+                return (axum::http::StatusCode::FORBIDDEN, Json(json!({ "status": "error", "message": "Access restricted to localhost." })));
+            }
+
+            println!("[API] Executive Protocol requested by localhost.");
 
             let (script_path, working_dir) = if std::path::Path::new("./scripts/autonomous_protocol.py").exists() {
                 ("python3", ".")
@@ -244,18 +315,18 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                     let status = if out.status.success() { "success" } else { "error" };
 
-                    Json(json!({
+                    (axum::http::StatusCode::OK, Json(json!({
                         "status": status,
                         "stdout": stdout,
                         "stderr": stderr,
                         "exit_code": out.status.code()
-                    }))
+                    })))
                 }
                 Err(e) => {
-                    Json(json!({
+                    (axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(json!({
                         "status": "error",
                         "message": e.to_string()
-                    }))
+                    })))
                 }
             }
         }))
@@ -265,7 +336,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     tokio::spawn(async move {
         println!("[API] Server listening on http://{}", addr);
         let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-        axum::serve(listener, app).await.unwrap();
+        // Use with_connect_info to get the remote address for security checks
+        axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>()).await.unwrap();
     });
 
     let integrated = connect_to_surrounding_system().await;

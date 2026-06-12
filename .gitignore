@@ -21,6 +21,12 @@ Thumbs.db
 status.json
 backend/status.json
 
+# Build Artifacts
+*.tar.gz
+*.zip
+*.bin
+*.exe
+
 # Spatial Artifacts (scans, splats)
 *.ply
 *.splat
