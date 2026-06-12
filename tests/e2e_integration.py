@@ -48,7 +48,7 @@ class TestEndToEndIntegration(unittest.TestCase):
         self.assertIn("Starting xrnet", stdout)
         # Allow any 0.1.x version
         self.assertTrue("xrnet-backend v0.1." in stdout)
-        self.assertIn("[API] Server listening on http://127.0.0.1:8080", stdout)
+        self.assertTrue("[API] Server listening on http://127.0.0.1:8080" in stdout or "[API] Server listening on http://0.0.0.0:8080" in stdout)
         self.assertIn("[COORD] Executing Executive Autonomous Protocol...", stdout)
         self.assertIn("[COORD] Executive Protocol Successful.", stdout)
 

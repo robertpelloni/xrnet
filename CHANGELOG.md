@@ -56,3 +56,30 @@
 
 ## [0.1.8] - 2026-06-11
 - Autonomous version bump via Executive Protocol.
+
+## [0.1.9] - 2026-06-11
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.10] - 2026-06-11
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.11] - 2026-06-11
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.12] - 2026-06-11
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.13] - 2026-06-11
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.14] - 2026-06-11
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.15] - 2026-06-11
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.16] - 2026-06-11
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.17] - 2026-06-12
+- Autonomous version bump via Executive Protocol.
