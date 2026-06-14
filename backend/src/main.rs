@@ -66,12 +66,11 @@ async fn connect_to_surrounding_system() -> bool {
             println!("[PROTOCOL] Connected to external peer.");
             let _ = stream.write_all(b"XRNET_HANDSHAKE").await;
             let mut buffer = [0; 9];
-            if let Ok(_) = stream.read_exact(&mut buffer).await {
-                if &buffer == b"XRNET_ACK" {
+            if stream.read_exact(&mut buffer).await.is_ok()
+                && &buffer == b"XRNET_ACK" {
                     println!("[PROTOCOL] Handshake with external system successful.");
                     return true;
                 }
-            }
         }
         tokio::time::sleep(Duration::from_millis(1000)).await;
     }

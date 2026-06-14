@@ -165,5 +165,18 @@
 ## [0.1.41] - 2026-06-12
 - Autonomous version bump via Executive Protocol.
 
+## [0.1.43] - 2026-06-14
+### Added
+- Multi-hop distance-vector routing protocol (Bellman-Ford / RIP-style).
+- `DistanceVectorTable` with sequence-numbered route advertisements.
+- Periodic routing table exchange (30s interval) via `xrnet-route-update` Gossipsub topic.
+- Stale route detection (3-minute timeout) and automatic invalidation.
+- Neutrality-aware fallback routing when DV table has no specific route.
+- `MeshPacket` enhancements: `packet_id` for dedup, `next_hop` targeting, `advance()` hop counter.
+- Comprehensive unit test suite (20+ tests) for routing engine.
+- Route advertisement `seq` for loop prevention and freshness ordering.
+- Immediate re-advertisement on route table changes (triggered update propagation).
+- `RoutingEngine::route_packet()` now consults distance-vector table first, then falls back to neutrality-based selection.
+
 ## [0.1.42] - 2026-06-12
 - Autonomous version bump via Executive Protocol.

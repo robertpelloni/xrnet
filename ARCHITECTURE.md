@@ -11,9 +11,20 @@ The core of XRNet is a high-performance Rust node utilizing `libp2p` for autonom
 - **Kademlia DHT:** Decentralized storage for peer profiles, marketplace records, and system feedback.
 - **Gossipsub:** Real-time mesh messaging and event propagation.
 
-### Neutrality-Aware Routing (`routing.rs`)
-- **Engine:** Prioritizes packet forwarding through peers with high **Neutrality Index** scores.
-- **Fairness:** Prevents data bottlenecks and ensures unbiased network transit.
+### Distance-Vector Routing (`routing.rs`)
+- **Distance-Vector Protocol:** Implements a Bellman–Ford / RIP-style routing protocol where peers exchange route entries via the `xrnet-route-update` Gossipsub topic.
+- **Route Table (`DistanceVectorTable`):** Maintains learned routes with destination, next-hop, hop-count metric, sequence number (for loop prevention / freshness), and last-updated timestamp.
+- **Sequence-Numbered Advertisements:** Each peer generates monotonically increasing sequence numbers to prevent routing loops and ensure freshness.
+- **Stale Route Detection:** Routes not refreshed within 3 minutes are automatically pruned.
+- **Triggered Updates:** Changes to the routing table cause immediate re-advertisement to propagate topology changes rapidly.
+- **Neutrality-Aware Fallback (`RoutingEngine`):** When the distance-vector table has no specific route, the engine falls back to selecting the peer with the highest **Neutrality Index**, ensuring unbiased forwarding even for unknown destinations.
+- **TTL Enforcement:** Packets with `hop_count >= max_hops` are discarded, preventing infinite loops.
+
+### Routing Protocol Flow
+1. **Discovery:** mDNS discovers peers; direct routes are added immediately.
+2. **Advertise:** Every 30s, each peer broadcasts its routing table via `xrnet-route-update`.
+3. **Learn:** Incoming route updates are processed via the Bellman–Ford algorithm (prefer higher sequence numbers; tie-break with lower metric).
+4. **Forward:** Data packets on `xrnet-routing` are forwarded hop-by-hop through intermediate peers using the routing table. Only the intended next-hop processes each packet.
 
 ### Neutral Governance (`governance.rs`)
 - **Neutrality Index:** Tracks peer performance (uptime, task completion, dispute history).
