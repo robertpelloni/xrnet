@@ -11,11 +11,11 @@
 - [ ] Monitor production mesh stability via Mesh Fleet Monitor.
 - [ ] Execute periodic benchmark load tests on target hardware.
 - [ ] Refine Kademlia DHT replication factors for high-scale data.
-- [ ] Fix dead code warnings in `governance.rs` and `escrow.rs`.
+- [x] Fix dead code warnings in routing and mesh components.
 
 ## Optimization
-- [ ] Refactor monolithic backend src/main.rs into discrete Axum route modules.
-- [ ] Modularize React App.tsx into separate component files.
+- [x] Refactor monolithic backend src/main.rs into discrete Axum route modules.
+- [x] Modularize React App.tsx into separate component files.
 
 
 ---

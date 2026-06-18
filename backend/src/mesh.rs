@@ -27,7 +27,7 @@ pub async fn run_mesh(
     let mut dv_table = DistanceVectorTable::new();
     
     // Add initial direct routes for known direct neighbors
-    let _ = state.peers.lock().unwrap(); // dummy to satisfy borrow
+    drop(state.peers.lock().unwrap()); // dummy to satisfy borrow
 
     let mut swarm = libp2p::SwarmBuilder::with_existing_identity(local_key)
         .with_tokio()

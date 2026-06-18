@@ -218,14 +218,6 @@ impl DistanceVectorTable {
         self.routes.values().filter(|r| !r.is_stale()).count()
     }
 
-    /// Return triples `(destination, next_hop, metric)` for status reporting.
-    pub fn all_routes(&self) -> Vec<(String, String, u32)> {
-        self.routes
-            .values()
-            .filter(|r| !r.is_stale())
-            .map(|r| (r.destination.clone(), r.next_hop.clone(), r.metric))
-            .collect()
-    }
 }
 
 // ── Neutrality-Aware Routing Engine ──────────────────────────────────────────
