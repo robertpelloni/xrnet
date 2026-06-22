@@ -6,6 +6,8 @@ import { JobTaskBoard } from './components/JobTaskBoard'
 import { StatusPanel } from './components/StatusPanel'
 import { ProtocolPanel } from './components/ProtocolPanel'
 import { DiscoveryPanel } from './components/DiscoveryPanel'
+import { EscrowPanel } from './components/EscrowPanel'
+import { SocialMatchPanel } from './components/SocialMatchPanel'
 
 interface SystemStatus {
   peer_id: string;
@@ -154,6 +156,8 @@ function App() {
           <DiscoveryPanel profiles={profiles} />
 
           <JobTaskBoard />
+          <EscrowPanel />
+          <SocialMatchPanel />
 
           <MonitoringDashboard peers={peers} neutrality={neutrality} network={network} />
         </div>

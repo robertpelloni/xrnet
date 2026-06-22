@@ -37,4 +37,21 @@ pub fn routes(state: Arc<AppState>) -> Router {
                 Json(json!({ "success": success }))
             }
         }))
+        .route("/api/escrow/dispute/:id", post({
+            let s = Arc::clone(&state);
+            move |Path(id): Path<String>| async move {
+                let arbitrator_id = {
+                    let arbitrator = s.arbitrator.lock().unwrap();
+                    arbitrator.select_arbitrator()
+                };
+
+                if let Some(best_arbitrator) = arbitrator_id {
+                    let mut escrow = s.escrow.lock().unwrap();
+                    let success = escrow.dispute(&id, best_arbitrator.clone());
+                    Json(json!({ "success": success, "arbitrator": best_arbitrator }))
+                } else {
+                    Json(json!({ "success": false, "error": "No neutral arbitrator available" }))
+                }
+            }
+        }))
 }

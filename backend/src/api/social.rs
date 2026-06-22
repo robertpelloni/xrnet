@@ -26,9 +26,21 @@ pub fn routes(state: Arc<AppState>) -> Router {
 
                 let matches = MatchmakingEngine::find_matches(&my_profile, &other_profile);
 
+                // Initialize mock ZK params and verify proof locally
+                let params = MatchmakingEngine::generate_zk_parameters();
+
+                // For each match, verify via mock zero-knowledge
+                let mut verified_matches = Vec::new();
+                for m in matches {
+                    if MatchmakingEngine::verify_zk_match(&params, &m) {
+                        verified_matches.push(m);
+                    }
+                }
+
                 Json(json!({
                     "hashed_interests": my_profile.hashed_interests,
-                    "matches": matches
+                    "matches": verified_matches,
+                    "zk_verified": true
                 }))
             }
         }))
