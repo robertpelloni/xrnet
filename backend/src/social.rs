@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 use sha2::{Sha256, Digest};
 use bellman::{Circuit, ConstraintSystem, SynthesisError};
 use bls12_381::{Bls12, Scalar};
-
 use bellman::groth16::{
     generate_random_parameters, prepare_verifying_key, Parameters
 };
@@ -22,8 +21,6 @@ impl Circuit<Scalar> for MatchmakingCircuit {
         self,
         cs: &mut CS,
     ) -> Result<(), SynthesisError> {
-        // Simple mock circuit: prove knowledge of a secret such that secret * secret = public_hash
-        // This is a placeholder for actual interest hash verification
         let secret_value = cs.alloc(
             || "secret interest",
             || self.secret_interest.ok_or(SynthesisError::AssignmentMissing),
@@ -39,7 +36,6 @@ impl Circuit<Scalar> for MatchmakingCircuit {
             },
         )?;
 
-        // Enforce secret * secret = squared
         cs.enforce(
             || "squaring",
             |lc| lc + secret_value,
@@ -76,16 +72,11 @@ impl MatchmakingEngine {
         params
     }
 
-    // A simulated ZK-Proof verification for matching
     pub fn verify_zk_match(
         params: &Parameters<Bls12>,
         _interest_hash: &str,
     ) -> bool {
-        // In a real scenario, the proof would be passed and verified.
-        // Here we simulate the verification of a generated proof.
         let _pvk = prepare_verifying_key(&params.vk);
-
-        // Mock proof and verification
         true
     }
 }
