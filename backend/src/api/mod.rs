@@ -1,16 +1,18 @@
-pub mod system;
-pub mod dht;
-pub mod jobs;
-pub mod social;
-pub mod escrow;
-pub mod governance;
-pub mod messages;
-pub mod bobcoin;
-
 use axum::Router;
 use std::sync::Arc;
-use crate::AppState;
 use reqwest::Client;
+use crate::AppState;
+
+mod system;
+mod dht;
+mod jobs;
+mod social;
+mod escrow;
+mod governance;
+mod messages;
+mod bobcoin;
+mod spatial;
+mod plugin;
 
 pub fn api_router(state: Arc<AppState>, http_client: Client) -> Router {
     Router::new()
@@ -22,4 +24,6 @@ pub fn api_router(state: Arc<AppState>, http_client: Client) -> Router {
         .merge(governance::routes(Arc::clone(&state)))
         .merge(messages::routes(Arc::clone(&state)))
         .merge(bobcoin::routes(http_client))
+        .merge(spatial::routes(Arc::clone(&state)))
+        .merge(plugin::routes(Arc::clone(&state)))
 }

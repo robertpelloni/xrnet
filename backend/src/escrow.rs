@@ -8,6 +8,7 @@ pub enum EscrowStatus {
     Completed,
     Disputed,
     Refunded,
+    Arbitrated(bool),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -66,6 +67,16 @@ impl EscrowManager {
             if tx.status == EscrowStatus::Funded {
                 tx.status = EscrowStatus::Disputed;
                 tx.arbitrator = Some(arbitrator_id);
+                return true;
+            }
+        }
+        false
+    }
+
+    pub fn resolve_dispute(&mut self, id: &str, release_to_payee: bool) -> bool {
+        if let Some(tx) = self.transactions.get_mut(id) {
+            if tx.status == EscrowStatus::Disputed {
+                tx.status = EscrowStatus::Arbitrated(release_to_payee);
                 return true;
             }
         }

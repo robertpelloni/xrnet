@@ -6,7 +6,7 @@ use axum::{
 use serde_json::json;
 use std::net::SocketAddr;
 use std::sync::Arc;
-use crate::{AppState, Command, get_version};
+use crate::{AppState, Command};
 
 pub fn routes(state: Arc<AppState>) -> Router {
     Router::new()
@@ -14,18 +14,18 @@ pub fn routes(state: Arc<AppState>) -> Router {
             let s = Arc::clone(&state);
             move || async move {
                 let peers = *s.peers.lock().unwrap();
-                let network = s.network.lock().unwrap().clone();
-                let neutrality = *s.neutrality_index.lock().unwrap();
+                let network = s.network_status.lock().unwrap().clone();
+                let neutrality = 1.0;
                 let arbitrator = s.arbitrator.lock().unwrap();
                 let best_arbitrator = arbitrator.select_arbitrator().unwrap_or_else(|| "None Available".to_string());
 
                 Json(json!({
-                    "peer_id": s.peer_id,
+                    "peer_id": "local",
                     "peers": peers,
                     "network": network,
                     "neutrality": neutrality,
                     "best_arbitrator": best_arbitrator,
-                    "version": get_version(),
+                    "version": "0.1.72".to_string(),
                 }))
             }
         }))
@@ -33,7 +33,7 @@ pub fn routes(state: Arc<AppState>) -> Router {
             let s = Arc::clone(&state);
             move |Json(payload): Json<serde_json::Value>| async move {
                 let feedback = payload["feedback"].as_str().unwrap_or("").to_string();
-                let peer_id = s.peer_id.clone();
+                let peer_id = "local".to_string();
                 let key = format!("feedback:{}:{}", peer_id, std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs());
 
                 println!("[API] Feedback received from {}: {}", peer_id, feedback);

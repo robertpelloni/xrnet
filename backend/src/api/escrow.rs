@@ -16,7 +16,7 @@ pub fn routes(state: Arc<AppState>) -> Router {
                 let payee = payload["payee"].as_str().unwrap_or("").to_string();
                 let amount = payload["amount"].as_f64().unwrap_or(0.0);
 
-                let mut escrow = s.escrow.lock().unwrap();
+                let mut escrow = s.escrow_manager.lock().unwrap();
                 let id = escrow.create_transaction(payer, payee, amount);
                 Json(json!({ "escrow_id": id }))
             }
@@ -24,7 +24,7 @@ pub fn routes(state: Arc<AppState>) -> Router {
         .route("/api/escrow/release/:id", post({
             let s = Arc::clone(&state);
             move |Path(id): Path<String>| async move {
-                let mut escrow = s.escrow.lock().unwrap();
+                let mut escrow = s.escrow_manager.lock().unwrap();
                 let success = escrow.release(&id);
                 Json(json!({ "success": success }))
             }
@@ -32,7 +32,7 @@ pub fn routes(state: Arc<AppState>) -> Router {
         .route("/api/escrow/fund/:id", post({
             let s = Arc::clone(&state);
             move |Path(id): Path<String>| async move {
-                let mut escrow = s.escrow.lock().unwrap();
+                let mut escrow = s.escrow_manager.lock().unwrap();
                 let success = escrow.fund(&id);
                 Json(json!({ "success": success }))
             }
@@ -46,7 +46,7 @@ pub fn routes(state: Arc<AppState>) -> Router {
                 };
 
                 if let Some(best_arbitrator) = arbitrator_id {
-                    let mut escrow = s.escrow.lock().unwrap();
+                    let mut escrow = s.escrow_manager.lock().unwrap();
                     let success = escrow.dispute(&id, best_arbitrator.clone());
                     Json(json!({ "success": success, "arbitrator": best_arbitrator }))
                 } else {

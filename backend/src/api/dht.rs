@@ -5,7 +5,13 @@ use axum::{
 };
 use serde_json::json;
 use std::sync::Arc;
-use crate::{AppState, Command, DhtPutRequest};
+use crate::{AppState, Command};
+
+#[derive(serde::Deserialize)]
+pub struct DhtPutRequest {
+    pub key: String,
+    pub value: String,
+}
 
 pub fn routes(state: Arc<AppState>) -> Router {
     Router::new()

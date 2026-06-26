@@ -1,3 +1,4 @@
+use crate::spatial::SpatialUpdate;
 use libp2p::{identity, mdns, ping, kad, gossipsub, swarm::{NetworkBehaviour, SwarmEvent}, PeerId};
 use std::error::Error;
 use std::time::Duration;
@@ -21,6 +22,7 @@ pub async fn run_mesh(
     mut command_rx: mpsc::Receiver<Command>,
 ) -> Result<(), Box<dyn Error>> {
     let local_peer_id = PeerId::from(local_key.public());
+    let spatial_sync_topic = gossipsub::IdentTopic::new("spatial_sync");
 
     // --- Initialize Distance-Vector routing  ---
     let mut routing_engine = RoutingEngine::new();
@@ -63,6 +65,7 @@ pub async fn run_mesh(
             gossipsub.subscribe(&route_topic)?;
             // Subscribe to route update topic to exchange routing table
             let update_topic = gossipsub::IdentTopic::new("xrnet-route-update");
+
             gossipsub.subscribe(&update_topic)?;
 
             Ok(MyBehaviour {
@@ -86,6 +89,16 @@ pub async fn run_mesh(
         tokio::select! {
             Some(cmd) = command_rx.recv() => {
                 match cmd {
+                    Command::BroadcastSpatialUpdate { splat } => {
+                        let update = SpatialUpdate {
+                            peer_id: local_peer_id.to_string(),
+                            timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs(),
+                            splats: vec![splat]
+                        };
+                        if let Err(e) = swarm.behaviour_mut().gossipsub.publish(spatial_sync_topic.clone(), serde_json::to_vec(&update).unwrap()) {
+                            eprintln!("[SPATIAL/SYNC] Error broadcasting spatial update: {:?}", e);
+                        }
+                    }
                     Command::PutRecord { key, value } => {
                         let k = kad::RecordKey::new(&key);
                         let record = kad::Record { key: k, value: value.into_bytes(), publisher: None, expires: None };
@@ -111,6 +124,7 @@ pub async fn run_mesh(
                     entries,
                 };
                 let update_topic = gossipsub::IdentTopic::new("xrnet-route-update");
+
                 if let Ok(data) = serde_json::to_vec(&update) {
                     if let Err(e) = swarm.behaviour_mut().gossipsub.publish(update_topic, data) {
                         println!("[ROUTE/ADV] Advertisement publish error: {:?}", e);
@@ -166,6 +180,7 @@ pub async fn run_mesh(
                                 let entries = dv_table.advertisement_entries();
                                 let update_reply = RouteUpdate { source_peer: local_peer_id.to_string(), sequence_number: seq_now, entries };
                                 let update_topic = gossipsub::IdentTopic::new("xrnet-route-update");
+
                                 if let Ok(data) = serde_json::to_vec(&update_reply) {
                                     swarm.behaviour_mut().gossipsub.publish(update_topic, data).ok();
                                 }

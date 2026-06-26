@@ -17,3 +17,4 @@ uuid = { version = "1.8", features = ["v4", "serde"] }
 bellman = "0.14.0"
 bls12_381 = "0.8.0"
 rand = "0.8.5"
+wasmtime = "46.0.1"
