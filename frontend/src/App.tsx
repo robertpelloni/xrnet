@@ -3,6 +3,12 @@ import './App.css'
 import { SpatialViewer } from './components/SpatialViewer'
 import { MonitoringDashboard } from './components/MonitoringDashboard'
 import { JobTaskBoard } from './components/JobTaskBoard'
+import { StatusPanel } from './components/StatusPanel'
+import { ProtocolPanel } from './components/ProtocolPanel'
+import { DiscoveryPanel } from './components/DiscoveryPanel'
+import { EscrowPanel } from './components/EscrowPanel'
+import { SocialMatchPanel } from './components/SocialMatchPanel'
+import { PluginPanel } from './components/PluginPanel'
 
 interface SystemStatus {
   peer_id: string;
@@ -20,8 +26,6 @@ function App() {
   const [neutrality, setNeutrality] = useState(1.0)
   const [peerId, setPeerId] = useState('')
   const [profiles, setProfiles] = useState<Record<string, string>>({})
-  const [searchQuery, setSearchQuery] = useState('')
-  const [isSearching, setIsSearching] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
   const [protocolOutput, setProtocolOutput] = useState('')
   const [userFeedback, setUserFeedback] = useState('')
@@ -61,29 +65,6 @@ function App() {
     fetchProfiles()
     return () => clearInterval(interval)
   }, [])
-
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!searchQuery) return
-    setIsSearching(true)
-
-    try {
-      // Simulate DHT search by putting a record
-      await fetch('http://localhost:8080/api/dht/put', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: `search:${Date.now()}`, value: searchQuery })
-      })
-
-      setTimeout(() => {
-        setIsSearching(false)
-        alert(`Everything Protocol Search Result: No decentralized records found for "${searchQuery}". Query propagated to DHT.`)
-      }, 1500)
-    } catch (error) {
-      console.error('Search failed:', error)
-      setIsSearching(false)
-    }
-  }
 
   const handlePublishProfile = async () => {
     const alias = prompt("Enter your network alias:")
@@ -148,58 +129,16 @@ function App() {
 
       <main>
         <div className="dashboard-grid">
-          <section className="status-panel">
-            <h2>System Status</h2>
-            <div className={`status-indicator ${status.toLowerCase().replace('...', '')}`}>
-              {status}
-            </div>
-            {peerId && (
-              <div className="peer-id-display">
-                <label>Peer ID:</label>
-                <code>{peerId.slice(0, 12)}...{peerId.slice(-4)}</code>
-              </div>
-            )}
-            <div className="action-group">
-              <button className="action-button" onClick={handlePublishProfile}>Publish My Profile</button>
-              <button className="action-button secondary" onClick={handleProtocol} disabled={isSyncing}>
-                {isSyncing ? 'Executing...' : 'Run Autonomous Protocol'}
-              </button>
-            </div>
-            {protocolOutput && (
-              <div className="sync-log">
-                <label>Protocol Log:</label>
-                <pre>{protocolOutput}</pre>
-              </div>
-            )}
-          </section>
+          <StatusPanel
+            status={status}
+            peerId={peerId}
+            isSyncing={isSyncing}
+            protocolOutput={protocolOutput}
+            handlePublishProfile={handlePublishProfile}
+            handleProtocol={handleProtocol}
+          />
 
-          <section className="protocol-panel">
-            <h2>Everything Protocol</h2>
-            <div className="metric">
-              <label>Peers:</label>
-              <span>{peers}</span>
-            </div>
-            <div className="metric">
-              <label>P2P Node:</label>
-              <span>Active (libp2p)</span>
-            </div>
-            <div className="metric">
-              <label>Network:</label>
-              <span className={network.toLowerCase()}>{network}</span>
-            </div>
-
-            <form className="search-form" onSubmit={handleSearch}>
-              <input
-                type="text"
-                placeholder="Search the DHT..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <button type="submit" disabled={isSearching}>
-                {isSearching ? 'Searching...' : 'Search'}
-              </button>
-            </form>
-          </section>
+          <ProtocolPanel peers={peers} network={network} />
 
           <section className="spatial-panel">
             <h2>Spatial Layer</h2>
@@ -215,25 +154,12 @@ function App() {
             <button className="action-button">Enter Learning Hub</button>
           </section>
 
-          <section className="discovery-panel">
-            <h2>Network Discovery</h2>
-            <div className="profile-list">
-              {Object.keys(profiles).length === 0 ? (
-                <p className="empty-msg">No profiles discovered yet.</p>
-              ) : (
-                <ul>
-                  {Object.entries(profiles).map(([key, alias]) => (
-                    <li key={key}>
-                      <span className="alias">{alias}</span>
-                      <span className="peer-ref">{key.replace('profile:', '').slice(0, 8)}...</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </section>
+          <DiscoveryPanel profiles={profiles} />
 
           <JobTaskBoard />
+          <EscrowPanel />
+          <SocialMatchPanel />
+        <PluginPanel />
 
           <MonitoringDashboard peers={peers} neutrality={neutrality} network={network} />
         </div>

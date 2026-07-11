@@ -22,7 +22,7 @@ class TestEndToEndIntegration(unittest.TestCase):
 
         # 2. Check Backend API
         try:
-            response = requests.get("http://127.0.0.1:8080/api/status", timeout=5)
+            response = requests.get("http://127.0.0.1:3000/api/status", timeout=5)
             self.assertEqual(response.status_code, 200)
             data = response.json()
             print(f"API Response: {data}")
@@ -47,8 +47,8 @@ class TestEndToEndIntegration(unittest.TestCase):
         # Verify component launches
         self.assertIn("Starting xrnet", stdout)
         # Allow any 0.1.x version
-        self.assertTrue("xrnet-backend v0.1." in stdout)
-        self.assertTrue("[API] Server listening on http://127.0.0.1:8080" in stdout or "[API] Server listening on http://0.0.0.0:8080" in stdout)
+        self.assertTrue("xrnet v0.1." in stdout)
+        self.assertTrue("[API] Server listening on http://127.0.0.1:3000" in stdout or "[API] Server listening on http://0.0.0.0:3000" in stdout)
         self.assertIn("[COORD] Executing Executive Autonomous Protocol...", stdout)
         self.assertIn("[COORD] Executive Protocol Successful.", stdout)
 
@@ -66,13 +66,15 @@ class TestEndToEndIntegration(unittest.TestCase):
             # Wait for API to be ready
             for _ in range(20):
                 try:
-                    if requests.get("http://127.0.0.1:8080/api/status", timeout=1).status_code == 200:
+                    if requests.get("http://127.0.0.1:3000/api/status", timeout=1).status_code == 200:
                         break
                 except:
                     pass
                 time.sleep(1)
 
-            response = requests.post("http://127.0.0.1:8080/api/system/protocol", timeout=60)
+            response = requests.post("http://127.0.0.1:3000/api/system/protocol", json={}, timeout=60)
+            print(f"Status Code: {response.status_code}")
+            print(f"Response Text: {response.text}")
             self.assertEqual(response.status_code, 200)
             data = response.json()
             self.assertEqual(data["status"], "success")

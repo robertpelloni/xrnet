@@ -1,5 +1,11 @@
 # CHANGELOG: xrnet
 
+
+## [0.1.44] - 2026-06-18
+### Changed
+- Extracted monolithic backend API in `main.rs` into discrete route modules under `api/`.
+- Modularized React `App.tsx` by extracting `StatusPanel`, `ProtocolPanel`, and `DiscoveryPanel` components.
+- Removed unused dead code in routing methods.
 ## [0.1.0] - 2025-03-06
 ### Added
 - Initial project documentation: `VISION.md`, `MEMORY.md`, `DEPLOY.md`, `IDEAS.md`, `VERSION.md`, `ROADMAP.md`, `TODO.md`.
@@ -179,4 +185,160 @@
 - `RoutingEngine::route_packet()` now consults distance-vector table first, then falls back to neutrality-based selection.
 
 ## [0.1.42] - 2026-06-12
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.45] - 2026-06-19
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.46] - 2026-06-19
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.47] - 2026-06-19
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.48] - 2026-06-19
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.49] - 2026-06-19
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.50] - 2026-06-19
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.51] - 2026-06-19
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.52] - 2026-06-19
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.53] - 2026-06-19
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.54] - 2026-06-19
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.55] - 2026-06-19
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.56] - 2026-06-19
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.57] - 2026-06-19
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.58] - 2026-06-19
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.59] - 2026-06-19
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.60] - 2026-06-19
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.61] - 2026-06-19
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.62] - 2026-06-19
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.63] - 2026-06-19
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.64] - 2026-06-19
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.65] - 2026-06-19
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.66] - 2026-06-20
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.67] - 2026-06-20
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.68] - 2026-06-20
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.69] - 2026-06-23
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.70] - 2026-06-23
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.71] - 2026-06-23
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.72] - 2026-06-23
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.73] - 2026-06-23
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.74] - 2026-06-23
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.75] - 2026-06-25
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.76] - 2026-06-25
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.77] - 2026-06-25
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.78] - 2026-06-25
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.79] - 2026-06-25
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.80] - 2026-06-25
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.81] - 2026-06-25
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.82] - 2026-06-25
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.83] - 2026-06-25
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.84] - 2026-06-25
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.85] - 2026-06-25
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.86] - 2026-06-25
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.87] - 2026-06-25
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.88] - 2026-06-25
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.89] - 2026-06-25
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.90] - 2026-06-25
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.91] - 2026-06-25
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.92] - 2026-06-25
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.93] - 2026-06-25
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.94] - 2026-06-25
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.95] - 2026-06-25
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.96] - 2026-06-25
 - Autonomous version bump via Executive Protocol.

@@ -17,6 +17,7 @@ pub struct MeshPacket {
 
 impl MeshPacket {
     /// Create a new packet with a unique id (caller provides the id).
+    #[allow(dead_code)]
     pub fn new(
         source: String,
         destination: String,
@@ -97,6 +98,7 @@ pub struct DistanceVectorTable {
 }
 
 impl DistanceVectorTable {
+    #[allow(dead_code)]
     pub fn new() -> Self {
         Self {
             routes: HashMap::new(),
@@ -198,6 +200,7 @@ impl DistanceVectorTable {
 
     /// Remove every route whose next-hop is `peer_id` (neighbour went down).
     /// Returns the list of removed destination ids so the caller can log them.
+    #[allow(dead_code)]
     pub fn invalidate_neighbor(&mut self, peer_id: &str) -> Vec<String> {
         let mut invalidated = Vec::new();
         self.routes.retain(|dest, r| {
@@ -219,6 +222,7 @@ impl DistanceVectorTable {
     }
 
     /// Return triples `(destination, next_hop, metric)` for status reporting.
+    #[allow(dead_code)]
     pub fn all_routes(&self) -> Vec<(String, String, u32)> {
         self.routes
             .values()
@@ -237,6 +241,7 @@ pub struct RoutingEngine {
 }
 
 impl RoutingEngine {
+    #[allow(dead_code)]
     pub fn new() -> Self {
         Self {
             neutrality_map: HashMap::new(),
