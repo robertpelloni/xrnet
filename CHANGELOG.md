@@ -342,3 +342,54 @@
 
 ## [0.1.96] - 2026-06-25
 - Autonomous version bump via Executive Protocol.
+
+## [0.1.97] - 2026-11-04
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.98] - 2026-11-04
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.99] - 2026-11-04
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.104] - 2026-11-04
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.105] - 2026-11-04
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.106] - 2026-11-04
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.107] - 2026-11-04
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.108] - 2026-11-04
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.109] - 2026-11-04
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.109] - 2026-11-04
+### Added
+- Integrated Swarm Gossipsub recent messages store and API endpoint GET /api/messages/recent with auto-broadcasting on POST /api/messages/send.
+- Graceful shutdown endpoint POST /api/system/shutdown in backend system API.
+- Dynamic version resolution from VERSION.md in api/system.rs.
+- Systray background service manager script scripts/systray_manager.py with daemon start, stop/shutdown, status inspection, and live log tailing.
+- New React frontend components: BobcoinPanel (balance inquiry, transactions), SwarmMessagePanel (real-time message feed, topic broadcasting), and GovernancePanel (neutrality metrics submission).
+- Comprehensive tooltip markers and contextual operational guidance across all UI panels.
+- Re-architected frontend dashboard into 4 consolidated high-value sections: P2P Swarm & Core Communications, Economic & Trust Layer, Spatial Operating System & AI, and Governance, Plugins & Fleet Telemetry.
+- Standardized frontend backend API endpoint routing to port 3000 via config.ts.
+### Changed
+- Archived legacy root scripts patch_*.py into archive_patches/ nondestructively.
+- Enhanced start.sh with automatic port 3000 hygiene and daemon coordination.
+- Hardened scripts/sync_repo.sh with working directory preservation guards.
+
+## [0.1.110] - 2026-11-04
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.111] - 2026-11-04
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.112] - 2026-11-04
+- Autonomous version bump via Executive Protocol.
