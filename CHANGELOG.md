@@ -473,3 +473,8 @@
 
 ## [0.1.137] - 2026-11-06
 - Autonomous version bump via Executive Protocol.
+
+## [0.1.138] - 2026-11-06
+### Added
+- Added live fleet telemetry backend endpoint `GET /api/telemetry` in `backend/src/api/system.rs` reporting peers, packet rate, neutrality score, uptime, and peer RTT latencies.
+- Upgraded `frontend/src/components/MonitoringDashboard.tsx` with dynamic polling of `/api/telemetry` every 3s, real-time throughput sparkline history, and dedicated peer latency list visualizer.

@@ -17,26 +17,31 @@ export const MonitoringDashboard: React.FC<MonitoringDashboardProps> = ({
   const [sparklineHistory, setSparklineHistory] = useState<number[]>([15, 22, 18, 30, 25, 34, 28, 40, 36, 42]);
   const [fleetLogs] = useState<string[]>([]);
 
+  const [peerLatencies, setPeerLatencies] = useState<{ peer: string; rtt_ms: number }[]>([]);
+
   useEffect(() => {
-    const fetchRoutes = async () => {
+    const fetchTelemetry = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/api/status`);
+        const res = await fetch(`${API_BASE_URL}/api/telemetry`);
         if (res.ok) {
           const data = await res.json();
-          setRouteCount(data.peers || peers);
+          setRouteCount(data.peers ?? peers);
+          if (data.packet_rate) {
+            setPacketRate(data.packet_rate);
+            setSparklineHistory(prev => [...prev.slice(1), data.packet_rate]);
+          }
+          if (data.peer_latencies) {
+            setPeerLatencies(data.peer_latencies);
+          }
         }
       } catch {
+        // Fallback to initial status
         setRouteCount(peers);
       }
     };
-    fetchRoutes();
 
-    // Pulse telemetry updates for throughput simulation
-    const interval = setInterval(() => {
-      const nextRate = Math.floor(Math.random() * 20) + 15;
-      setPacketRate(nextRate);
-      setSparklineHistory(prev => [...prev.slice(1), nextRate]);
-    }, 3000);
+    fetchTelemetry();
+    const interval = setInterval(fetchTelemetry, 3000);
 
     return () => clearInterval(interval);
   }, [peers]);
@@ -83,8 +88,17 @@ export const MonitoringDashboard: React.FC<MonitoringDashboardProps> = ({
       </div>
 
       <div className="fleet-grid">
-        <h4>Peer Telemetry Grid</h4>
-        {fleetLogs.length === 0 ? (
+        <h4>Peer Telemetry & Latency</h4>
+        {peerLatencies.length > 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '8px' }}>
+            {peerLatencies.map((item, idx) => (
+              <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', background: '#1e293b', padding: '4px 8px', borderRadius: '4px' }}>
+                <span style={{ color: '#94a3b8' }}>{item.peer}</span>
+                <span style={{ color: '#38bdf8', fontWeight: 600 }}>{item.rtt_ms.toFixed(1)} ms</span>
+              </div>
+            ))}
+          </div>
+        ) : fleetLogs.length === 0 ? (
           <p className="empty-notice">Local node operating in standalone swarm (fleet telemetry active on loopback).</p>
         ) : (
           fleetLogs.map((log, i) => <div key={i} className="fleet-row">{log}</div>)

@@ -1,6 +1,10 @@
 # HANDOFF: Session Persistence
 
-## System State (v0.1.137)
+## System State (v0.1.138)
+- **Real-Time Telemetry & Observability:**
+  - Added `GET /api/telemetry` to backend exposing dynamic peer count, routing packet rates, neutrality score, uptime in seconds, and peer round-trip latencies.
+  - Enhanced `frontend/src/components/MonitoringDashboard.tsx` with live 3-second polling to `/api/telemetry`, rolling sparkline throughput visualizer, and peer latency list.
+- **Consolidated Dashboard UI & UX Refinement:**
 - **Consolidated Dashboard UI & UX Refinement:**
   - Redesigned and unified dashboard into a high-value single page layout structured into 4 cohesive operational domains:
     1. *P2P Swarm & Core Communications* (`StatusPanel`, `ProtocolPanel`, `SwarmMessagePanel`, `DiscoveryPanel`)
