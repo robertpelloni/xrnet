@@ -423,3 +423,24 @@
 
 ## [0.1.122] - 2026-11-06
 - Autonomous version bump via Executive Protocol.
+
+## [0.1.123] - 2026-11-06
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.124] - 2026-11-06
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.125] - 2026-11-06
+### Added
+- Real-time sparkline telemetry bar chart for mesh routing throughput metrics in MonitoringDashboard.
+- Automated pulse telemetry simulations for local standalone observability.
+- Fully synchronized upstream feature branches and resolved conflicts.
+
+## [0.1.126] - 2026-11-06
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.127] - 2026-11-06
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.128] - 2026-11-06
+- Autonomous version bump via Executive Protocol.
