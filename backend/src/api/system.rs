@@ -19,15 +19,28 @@ pub fn routes(state: Arc<AppState>) -> Router {
                 let arbitrator = s.arbitrator.lock().unwrap();
                 let best_arbitrator = arbitrator.select_arbitrator().unwrap_or_else(|| "None Available".to_string());
 
+                let version = std::fs::read_to_string("VERSION.md")
+                    .or_else(|_| std::fs::read_to_string("../VERSION.md"))
+                    .map(|v| v.trim().to_string())
+                    .unwrap_or_else(|_| "0.1.115".to_string());
+
                 Json(json!({
                     "peer_id": "local",
                     "peers": peers,
                     "network": network,
                     "neutrality": neutrality,
                     "best_arbitrator": best_arbitrator,
-                    "version": "0.1.72".to_string(),
+                    "version": version,
                 }))
             }
+        }))
+        .route("/api/system/shutdown", post(|| async move {
+            println!("[API] Shutdown requested via /api/system/shutdown endpoint.");
+            tokio::spawn(async {
+                tokio::time::sleep(tokio::time::Duration::from_millis(150)).await;
+                std::process::exit(0);
+            });
+            Json(json!({ "status": "shutting_down", "message": "xrnet backend shutting down" }))
         }))
         .route("/api/system/feedback", post({
             let s = Arc::clone(&state);

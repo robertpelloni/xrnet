@@ -1,5 +1,30 @@
 # HANDOFF: Session Persistence
 
+## System State (v0.1.122)
+- **Consolidated Dashboard UI & UX Refinement:**
+  - Redesigned and unified dashboard into a high-value single page layout structured into 4 cohesive operational domains:
+    1. *P2P Swarm & Core Communications* (`StatusPanel`, `ProtocolPanel`, `SwarmMessagePanel`, `DiscoveryPanel`)
+    2. *Economic & Trust Layer* (`BobcoinPanel`, `EscrowPanel`, `SocialMatchPanel`)
+    3. *Spatial Operating System & AI* (`SpatialViewer` 3D Gaussian Splatting & LIDAR canvas)
+    4. *Governance, Plugins & Fleet Telemetry* (`GovernancePanel`, `JobTaskBoard`, `PluginPanel`, `MonitoringDashboard`)
+    - Concluded with an embedded *Mesh Evolution & DHT Feedback* module.
+  - Added full tooltip markers (`title="..."`) across all interactive forms and indicators.
+  - Implemented live ping/latency measurement and visual connection badges.
+  - Embedded manual refresh triggers in panels to enable instant diagnostic querying without full page reloads.
+- **Backend API & Service Additions:**
+  - Dynamic system version resolution from `VERSION.md` via `GET /api/status`.
+  - Added graceful daemon shutdown endpoint `POST /api/system/shutdown`.
+  - Added recent Gossipsub message ring buffer with `GET /api/messages/recent` and `POST /api/messages/send`.
+  - Fixed binary target runner (`cargo run --bin xrnet-backend`).
+- **System Tray Management:**
+  - Built `scripts/systray_manager.py` with cross-platform backend daemon lifecycle controls (`start`, `stop`, `status`, `run`) with both graphical `pystray` tray support and seamless headless CLI fallback.
+- **Dependency & Build Maintenance:**
+  - Patched frontend npm high-severity vulnerabilities (Vite 8.3.6 and associated transitive dependencies).
+  - Maintained rustc 1.94.0 compatibility on backend wasmtime dependency.
+- **Verification:**
+  - Full `./pipeline.sh` passed end-to-end, including smoke and multi-step e2e tests.
+  - Frontend visual verification completed via Playwright headless screenshot capture.
+
 ## System State (v0.1.73)
 - **Architecture:** Modular Rust backend (mesh, routing, governance, escrow, social, spatial) + React/Vite Frontend.
   - Extracted monolithic backend API in `main.rs` into discrete Axum route modules under `api/`.

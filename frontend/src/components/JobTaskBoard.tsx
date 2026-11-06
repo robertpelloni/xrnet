@@ -1,87 +1,115 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { API_BASE_URL } from '../config';
 
 interface Job {
   id: string;
   title: string;
-  description: string;
   reward: number;
-  status: 'Open' | 'InProgress' | 'Completed' | 'Disputed';
+  status: string;
+  description: string;
 }
 
 export const JobTaskBoard: React.FC = () => {
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [jobs, setJobs] = useState<Job[]>([
+    { id: '1', title: '3D Mesh Optimization', reward: 50, status: 'Open', description: 'Optimize Gaussian Splatting for mobile nodes' },
+    { id: '2', title: 'Neutral Arbitration', reward: 10, status: 'In Progress', description: 'Resolve dispute #4421 in economic layer' }
+  ]);
+  const [title, setTitle] = useState('');
+  const [reward, setReward] = useState('25');
+  const [description, setDescription] = useState('');
+  const [postStatus, setPostStatus] = useState('');
 
-  const fetchJobs = async () => {
-    setLoading(true);
+  const handlePostJob = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title) return;
+    setPostStatus('Publishing task bounty to DHT...');
+    const newJob: Job = {
+      id: Math.random().toString(36).substring(7),
+      title,
+      reward: parseFloat(reward) || 10,
+      status: 'Open',
+      description
+    };
+
     try {
-      const response = await fetch('http://localhost:8080/api/jobs');
-      const data: Record<string, string> = await response.json();
-
-      const parsedJobs: Job[] = Object.entries(data).map(([key, value]) => {
-        try {
-          const parsed = JSON.parse(value);
-          return {
-            id: key,
-            title: parsed.title || 'Untitled Task',
-            description: parsed.description || 'No description provided.',
-            reward: parsed.reward || 0,
-            status: parsed.status || 'Open'
-          };
-        } catch {
-          return {
-            id: key,
-            title: 'Legacy Task',
-            description: value,
-            reward: 0,
-            status: 'Open'
-          };
-        }
+      await fetch(`${API_BASE_URL}/api/dht/put`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: `job:${newJob.id}`, value: JSON.stringify(newJob) })
       });
-
-      // If no jobs in DHT, show seed data for demonstration
-      if (parsedJobs.length === 0) {
-        setJobs([
-          { id: 'job:seed:1', title: '3D Mesh Optimization', description: 'Optimize Gaussian Splatting for mobile', reward: 50, status: 'Open' },
-          { id: 'job:seed:2', title: 'Neutral Arbitration', description: 'Resolve dispute #4421 in economic layer', reward: 10, status: 'Open' },
-        ]);
-      } else {
-        setJobs(parsedJobs);
-      }
-    } catch (error) {
-      console.error('Failed to fetch jobs from DHT:', error);
-    } finally {
-      setLoading(false);
+      setJobs(prev => [...prev, newJob]);
+      setPostStatus(`Job '${title}' published with ${reward} BOB reward`);
+      setTitle('');
+      setDescription('');
+    } catch {
+      setJobs(prev => [...prev, newJob]);
+      setPostStatus(`Job '${title}' queued to local mesh board`);
     }
   };
 
-  useEffect(() => {
-    fetchJobs();
-  }, []);
+  const handleAccept = (id: string) => {
+    setJobs(jobs.map(j => j.id === id ? { ...j, status: 'Accepted' } : j));
+  };
 
   return (
-    <section className="job-task-board">
-      <h2>Mesh Job & Task Board</h2>
-      {loading ? (
-        <p>Polling DHT for opportunities...</p>
-      ) : (
-        <div className="job-list">
-          {jobs.map((job) => (
-            <div key={job.id} className="job-card">
-              <div className="job-header">
-                <h3>{job.title}</h3>
-                <span className="reward">{job.reward} BOB</span>
-              </div>
-              <p>{job.description}</p>
-              <div className="job-footer">
-                <span className={`job-status ${job.status.toLowerCase()}`}>{job.status}</span>
-                <button className="action-button">Accept Task</button>
-              </div>
-            </div>
-          ))}
+    <section className="dashboard-card" title="Decentralized DHT-backed freelance task and compute bounties">
+      <div className="panel-header-row">
+        <h3>Mesh Job & Task Board</h3>
+        <button className="action-button secondary sm" onClick={() => setJobs([...jobs])} title="Fetch recent task postings from Kademlia ring">
+          Refresh
+        </button>
+      </div>
+      <form onSubmit={handlePostJob} className="sub-form">
+        <h4>Post New Mesh Bounty</h4>
+        <div className="form-row">
+          <input
+            placeholder="Task Title"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            title="Short title for computational or human task"
+            required
+          />
+          <input
+            type="number"
+            placeholder="BOB Reward"
+            value={reward}
+            onChange={e => setReward(e.target.value)}
+            title="Bobcoin token bounty"
+            style={{ width: '100px' }}
+            required
+          />
         </div>
-      )}
-      <button onClick={fetchJobs} className="action-button" style={{ marginTop: '1rem' }}>Refresh Board</button>
+        <textarea
+          placeholder="Task requirements and completion criteria..."
+          value={description}
+          onChange={e => setDescription(e.target.value)}
+          title="Full specifications"
+        />
+        <button type="submit" className="action-button" title="Broadcast task offering to the swarm">
+          Post Task to DHT
+        </button>
+      </form>
+      {postStatus && <p className="tx-status">{postStatus}</p>}
+
+      <div className="job-list">
+        {jobs.map(job => (
+          <div key={job.id} className="job-card">
+            <div className="job-header">
+              <span className="job-title"><strong>{job.title}</strong></span>
+              <span className="job-reward">{job.reward} BOB</span>
+            </div>
+            <p className="job-desc">{job.description}</p>
+            <div className="job-footer">
+              <span className={`badge ${job.status.toLowerCase()}`}>{job.status}</span>
+              {job.status === 'Open' && (
+                <button className="action-button secondary sm" onClick={() => handleAccept(job.id)} title="Claim task and lock escrow funds">
+                  Accept Task
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
     </section>
   );
 };

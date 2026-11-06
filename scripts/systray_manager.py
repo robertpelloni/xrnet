@@ -31,7 +31,7 @@ def start_backend():
     print("[Systray] Booting xrnet backend daemon...")
     log_file = open(os.path.join(REPO_ROOT, "backend_daemon.log"), "a")
     proc = subprocess.Popen(
-        ["cargo", "run", "--bin", "backend"],
+        ["cargo", "run", "--bin", "xrnet-backend"],
         cwd=os.path.join(REPO_ROOT, "backend"),
         stdout=log_file,
         stderr=subprocess.STDOUT,
