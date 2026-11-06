@@ -444,3 +444,32 @@
 
 ## [0.1.128] - 2026-11-06
 - Autonomous version bump via Executive Protocol.
+
+## [0.1.129] - 2026-11-06
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.130] - 2026-11-06
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.131] - 2026-11-06
+- Autonomous version bump via Executive Protocol.
+### Added
+- Wasm plugin sandbox execution UI in PluginPanel with runtime execution trigger, JSON input payload passing, and output visualizer.
+
+## [0.1.132] - 2026-11-06
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.133] - 2026-11-06
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.134] - 2026-11-06
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.135] - 2026-11-06
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.136] - 2026-11-06
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.137] - 2026-11-06
+- Autonomous version bump via Executive Protocol.

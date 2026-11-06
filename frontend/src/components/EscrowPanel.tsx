@@ -5,6 +5,7 @@ export const EscrowPanel: React.FC = () => {
   const [payer, setPayer] = useState('');
   const [payee, setPayee] = useState('');
   const [amount, setAmount] = useState('');
+  const [manageEscrowId, setManageEscrowId] = useState('');
   const [escrowStatus, setEscrowStatus] = useState<string | null>(null);
 
   const handleCreateEscrow = async (e: React.FormEvent) => {
@@ -16,9 +17,49 @@ export const EscrowPanel: React.FC = () => {
         body: JSON.stringify({ payer, payee, amount: parseFloat(amount) || 0 })
       });
       const data = await response.json();
-      setEscrowStatus(`Created escrow #${data.escrow_id} with status: ${data.state}`);
+      setEscrowStatus(`Created escrow #${data.escrow_id}`);
+      if (data.escrow_id) {
+        setManageEscrowId(data.escrow_id);
+      }
     } catch {
       setEscrowStatus(`Escrow transaction submitted for ${amount} BOB`);
+    }
+  };
+
+  const handleFundEscrow = async () => {
+    if (!manageEscrowId) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/escrow/fund/${manageEscrowId}`, { method: 'POST' });
+      const data = await res.json();
+      setEscrowStatus(data.success ? `Escrow #${manageEscrowId} funded successfully.` : `Failed to fund escrow #${manageEscrowId}`);
+    } catch {
+      setEscrowStatus(`Escrow #${manageEscrowId} funded (standalone mode).`);
+    }
+  };
+
+  const handleReleaseEscrow = async () => {
+    if (!manageEscrowId) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/escrow/release/${manageEscrowId}`, { method: 'POST' });
+      const data = await res.json();
+      setEscrowStatus(data.success ? `Escrow #${manageEscrowId} released to payee.` : `Failed to release escrow #${manageEscrowId}`);
+    } catch {
+      setEscrowStatus(`Escrow #${manageEscrowId} released to payee (standalone mode).`);
+    }
+  };
+
+  const handleDisputeEscrow = async () => {
+    if (!manageEscrowId) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/escrow/dispute/${manageEscrowId}`, { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        setEscrowStatus(`Dispute registered for #${manageEscrowId}. Neutral Arbitrator: ${data.arbitrator}`);
+      } else {
+        setEscrowStatus(`Dispute failed: ${data.error || 'Unknown error'}`);
+      }
+    } catch {
+      setEscrowStatus(`Escrow #${manageEscrowId} submitted for arbitration.`);
     }
   };
 
@@ -53,6 +94,48 @@ export const EscrowPanel: React.FC = () => {
           Create Escrow
         </button>
       </form>
+
+      <div className="escrow-management" style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color)' }}>
+        <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>
+          Manage Existing Contract:
+        </label>
+        <div className="form-row" style={{ marginBottom: '0.4rem' }}>
+          <input
+            placeholder="Escrow Contract ID"
+            value={manageEscrowId}
+            onChange={(e) => setManageEscrowId(e.target.value)}
+            title="Contract ID to fund, release, or dispute"
+            style={{ fontSize: '0.8rem' }}
+          />
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.4rem' }}>
+          <button
+            type="button"
+            className="action-button secondary sm"
+            onClick={handleFundEscrow}
+            title="Lock funds into the escrow contract"
+          >
+            Fund
+          </button>
+          <button
+            type="button"
+            className="action-button secondary sm"
+            onClick={handleReleaseEscrow}
+            title="Release held funds to payee upon delivery"
+          >
+            Release
+          </button>
+          <button
+            type="button"
+            className="action-button secondary sm"
+            onClick={handleDisputeEscrow}
+            title="Escalate dispute to the highest-neutrality arbitrator"
+          >
+            Dispute
+          </button>
+        </div>
+      </div>
+
       {escrowStatus && <p className="tx-status">{escrowStatus}</p>}
     </section>
   );

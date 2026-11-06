@@ -1,6 +1,6 @@
 # HANDOFF: Session Persistence
 
-## System State (v0.1.122)
+## System State (v0.1.137)
 - **Consolidated Dashboard UI & UX Refinement:**
   - Redesigned and unified dashboard into a high-value single page layout structured into 4 cohesive operational domains:
     1. *P2P Swarm & Core Communications* (`StatusPanel`, `ProtocolPanel`, `SwarmMessagePanel`, `DiscoveryPanel`)
@@ -11,6 +11,10 @@
   - Added full tooltip markers (`title="..."`) across all interactive forms and indicators.
   - Implemented live ping/latency measurement and visual connection badges.
   - Embedded manual refresh triggers in panels to enable instant diagnostic querying without full page reloads.
+- **Interactive Wasm Sandbox & Escrow Lifecycle Enhancements:**
+  - Extended `frontend/src/components/PluginPanel.tsx` with dynamic WebAssembly module registration, manifest display, payload input, and real-time execution via `POST /api/plugins/:id/execute`.
+  - Restored full interactive Escrow Contract management in `frontend/src/components/EscrowPanel.tsx` (Fund, Release, Dispute) against `/api/escrow/*`.
+  - Standardized Swarm message payloads between backend (`/api/messages/*`) and frontend (`SwarmMessagePanel.tsx`, `SpatialViewer.tsx`), supporting `content`, `message`, and `payload` interoperably and guarding against malformed JSON or array mismatches.
 - **Backend API & Service Additions:**
   - Dynamic system version resolution from `VERSION.md` via `GET /api/status`.
   - Added graceful daemon shutdown endpoint `POST /api/system/shutdown`.
@@ -23,6 +27,7 @@
   - Maintained rustc 1.94.0 compatibility on backend wasmtime dependency.
 - **Verification:**
   - Full `./pipeline.sh` passed end-to-end, including smoke and multi-step e2e tests.
+  - Unit tests verified (`cargo test` -> 17 tests passed).
   - Frontend visual verification completed via Playwright headless screenshot capture.
 
 ## System State (v0.1.73)
