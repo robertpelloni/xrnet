@@ -1,10 +1,15 @@
 # HANDOFF: xrnet System State & Context
 
 ## Target Version
-`v0.1.142`
+`0.1.145`
 
 ## Operational Summary
-1. **Unified Dashboard Architecture**:
+1. **Production Deployment & Rollout**:
+   - `scripts/deploy_prod.sh` upgraded to target port 3000 Axum health checks and ensure responsive system readiness.
+   - Rust backend (`backend/src/main.rs`) writes `status.json` and `backend/status.json` on startup to coordinate with `main.py` and deployment health checkers.
+   - Deployment smoke test and systemd service generation validated cleanly via `sh scripts/deploy_prod.sh`.
+
+2. **Unified Dashboard Architecture**:
    - The single-page dashboard at `frontend/src/App.tsx` organizes the entire decentralized spatial mesh into four operational tiers:
      - **P2P Swarm & Core Communications**: System Status & Engine, Protocol & DHT (with live Distance-Vector routing table and multi-hop packet dispatch), Global Mesh Feed & Broadcast, and Peer Discovery & Profiles.
      - **Economic & Trust Layer**: Bobcoin Consensus & Micropayments, Escrow & Arbitration, and Social Matchmaking (ZK-Proofs).
@@ -12,7 +17,7 @@
      - **Governance, Plugins & Fleet Telemetry**: Algorithmic neutrality scoring, Mesh Job/Task Bounty board, sandboxed Wasm plugin ecosystem, and live Fleet Telemetry & Observability.
    - Every interactive control includes descriptive `title` tooltips, dynamic status indicators, and operational feedback.
 
-2. **Backend Enhancements**:
+3. **Backend Enhancements**:
    - **Fleet Telemetry & Observability (`backend/src/api/system.rs`)**:
      - `GET /api/telemetry` reports connected peers, network status, node neutrality score, routing throughput (`packet_rate`), uptime, per-peer RTT latencies, total packets routed, active jobs, active plugins, active DV routes (`active_routes`), calculated transit jitter (`jitter_ms`), and packet loss percentage (`packet_loss_percent`).
      - Graceful daemon shutdown available via `POST /api/system/shutdown`.
@@ -23,17 +28,12 @@
    - **Multi-Hop Distance-Vector Routing (`backend/src/mesh.rs`, `backend/src/routing.rs`, `backend/src/api/routing.rs`)**:
      - Route querying (`GET /api/routing/routes`) and packet dispatching (`POST /api/routing/dispatch`) backed by shared `DistanceVectorTable`.
 
-3. **Frontend Telemetry Enhancements (`frontend/src/components/MonitoringDashboard.tsx`)**:
-     - Live polling frequency selector (1s, 3s, 10s, Paused).
-     - Distance-Vector route stats displayed alongside connected peer counts (`DV Routes / Peers`).
-     - Dedicated transit jitter (ms) and packet loss (%) indicators.
-     - Real-time sparkline graph visualizing mesh packet throughput history.
-
 4. **Lifecycle & Service Management**:
    - `scripts/systray_manager.py` manages `xrnet-backend` and Vite services with `start`, `stop`, `status`, `tail`, and GUI tray icons via `pystray` (with automatic fallback to headless mode).
    - Port 3000 hygiene is automated via `./start.sh` and `systray_manager.py`.
 
 ## Verification Status
+- Production Deployment: `sh scripts/deploy_prod.sh` passed cleanly with status 200 OK.
 - Backend unit tests (`cargo test`): 17 passed, 0 failed.
 - Frontend compilation (`npm run build`): Clean build, 0 errors.
 - Visual Verification: Verified using Playwright headless test capturing `/home/jules/verification/telemetry_dashboard.png`.

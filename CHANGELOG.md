@@ -497,3 +497,15 @@
 ### Added
 - Added live fleet telemetry backend endpoint `GET /api/telemetry` in `backend/src/api/system.rs` reporting peers, packet rate, neutrality score, uptime, and peer RTT latencies.
 - Upgraded `frontend/src/components/MonitoringDashboard.tsx` with dynamic polling of `/api/telemetry` every 3s, real-time throughput sparkline history, and dedicated peer latency list visualizer.
+
+## [0.1.143] - 2026-11-07
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.144] - 2026-11-07
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.145] - 2026-11-07
+### Added
+- Upgraded `scripts/deploy_prod.sh` production rollout script to target port 3000 Axum health check and verify responsive JSON status.
+- Added status synchronization writing `status.json` and `backend/status.json` on backend startup to coordinate with `main.py` and deployment scripts.
+- Ignored runtime deployment smoke logs `prod_smoke.log` and generated systemd service files `xrnet.service` in `.gitignore`.
