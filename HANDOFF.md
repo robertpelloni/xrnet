@@ -1,5 +1,12 @@
 # HANDOFF: Session Persistence
 
+## System State (v0.1.140)
+- **Multi-Hop Distance-Vector Routing & Dispatch:**
+  - Integrated `DistanceVectorTable` and `RoutingEngine` into shared `AppState` and libp2p Gossipsub event loop in `backend/src/mesh.rs`.
+  - Added `GET /api/routing/routes` returning active non-stale distance-vector routing table entries (destination, next_hop, metric, expiration).
+  - Added `POST /api/routing/dispatch` allowing direct packet dispatch via resolved distance-vector next hops or algorithmic neutrality fallback.
+  - Enhanced `frontend/src/components/ProtocolPanel.tsx` with live route inspection and interactive packet dispatch forms with descriptive labels and tooltips.
+
 ## System State (v0.1.138)
 - **Real-Time Telemetry & Observability:**
   - Added `GET /api/telemetry` to backend exposing dynamic peer count, routing packet rates, neutrality score, uptime in seconds, and peer round-trip latencies.

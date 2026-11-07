@@ -6,7 +6,7 @@ use futures::StreamExt;
 use tokio::sync::mpsc;
 use std::sync::Arc;
 use crate::{AppState, Command};
-use crate::routing::{RoutingEngine, MeshPacket, RouteUpdate, DistanceVectorTable};
+use crate::routing::{MeshPacket, RouteUpdate};
 
 #[derive(NetworkBehaviour)]
 pub struct MyBehaviour {
@@ -24,12 +24,9 @@ pub async fn run_mesh(
     let local_peer_id = PeerId::from(local_key.public());
     let spatial_sync_topic = gossipsub::IdentTopic::new("spatial_sync");
 
-    // --- Initialize Distance-Vector routing  ---
-    let mut routing_engine = RoutingEngine::new();
-    let mut dv_table = DistanceVectorTable::new();
-    
-    // Add initial direct routes for known direct neighbors
-    drop(state.peers.lock().unwrap()); // dummy to satisfy borrow
+    // Use Distance-Vector routing table and engine from AppState
+    let dv_table = Arc::clone(&state.routing_table);
+    let routing_engine = Arc::clone(&state.routing_engine);
 
     let mut swarm = libp2p::SwarmBuilder::with_existing_identity(local_key)
         .with_tokio()
@@ -116,8 +113,12 @@ pub async fn run_mesh(
             
             // --- Routing advertisements and periodic updates ---
             _ = route_advert_interval.tick() => {
-                let seq = dv_table.next_sequence();
-                let entries = dv_table.advertisement_entries();
+                let (seq, entries) = {
+                    let mut table = dv_table.lock().unwrap();
+                    let s = table.next_sequence();
+                    let e = table.advertisement_entries();
+                    (s, e)
+                };
                 let update = RouteUpdate { 
                     source_peer: local_peer_id.to_string(),
                     sequence_number: seq,
@@ -146,11 +147,16 @@ pub async fn run_mesh(
                         println!("[MESH] Discovered peer {} at {:?}", peer_id, addr);
                         swarm.behaviour_mut().kad.add_address(&peer_id, addr);
                         // Add direct route to this newly discovered peer
-                        dv_table.add_direct_route(peer_id.to_string().as_str(), 1);
-                        let count = dv_table.route_count();
-                        // log routing info every few peers
-                        if count.is_multiple_of(5) { println!("[ROUTE] Routing table size: {}", count); }
-                        routing_engine.update_neutrality(peer_id.to_string(), 0.9); // initial supposition
+                        {
+                            let mut table = dv_table.lock().unwrap();
+                            table.add_direct_route(peer_id.to_string().as_str(), 1);
+                            let count = table.route_count();
+                            if count.is_multiple_of(5) { println!("[ROUTE] Routing table size: {}", count); }
+                        }
+                        {
+                            let mut eng = routing_engine.lock().unwrap();
+                            eng.update_neutrality(peer_id.to_string(), 0.9); // initial supposition
+                        }
                     }
                 }
                 SwarmEvent::Behaviour(MyBehaviourEvent::Kad(kad::Event::OutboundQueryProgressed { result: kad::QueryResult::GetRecord(Ok(kad::GetRecordOk::FoundRecord(record))), .. })) => {
@@ -172,12 +178,19 @@ pub async fn run_mesh(
                     if topic == "xrnet-route-update" {
                         if let Ok(update) = serde_json::from_slice::<RouteUpdate>(&message.data) {
                             // Process route update via distance-vector engine
-                            let changed = dv_table.process_update(&update, &peer_id.to_string());
+                            let changed = {
+                                let mut table = dv_table.lock().unwrap();
+                                table.process_update(&update, &peer_id.to_string())
+                            };
                             if changed {
                                 println!("[ROUTE/UPDATE] Adopted new routes from {} (seq={})", peer_id, update.sequence_number);
                                 // Force immediate re-advertisement to propagate change quickly
-                                let seq_now = dv_table.next_sequence();
-                                let entries = dv_table.advertisement_entries();
+                                let (seq_now, entries) = {
+                                    let mut table = dv_table.lock().unwrap();
+                                    let s = table.next_sequence();
+                                    let e = table.advertisement_entries();
+                                    (s, e)
+                                };
                                 let update_reply = RouteUpdate { source_peer: local_peer_id.to_string(), sequence_number: seq_now, entries };
                                 let update_topic = gossipsub::IdentTopic::new("xrnet-route-update");
 
@@ -192,14 +205,16 @@ pub async fn run_mesh(
                             
                             // Decision based on packet destiny:
                             if packet.at_destination(&my_id) {
-                                // Final delivery: log the packet reception (in a real app, this is app-layer handling)
                                 println!("[ROUTE/DELIVER] Packet arrived to destination {} from {} (hops={}/{} bytes={})", 
                                     packet.destination, packet.source, packet.hop_count, packet.max_hops, packet.payload.len());
                             } else if packet.next_hop == my_id && !packet.is_expired() {
-                                // We're the intended next hop and packet is still alive → forward it via routing + neutrality
                                 let available: Vec<String> = swarm.connected_peers().map(|p| p.to_string()).collect();
-                                if let Some(chosen_next) = routing_engine.route_packet(&packet, available, &dv_table) {
-                                    // Actually advance and set next_hop to the chosen neighbor
+                                let chosen_next = {
+                                    let eng = routing_engine.lock().unwrap();
+                                    let table = dv_table.lock().unwrap();
+                                    eng.route_packet(&packet, available, &table)
+                                };
+                                if let Some(chosen_next) = chosen_next {
                                     packet.advance(chosen_next);
                                     if let Ok(forward_data) = serde_json::to_vec(&packet) {
                                         let rt = gossipsub::IdentTopic::new("xrnet-routing");

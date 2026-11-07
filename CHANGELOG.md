@@ -1,5 +1,11 @@
 # CHANGELOG: xrnet
 
+## [0.1.140] - 2026-06-25
+### Added
+- Multi-Hop Distance-Vector routing inspection endpoint `GET /api/routing/routes` returning real-time non-stale mesh paths.
+- Multi-Hop packet dispatch endpoint `POST /api/routing/dispatch` resolving routes via distance-vector and algorithmic neutrality scoring fallback.
+- Interactive Distance-Vector routing table and packet dispatch UI within `ProtocolPanel.tsx`.
+- Synchronized `DistanceVectorTable` and `RoutingEngine` inside Axum `AppState` and libp2p Gossipsub event loop in `mesh.rs`.
 
 ## [0.1.44] - 2026-06-18
 ### Changed

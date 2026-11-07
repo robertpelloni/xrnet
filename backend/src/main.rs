@@ -20,9 +20,11 @@ pub struct AppState {
     pub jobs: Arc<Mutex<std::collections::HashMap<String, String>>>,
     pub command_tx: mpsc::Sender<Command>,
     pub escrow_manager: Arc<Mutex<escrow::EscrowManager>>,
-        pub arbitrator: Arc<Mutex<governance::NeutralArbitrator>>,
+    pub arbitrator: Arc<Mutex<governance::NeutralArbitrator>>,
     pub spatial_manager: Arc<Mutex<spatial::SpatialManager>>,
     pub plugin_manager: Arc<Mutex<plugin::PluginManager>>,
+    pub routing_table: Arc<Mutex<routing::DistanceVectorTable>>,
+    pub routing_engine: Arc<Mutex<routing::RoutingEngine>>,
 }
 
 #[derive(Debug, Clone)]
@@ -43,9 +45,11 @@ async fn main() {
         jobs: Arc::new(Mutex::new(std::collections::HashMap::new())),
         command_tx: tx,
         escrow_manager: Arc::new(Mutex::new(escrow::EscrowManager::new())),
-                arbitrator: Arc::new(Mutex::new(governance::NeutralArbitrator::new())),
+        arbitrator: Arc::new(Mutex::new(governance::NeutralArbitrator::new())),
         spatial_manager: Arc::new(Mutex::new(spatial::SpatialManager::new())),
         plugin_manager: Arc::new(Mutex::new(plugin::PluginManager::new())),
+        routing_table: Arc::new(Mutex::new(routing::DistanceVectorTable::new())),
+        routing_engine: Arc::new(Mutex::new(routing::RoutingEngine::new())),
     });
 
     let local_key = libp2p::identity::Keypair::generate_ed25519();
