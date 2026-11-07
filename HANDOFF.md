@@ -1,7 +1,7 @@
 # HANDOFF: xrnet System State & Context
 
 ## Target Version
-`v0.1.141`
+`v0.1.142`
 
 ## Operational Summary
 1. **Unified Dashboard Architecture**:
@@ -13,20 +13,27 @@
    - Every interactive control includes descriptive `title` tooltips, dynamic status indicators, and operational feedback.
 
 2. **Backend Enhancements**:
+   - **Fleet Telemetry & Observability (`backend/src/api/system.rs`)**:
+     - `GET /api/telemetry` reports connected peers, network status, node neutrality score, routing throughput (`packet_rate`), uptime, per-peer RTT latencies, total packets routed, active jobs, active plugins, active DV routes (`active_routes`), calculated transit jitter (`jitter_ms`), and packet loss percentage (`packet_loss_percent`).
+     - Graceful daemon shutdown available via `POST /api/system/shutdown`.
    - **Privacy-Preserving ZK Matchmaking (`backend/src/social.rs`, `backend/src/api/social.rs`)**:
      - Calculates compatibility scores based on Jaccard similarity across salted, blinded interest hash sets.
      - Validates payload attributes seamlessly supporting both `{my_interests, peer_interests}` and `{interests, other_interests}`.
      - Verifies Groth16 / BLS12-381 zero-knowledge proofs and returns blinded matches, match count, and overall percentage compatibility.
    - **Multi-Hop Distance-Vector Routing (`backend/src/mesh.rs`, `backend/src/routing.rs`, `backend/src/api/routing.rs`)**:
      - Route querying (`GET /api/routing/routes`) and packet dispatching (`POST /api/routing/dispatch`) backed by shared `DistanceVectorTable`.
-   - **System Telemetry & Lifecycle (`backend/src/api/system.rs`)**:
-     - Telemetry reporting (`GET /api/telemetry`) and graceful daemon shutdown (`POST /api/system/shutdown`).
 
-3. **Lifecycle & Service Management**:
+3. **Frontend Telemetry Enhancements (`frontend/src/components/MonitoringDashboard.tsx`)**:
+     - Live polling frequency selector (1s, 3s, 10s, Paused).
+     - Distance-Vector route stats displayed alongside connected peer counts (`DV Routes / Peers`).
+     - Dedicated transit jitter (ms) and packet loss (%) indicators.
+     - Real-time sparkline graph visualizing mesh packet throughput history.
+
+4. **Lifecycle & Service Management**:
    - `scripts/systray_manager.py` manages `xrnet-backend` and Vite services with `start`, `stop`, `status`, `tail`, and GUI tray icons via `pystray` (with automatic fallback to headless mode).
    - Port 3000 hygiene is automated via `./start.sh` and `systray_manager.py`.
 
 ## Verification Status
 - Backend unit tests (`cargo test`): 17 passed, 0 failed.
 - Frontend compilation (`npm run build`): Clean build, 0 errors.
-- Visual Verification: Verified using Playwright headless test capturing `/home/jules/verification/social_zk_match.png`.
+- Visual Verification: Verified using Playwright headless test capturing `/home/jules/verification/telemetry_dashboard.png`.

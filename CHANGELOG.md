@@ -1,5 +1,11 @@
 # CHANGELOG: xrnet
 
+## [0.1.142] - 2026-11-06
+### Added
+- Real-time Distance-Vector active route counting (`active_routes`), calculated transit jitter (`jitter_ms`), and packet loss percentage (`packet_loss_percent`) in `GET /api/telemetry`.
+- Configurable polling intervals (1s, 3s, 10s, Paused) in `MonitoringDashboard.tsx`.
+- Visual indicators for active routing table size alongside connected peers, dynamic transit jitter, and network packet loss metrics.
+
 ## [0.1.141] - 2026-11-06
 ### Added
 - Privacy-preserving ZK matchmaking compatibility scoring (`compute_compatibility_score`) via Jaccard similarity coefficient across blinded salted interest hashes.

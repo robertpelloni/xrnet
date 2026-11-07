@@ -13,13 +13,17 @@ export const MonitoringDashboard: React.FC<MonitoringDashboardProps> = ({
   network
 }) => {
   const [routeCount, setRouteCount] = useState<number>(peers);
+  const [activeRoutesCount, setActiveRoutesCount] = useState<number>(0);
   const [packetRate, setPacketRate] = useState<number>(12);
   const [totalRouted, setTotalRouted] = useState<number>(1250);
+  const [jitterMs, setJitterMs] = useState<number>(0.8);
+  const [packetLoss, setPacketLoss] = useState<number>(0.0);
   const [activeJobsCount, setActiveJobsCount] = useState<number>(0);
   const [activePluginsCount, setActivePluginsCount] = useState<number>(1);
   const [uptimeSeconds, setUptimeSeconds] = useState<number>(0);
   const [sparklineHistory, setSparklineHistory] = useState<number[]>([15, 22, 18, 30, 25, 34, 28, 40, 36, 42]);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [pollIntervalMs, setPollIntervalMs] = useState<number>(3000);
 
   const [peerLatencies, setPeerLatencies] = useState<{ peer: string; rtt_ms: number; status?: string }[]>([]);
 
@@ -30,11 +34,14 @@ export const MonitoringDashboard: React.FC<MonitoringDashboardProps> = ({
       if (res.ok) {
         const data = await res.json();
         setRouteCount(data.peers ?? peers);
+        if (data.active_routes !== undefined) setActiveRoutesCount(data.active_routes);
         if (data.packet_rate) {
           setPacketRate(data.packet_rate);
           setSparklineHistory(prev => [...prev.slice(1), data.packet_rate]);
         }
         if (data.total_packets_routed) setTotalRouted(data.total_packets_routed);
+        if (data.jitter_ms !== undefined) setJitterMs(data.jitter_ms);
+        if (data.packet_loss_percent !== undefined) setPacketLoss(data.packet_loss_percent);
         if (data.active_jobs !== undefined) setActiveJobsCount(data.active_jobs);
         if (data.active_plugins !== undefined) setActivePluginsCount(data.active_plugins);
         if (data.uptime_seconds !== undefined) setUptimeSeconds(data.uptime_seconds);
@@ -52,30 +59,44 @@ export const MonitoringDashboard: React.FC<MonitoringDashboardProps> = ({
 
   useEffect(() => {
     fetchTelemetry();
-    const interval = setInterval(fetchTelemetry, 3000);
-
-    return () => clearInterval(interval);
-  }, [peers]);
+    if (pollIntervalMs > 0) {
+      const interval = setInterval(fetchTelemetry, pollIntervalMs);
+      return () => clearInterval(interval);
+    }
+  }, [peers, pollIntervalMs]);
 
   return (
     <section className="dashboard-card" title="Cluster-wide routing topology, latency telemetry, and neutrality index">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
         <h3 style={{ margin: 0 }}>Fleet Telemetry & Observability</h3>
-        <button
-          className="button secondary"
-          style={{ fontSize: '0.75rem', padding: '2px 8px' }}
-          onClick={fetchTelemetry}
-          disabled={isRefreshing}
-          title="Query telemetry API for immediate node statistics"
-        >
-          {isRefreshing ? '...' : '↻ Probe'}
-        </button>
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+          <select
+            value={pollIntervalMs}
+            onChange={(e) => setPollIntervalMs(Number(e.target.value))}
+            style={{ fontSize: '0.75rem', padding: '2px 4px', background: '#1e293b', color: '#94a3b8', border: '1px solid #334155', borderRadius: '4px' }}
+            title="Configure real-time telemetry polling frequency"
+          >
+            <option value={1000}>1s poll</option>
+            <option value={3000}>3s poll</option>
+            <option value={10000}>10s poll</option>
+            <option value={0}>Paused</option>
+          </select>
+          <button
+            className="button secondary"
+            style={{ fontSize: '0.75rem', padding: '2px 8px' }}
+            onClick={fetchTelemetry}
+            disabled={isRefreshing}
+            title="Query telemetry API for immediate node statistics"
+          >
+            {isRefreshing ? '...' : '↻ Probe'}
+          </button>
+        </div>
       </div>
 
       <div className="status-grid">
         <div className="status-item">
-          <label title="Active routing paths calculated via Distance-Vector protocol">Active Routing Paths:</label>
-          <span className="stat-count">{routeCount}</span>
+          <label title="Distance-Vector routes currently active in local routing table">DV Routes / Peers:</label>
+          <span className="stat-count">{activeRoutesCount} / {routeCount}</span>
         </div>
         <div className="status-item">
           <label title="Peer mesh clustering topology mode">Network State:</label>
@@ -88,6 +109,17 @@ export const MonitoringDashboard: React.FC<MonitoringDashboardProps> = ({
         <div className="status-item">
           <label title="Active sandboxed Wasm plugins loaded in node runtime">Plugins / Bounties:</label>
           <span className="badge-highlight" style={{ fontSize: '0.8rem' }}>{activePluginsCount} Wasm / {activeJobsCount} Tasks</span>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 12px', background: 'rgba(30, 41, 59, 0.5)', borderRadius: '6px', margin: '8px 0', fontSize: '0.8rem' }}>
+        <div title="Packet transit delay jitter across current mesh paths">
+          <span style={{ color: '#94a3b8' }}>Transit Jitter: </span>
+          <span style={{ color: '#38bdf8', fontWeight: 600 }}>{jitterMs.toFixed(2)} ms</span>
+        </div>
+        <div title="Percentage of dropped or expired packets across mesh hops">
+          <span style={{ color: '#94a3b8' }}>Packet Loss: </span>
+          <span style={{ color: packetLoss > 0 ? '#ef4444' : '#10b981', fontWeight: 600 }}>{packetLoss.toFixed(1)}%</span>
         </div>
       </div>
 
