@@ -4,6 +4,7 @@
 - [x] Implement multi-hop packet forwarding and routing algorithm.
 - [x] Expose distance-vector routing table and multi-hop dispatch API (`/api/routing/routes`, `/api/routing/dispatch`) and interactive dashboard UI.
 - [x] Expand ZK-Matchmaking to support privacy-preserving social compatibility.
+- [x] Integrate dynamic compatibility scoring and Groth16 verification into SocialMatchPanel UI.
 - [x] Design plugin architecture for third-party mesh-managed applications (Wasm sandbox).
 - [ ] Research homomorphic encryption for advanced social matchmaking.
 - [x] Connect Neutral Arbitration logic to Escrow dispute resolution flow.

@@ -7,7 +7,7 @@ interface ProtocolPanelProps {
 }
 
 interface RouteItem {
-  destination: String;
+  destination: string;
   next_hop: string;
   metric: number;
 }

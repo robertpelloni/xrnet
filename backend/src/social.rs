@@ -56,11 +56,33 @@ impl MatchmakingEngine {
         format!("{:x}", hasher.finalize())
     }
 
+    /// Calculates intersecting hashed interests between two interest profiles.
     pub fn find_matches(my_profile: &InterestProfile, other_profile: &InterestProfile) -> Vec<String> {
         my_profile.hashed_interests.iter()
             .filter(|i| other_profile.hashed_interests.contains(i))
             .cloned()
             .collect()
+    }
+
+    /// Computes privacy-preserving Jaccard similarity score [0.0, 1.0].
+    /// In an encrypted or homomorphic context, the intersection size is computed over blinded hashes.
+    pub fn compute_compatibility_score(my_profile: &InterestProfile, other_profile: &InterestProfile) -> f64 {
+        if my_profile.hashed_interests.is_empty() && other_profile.hashed_interests.is_empty() {
+            return 1.0;
+        }
+        let matches = Self::find_matches(my_profile, other_profile).len();
+        let mut union_set = std::collections::HashSet::new();
+        for item in &my_profile.hashed_interests {
+            union_set.insert(item);
+        }
+        for item in &other_profile.hashed_interests {
+            union_set.insert(item);
+        }
+        if union_set.is_empty() {
+            0.0
+        } else {
+            (matches as f64) / (union_set.len() as f64)
+        }
     }
 
     pub fn generate_zk_parameters() -> Parameters<Bls12> {

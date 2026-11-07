@@ -1,5 +1,12 @@
 # CHANGELOG: xrnet
 
+## [0.1.141] - 2026-11-06
+### Added
+- Privacy-preserving ZK matchmaking compatibility scoring (`compute_compatibility_score`) via Jaccard similarity coefficient across blinded salted interest hashes.
+- Flexible multi-format payload handling (`my_interests`/`interests`, `peer_interests`/`other_interests`) in `POST /api/social/match`.
+- Visual compatibility percentage score, Groth16/BLS12-381 ZK-SNARK verification badges, and blinded match count indicators in `SocialMatchPanel.tsx`.
+- Refined TypeScript primitive types in `ProtocolPanel.tsx`.
+
 ## [0.1.140] - 2026-06-25
 ### Added
 - Multi-Hop Distance-Vector routing inspection endpoint `GET /api/routing/routes` returning real-time non-stale mesh paths.
