@@ -1,13 +1,14 @@
 # HANDOFF: xrnet System State & Context
 
 ## Target Version
-`0.1.145`
+`0.1.151`
 
 ## Operational Summary
 1. **Production Deployment & Rollout**:
    - `scripts/deploy_prod.sh` upgraded to target port 3000 Axum health checks and ensure responsive system readiness.
    - Rust backend (`backend/src/main.rs`) writes `status.json` and `backend/status.json` on startup to coordinate with `main.py` and deployment health checkers.
    - Deployment smoke test and systemd service generation validated cleanly via `sh scripts/deploy_prod.sh`.
+   - Full end-to-end stack integration verified via `python3 tests/e2e_integration.py` (3 of 3 integration tests passing).
 
 2. **Unified Dashboard Architecture**:
    - The single-page dashboard at `frontend/src/App.tsx` organizes the entire decentralized spatial mesh into four operational tiers:
@@ -34,6 +35,7 @@
 
 ## Verification Status
 - Production Deployment: `sh scripts/deploy_prod.sh` passed cleanly with status 200 OK.
+- End-to-End Testing (`python3 tests/e2e_integration.py`): 3 passed, 0 failed.
 - Backend unit tests (`cargo test`): 17 passed, 0 failed.
 - Frontend compilation (`npm run build`): Clean build, 0 errors.
 - Visual Verification: Verified using Playwright headless test capturing `/home/jules/verification/telemetry_dashboard.png`.
