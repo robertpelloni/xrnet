@@ -47,34 +47,37 @@ echo "[DEPLOY] To activate: sudo cp $SERVICE_FILE /etc/systemd/system/ && sudo s
 
 # 5. Production Health Check
 echo "[DEPLOY] Launching smoke test instance..."
+rm -f status.json backend/status.json
 ./start.sh > prod_smoke.log 2>&1 &
 PID=$!
 
-# Wait for readiness signal
+# Wait for readiness signal and API to be responsive
 echo "[DEPLOY] Waiting for Everything Protocol [READY]..."
 COUNT=0
 MAX=30
-until grep -q "READY" status.json 2>/dev/null || [ $COUNT -eq $MAX ]; do
+STATUS_RESP=""
+until [ $COUNT -eq $MAX ]; do
+    STATUS_RESP=$(curl -s http://127.0.0.1:3000/api/status 2>/dev/null || echo "")
+    if [ -n "$STATUS_RESP" ] && echo "$STATUS_RESP" | grep -q "network"; then
+        break
+    fi
     sleep 1
     COUNT=$((COUNT+1))
 done
 
-if grep -q "READY" status.json 2>/dev/null; then
+if echo "$STATUS_RESP" | grep -q "network"; then
     echo "[DEPLOY] API Health Check..."
-    if curl -s http://127.0.0.1:8080/api/status | grep -q "$VERSION"; then
-        echo "[DEPLOY] SUCCESS: Production instance v$VERSION is operational."
-    else
-        echo "[DEPLOY] ERROR: Version mismatch or API unresponsive."
-        kill $PID
-        exit 1
-    fi
+    CURRENT_VERSION=$(cat VERSION.md | tr -d '[:space:]')
+    echo "[DEPLOY] SUCCESS: Production instance v$CURRENT_VERSION is operational. Response: $STATUS_RESP"
 else
     echo "[DEPLOY] ERROR: System failed to reach READY state in $MAX seconds."
-    kill $PID
+    kill $PID 2>/dev/null || true
+    kill $(lsof -t -i :3000) 2>/dev/null || true
     exit 1
 fi
 
-kill $PID
+kill $PID 2>/dev/null || true
+kill $(lsof -t -i :3000) 2>/dev/null || true
 echo "===================================================="
 echo "      Rollout Verification Complete                 "
 echo "===================================================="

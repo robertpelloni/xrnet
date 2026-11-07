@@ -88,6 +88,7 @@ export const SpatialViewer: React.FC<SpatialViewerProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           topic: 'spatial_sync',
+          content: JSON.stringify({ anchor: activeAnchor, timestamp: Date.now() }),
           message: JSON.stringify({ anchor: activeAnchor, timestamp: Date.now() })
         })
       });

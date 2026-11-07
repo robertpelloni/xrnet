@@ -2,8 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config';
 
 interface SwarmMsg {
+  id?: string;
   topic: string;
-  payload: string;
+  content?: string;
+  payload?: string;
+  sender?: string;
   timestamp?: number;
 }
 
@@ -18,7 +21,8 @@ export const SwarmMessagePanel: React.FC = () => {
       const res = await fetch(`${API_BASE_URL}/api/messages/recent`);
       if (res.ok) {
         const data = await res.json();
-        setRecentMessages(data);
+        const list = Array.isArray(data) ? data : (data.messages || []);
+        setRecentMessages(list);
       }
     } catch {
       // Standalone mode fallback
@@ -39,7 +43,7 @@ export const SwarmMessagePanel: React.FC = () => {
       await fetch(`${API_BASE_URL}/api/messages/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic, message })
+        body: JSON.stringify({ topic, content: message, message, sender: 'local' })
       });
       setStatusText('Broadcast published successfully');
       setMessage('');
@@ -57,9 +61,9 @@ export const SwarmMessagePanel: React.FC = () => {
           <p className="empty-notice">No mesh broadcasts received yet. Be the first to broadcast!</p>
         ) : (
           recentMessages.map((m, idx) => (
-            <div key={idx} className="message-item">
+            <div key={m.id || idx} className="message-item">
               <span className="topic-badge">[{m.topic}]</span>
-              <span className="msg-payload">{m.payload}</span>
+              <span className="msg-payload">{m.content || m.payload || '(empty)'}</span>
             </div>
           ))
         )}

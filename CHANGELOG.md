@@ -1,5 +1,24 @@
 # CHANGELOG: xrnet
 
+## [0.1.142] - 2026-11-06
+### Added
+- Real-time Distance-Vector active route counting (`active_routes`), calculated transit jitter (`jitter_ms`), and packet loss percentage (`packet_loss_percent`) in `GET /api/telemetry`.
+- Configurable polling intervals (1s, 3s, 10s, Paused) in `MonitoringDashboard.tsx`.
+- Visual indicators for active routing table size alongside connected peers, dynamic transit jitter, and network packet loss metrics.
+
+## [0.1.141] - 2026-11-06
+### Added
+- Privacy-preserving ZK matchmaking compatibility scoring (`compute_compatibility_score`) via Jaccard similarity coefficient across blinded salted interest hashes.
+- Flexible multi-format payload handling (`my_interests`/`interests`, `peer_interests`/`other_interests`) in `POST /api/social/match`.
+- Visual compatibility percentage score, Groth16/BLS12-381 ZK-SNARK verification badges, and blinded match count indicators in `SocialMatchPanel.tsx`.
+- Refined TypeScript primitive types in `ProtocolPanel.tsx`.
+
+## [0.1.140] - 2026-06-25
+### Added
+- Multi-Hop Distance-Vector routing inspection endpoint `GET /api/routing/routes` returning real-time non-stale mesh paths.
+- Multi-Hop packet dispatch endpoint `POST /api/routing/dispatch` resolving routes via distance-vector and algorithmic neutrality scoring fallback.
+- Interactive Distance-Vector routing table and packet dispatch UI within `ProtocolPanel.tsx`.
+- Synchronized `DistanceVectorTable` and `RoutingEngine` inside Axum `AppState` and libp2p Gossipsub event loop in `mesh.rs`.
 
 ## [0.1.44] - 2026-06-18
 ### Changed
@@ -422,4 +441,89 @@
 - Autonomous version bump via Executive Protocol.
 
 ## [0.1.122] - 2026-11-06
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.123] - 2026-11-06
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.124] - 2026-11-06
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.125] - 2026-11-06
+### Added
+- Real-time sparkline telemetry bar chart for mesh routing throughput metrics in MonitoringDashboard.
+- Automated pulse telemetry simulations for local standalone observability.
+- Fully synchronized upstream feature branches and resolved conflicts.
+
+## [0.1.126] - 2026-11-06
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.127] - 2026-11-06
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.128] - 2026-11-06
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.129] - 2026-11-06
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.130] - 2026-11-06
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.131] - 2026-11-06
+- Autonomous version bump via Executive Protocol.
+### Added
+- Wasm plugin sandbox execution UI in PluginPanel with runtime execution trigger, JSON input payload passing, and output visualizer.
+
+## [0.1.132] - 2026-11-06
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.133] - 2026-11-06
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.134] - 2026-11-06
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.135] - 2026-11-06
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.136] - 2026-11-06
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.137] - 2026-11-06
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.138] - 2026-11-06
+### Added
+- Added live fleet telemetry backend endpoint `GET /api/telemetry` in `backend/src/api/system.rs` reporting peers, packet rate, neutrality score, uptime, and peer RTT latencies.
+- Upgraded `frontend/src/components/MonitoringDashboard.tsx` with dynamic polling of `/api/telemetry` every 3s, real-time throughput sparkline history, and dedicated peer latency list visualizer.
+
+## [0.1.143] - 2026-11-07
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.144] - 2026-11-07
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.145] - 2026-11-07
+### Added
+- Upgraded `scripts/deploy_prod.sh` production rollout script to target port 3000 Axum health check and verify responsive JSON status.
+- Added status synchronization writing `status.json` and `backend/status.json` on backend startup to coordinate with `main.py` and deployment scripts.
+- Ignored runtime deployment smoke logs `prod_smoke.log` and generated systemd service files `xrnet.service` in `.gitignore`.
+
+## [0.1.146] - 2026-11-07
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.147] - 2026-11-07
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.148] - 2026-11-07
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.149] - 2026-11-07
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.150] - 2026-11-07
+- Autonomous version bump via Executive Protocol.
+
+## [0.1.151] - 2026-11-07
 - Autonomous version bump via Executive Protocol.

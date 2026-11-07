@@ -17,15 +17,22 @@ pub fn routes(state: Arc<AppState>) -> Router {
             move |Json(payload): Json<serde_json::Value>| {
                 let s = Arc::clone(&s);
                 async move {
-                    let content = payload["content"].as_str().unwrap_or("").to_string();
+                    // Extract content supporting 'content', 'message', or 'payload' keys
+                    let content = payload["content"]
+                        .as_str()
+                        .or_else(|| payload["message"].as_str())
+                        .or_else(|| payload["payload"].as_str())
+                        .unwrap_or("")
+                        .to_string();
                     let topic = payload["topic"].as_str().unwrap_or("xrnet-global").to_string();
                     let sender = payload["sender"].as_str().unwrap_or("local").to_string();
 
-                    // Record locally in recent messages
+                    // Record locally in recent messages with both 'content' and 'payload'
                     let msg_record = json!({
                         "id": format!("msg-{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis()),
                         "sender": sender,
                         "content": content,
+                        "payload": content,
                         "topic": topic,
                         "timestamp": std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs(),
                     });

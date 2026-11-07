@@ -31,3 +31,5 @@ backend/status.json
 *.ply
 *.splat
 *.nerf
+prod_smoke.log
+xrnet.service

@@ -13,6 +13,7 @@ mod messages;
 mod bobcoin;
 mod spatial;
 mod plugin;
+mod routing;
 
 pub fn api_router(state: Arc<AppState>, http_client: Client) -> Router {
     Router::new()
@@ -26,4 +27,5 @@ pub fn api_router(state: Arc<AppState>, http_client: Client) -> Router {
         .merge(bobcoin::routes(http_client))
         .merge(spatial::routes(Arc::clone(&state)))
         .merge(plugin::routes(Arc::clone(&state)))
+        .merge(routing::routes(Arc::clone(&state)))
 }
