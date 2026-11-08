@@ -70,6 +70,6 @@ Nodes with higher Neutrality Index scores (visible in the Mesh Dashboard) are pr
 
 Trigger the autonomous update protocol via the API or dashboard:
 ```bash
-curl -X POST http://localhost:8080/api/system/protocol
+curl -X POST http://localhost:3000/api/system/protocol
 ```
 This will pull the latest features, re-synchronize the mesh, and restart the node service.
