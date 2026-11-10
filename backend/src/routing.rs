@@ -131,12 +131,22 @@ impl DistanceVectorTable {
             let should_update = match self.routes.get(&entry.destination) {
                 None => true,
                 Some(existing) => {
-                    entry.sequence_number > existing.sequence_number
-                        || (entry.sequence_number == existing.sequence_number
-                            && new_metric < existing.metric)
-                        || (entry.sequence_number == existing.sequence_number
-                            && existing.next_hop == from_peer
-                            && existing.metric != new_metric)
+                    // Route stability: higher sequence numbers always take precedence.
+                    // When sequence numbers match, lower metrics take precedence.
+                    // If metrics match, retain direct routes to prevent unnecessary routing churn.
+                    if entry.sequence_number > existing.sequence_number {
+                        true
+                    } else if entry.sequence_number == existing.sequence_number {
+                        if new_metric < existing.metric {
+                            true
+                        } else if existing.next_hop == from_peer && existing.metric != new_metric {
+                            true
+                        } else {
+                            false
+                        }
+                    } else {
+                        false
+                    }
                 }
             };
 
@@ -277,7 +287,10 @@ impl RoutingEngine {
         // 1. Try distance-vector route for the exact destination.
         if let Some(nh) = distance_vector.next_hop(&packet.destination) {
             if available_peers.contains(&nh) {
-                return Some(nh);
+                let nh_score = self.neutrality_map.get(&nh).copied().unwrap_or(0.5);
+                if nh_score >= packet.neutrality_threshold {
+                    return Some(nh);
+                }
             }
         }
 
@@ -592,5 +605,55 @@ mod tests {
 
         let next = engine.route_packet(&pkt, peers, &dv);
         assert_eq!(next, Some("peer-c".into()));
+    }
+
+    #[test]
+    fn test_route_packet_prefers_higher_neutrality_candidate() {
+        let mut engine = RoutingEngine::new();
+        let mut dv = DistanceVectorTable::new();
+        // Destination peer-target has next-hop peer-bad with low neutrality (0.2)
+        dv.add_direct_route("peer-bad".into(), 0);
+        let update = RouteUpdate {
+            source_peer: "peer-bad".into(),
+            sequence_number: 1,
+            entries: vec![RouteEntry {
+                destination: "peer-target".into(),
+                metric: 1,
+                sequence_number: 1,
+            }],
+        };
+        dv.process_update(&update, "peer-bad");
+
+        engine.update_neutrality("peer-bad".into(), 0.2);
+        engine.update_neutrality("peer-good".into(), 0.95);
+
+        // High threshold (0.8) excludes peer-bad and falls back to peer-good
+        let pkt = MeshPacket::new("a".into(), "peer-target".into(), vec![], 5, 0.8, "id-2".into());
+        let peers = vec!["peer-bad".into(), "peer-good".into()];
+
+        let next = engine.route_packet(&pkt, peers, &dv);
+        assert_eq!(next, Some("peer-good".into()));
+    }
+
+    #[test]
+    fn test_process_update_retains_direct_route_on_equal_metric() {
+        let mut table = DistanceVectorTable::new();
+        table.add_direct_route("peer-b", 1); // direct route metric 1, seq 1
+
+        // Another neighbor peer-c advertises peer-b at metric 0 (+1 = 1) with same seq
+        let upd = RouteUpdate {
+            source_peer: "peer-c".into(),
+            sequence_number: 1,
+            entries: vec![RouteEntry {
+                destination: "peer-b".into(),
+                metric: 0,
+                sequence_number: 1,
+            }],
+        };
+        let changed = table.process_update(&upd, "peer-c");
+        assert!(!changed);
+
+        // Direct route next hop peer-b remains preserved
+        assert_eq!(table.next_hop("peer-b"), Some("peer-b".into()));
     }
 }
