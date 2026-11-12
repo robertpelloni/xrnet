@@ -6,7 +6,7 @@ import sys
 
 def simulate_external_device():
     print("--- [SIM] XRNet External Device Simulation (AR Headset) ---")
-    api_url = "http://127.0.0.1:8080"
+    api_url = "http://127.0.0.1:3000"
 
     # 1. Join Mesh (Wait for local node)
     print("[SIM] Waiting for local XRNet node to be READY...")
@@ -50,7 +50,45 @@ def simulate_external_device():
     profiles = resp.json()
     print(f"[SIM] Discovered profiles: {list(profiles.values())}")
 
+    # 4. Multi-hop Distance-Vector Routing & Telemetry Validation
+    verify_multihop_routing_and_telemetry(api_url)
+
     print("[SIM] External device simulation complete.")
+
+def verify_multihop_routing_and_telemetry(api_url):
+    print("--- [SIM] Multi-Hop Distance-Vector Routing & Telemetry Validation ---")
+
+    # Check DV route table inspection
+    routes_resp = requests.get(f"{api_url}/api/routing/routes")
+    if routes_resp.status_code != 200:
+        print(f"[ERROR] Failed to query /api/routing/routes: {routes_resp.status_code}")
+        sys.exit(1)
+    routes = routes_resp.json()
+    print(f"[SIM] Distance-Vector active routes: {len(routes)}")
+
+    # Dispatch packet via multi-hop mesh routing
+    dispatch_payload = {
+        "source": "device-ar-1",
+        "destination": "peer-alpha",
+        "payload": "spatial-sync-test",
+        "ttl": 16
+    }
+    dispatch_resp = requests.post(f"{api_url}/api/routing/dispatch", json=dispatch_payload)
+    if dispatch_resp.status_code != 200:
+        print(f"[ERROR] Routing dispatch failed: {dispatch_resp.text}")
+        sys.exit(1)
+    dispatch_data = dispatch_resp.json()
+    print(f"[SIM] Routing dispatch result: {dispatch_data.get('status')} (forwarded: {dispatch_data.get('forwarded')})")
+
+    # Verify Telemetry reporting
+    telemetry_resp = requests.get(f"{api_url}/api/telemetry")
+    if telemetry_resp.status_code != 200:
+        print(f"[ERROR] Telemetry poll failed: {telemetry_resp.status_code}")
+        sys.exit(1)
+    telemetry = telemetry_resp.json()
+    print(f"[SIM] Telemetry data: routes={telemetry.get('active_routes')}, jitter={telemetry.get('jitter_ms')}ms, loss={telemetry.get('packet_loss_percent')}%, packet_rate={telemetry.get('packet_rate')}")
+    assert "jitter_ms" in telemetry, "Missing jitter_ms in telemetry"
+    assert "packet_loss_percent" in telemetry, "Missing packet_loss_percent in telemetry"
 
 if __name__ == "__main__":
     simulate_external_device()
